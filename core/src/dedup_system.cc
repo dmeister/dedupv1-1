@@ -47,6 +47,7 @@
 #include <core/dedup_volume.h>
 #include <core/filter.h>
 #include <core/chunk_index_filter.h>
+#include <core/sparse_chunk_index_filter.h>
 #include <core/block_index_filter.h>
 #include <core/bytecompare_filter.h>
 #include <core/bloom_filter.h>
@@ -1255,6 +1256,7 @@ void DedupSystem::RegisterDefaults() {
     dedupv1::chunkstore::ContainerStorage::RegisterStorage();
 
     dedupv1::filter::ChunkIndexFilter::RegisterFilter();
+    dedupv1::filter::SparseChunkIndexFilter::RegisterFilter();
     dedupv1::filter::BlockIndexFilter::RegisterFilter();
     dedupv1::filter::ByteCompareFilter::RegisterFilter();
     dedupv1::filter::BloomFilter::RegisterFilter();
