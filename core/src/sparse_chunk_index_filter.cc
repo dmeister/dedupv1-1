@@ -72,7 +72,7 @@ SparseChunkIndexFilter::Statistics::Statistics() : average_latency_(256) {
 SparseChunkIndexFilter::SparseChunkIndexFilter() :
     Filter("sparse-chunk-index-filter", FILTER_STRONG_MAYBE) {
     this->chunk_index_ = NULL;
-    sampling_factor_ = 0;
+    sampling_factor_ = 5;
     sampling_mask_ = 0;
 }
 
@@ -80,7 +80,7 @@ SparseChunkIndexFilter::~SparseChunkIndexFilter() {
 }
 
 void SparseChunkIndexFilter::RegisterFilter() {
-    Filter::Factory().Register("sprase-chunk-index-filter", &SparseChunkIndexFilter::CreateFilter);
+    Filter::Factory().Register("sparse-chunk-index-filter", &SparseChunkIndexFilter::CreateFilter);
 }
 
 Filter* SparseChunkIndexFilter::CreateFilter() {
@@ -114,7 +114,7 @@ bool SparseChunkIndexFilter::SetOption(const string& option_name,
     sampling_factor_ = o.value();
     return true;
   }
-  return false;
+  return Filter::SetOption(option_name, option);
 }
 
 bool SparseChunkIndexFilter::IsAnchor(const ChunkMapping& mapping) {
@@ -143,7 +143,7 @@ bool SparseChunkIndexFilter::AcquireChunkLock(const ChunkMapping& mapping) {
 
 Filter::filter_result SparseChunkIndexFilter::Check(Session* session, 
         const BlockMapping* block_mapping,
-        ChunkMapping* mapping, 
+        ChunkMapping* mapping,
         ErrorContext* ec) {
     DCHECK_RETURN(mapping, FILTER_ERROR, "Chunk mapping not set");
     enum filter_result result = FILTER_ERROR;
@@ -204,7 +204,7 @@ bool SparseChunkIndexFilter::Update(Session* session,
     ProfileTimer timer(this->stats_.time_);
 
     DCHECK(mapping, "Mapping must be set");
-    
+
     if (!IsAnchor(*mapping)) {
       return true;
     }
@@ -218,8 +218,8 @@ bool SparseChunkIndexFilter::Update(Session* session,
     return r;
 }
 
-bool SparseChunkIndexFilter::Abort(Session* session, 
-    ChunkMapping* chunk_mapping, 
+bool SparseChunkIndexFilter::Abort(Session* session,
+    ChunkMapping* chunk_mapping,
     ErrorContext* ec) {
     DCHECK(chunk_mapping, "Chunk mapping not set");
 
