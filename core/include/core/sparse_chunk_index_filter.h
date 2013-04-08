@@ -60,12 +60,12 @@ private:
 public:
         Statistics();
 
-        tbb::atomic<uint64_t> reads;
-        tbb::atomic<uint64_t> writes;
-        tbb::atomic<uint64_t> hits;
-        tbb::atomic<uint64_t> empty_fp_hits;
-        tbb::atomic<uint64_t> miss;
-        tbb::atomic<uint64_t> failures;
+        tbb::atomic<uint64_t> reads_;
+        tbb::atomic<uint64_t> writes_;
+        tbb::atomic<uint64_t> strong_hits_;
+        tbb::atomic<uint64_t> weak_hits_;
+        tbb::atomic<uint64_t> miss_;
+        tbb::atomic<uint64_t> failures_;
 
         tbb::atomic<uint64_t> anchor_count_;
 
@@ -78,9 +78,6 @@ public:
          * Profiling information (filter latency in ms)
          */
         dedupv1::base::SimpleSlidingAverage average_latency_;
-
-        tbb::atomic<uint64_t> lock_free;
-        tbb::atomic<uint64_t> lock_busy;
     };
 
     /**
@@ -149,8 +146,9 @@ public:
      * @return
      */
     virtual enum filter_result Check(dedupv1::Session* session,
-                                     const dedupv1::blockindex::BlockMapping* block_mapping, dedupv1::chunkindex::ChunkMapping* mapping,
-                                     dedupv1::base::ErrorContext* ec);
+        const dedupv1::blockindex::BlockMapping* block_mapping,
+        dedupv1::chunkindex::ChunkMapping* mapping,
+        dedupv1::base::ErrorContext* ec);
 
     /**
      * Updates the chunk index for the newly found chunk.
@@ -163,8 +161,10 @@ public:
      * @param ec Error context that can be filled if case of special errors
      * @return true iff ok, otherwise an error has occurred
      */
-    virtual bool Update(dedupv1::Session* session, dedupv1::chunkindex::ChunkMapping* mapping,
-                        dedupv1::base::ErrorContext* ec);
+    virtual bool Update(dedupv1::Session* session,
+        const dedupv1::blockindex::BlockMapping* block_mapping,
+        dedupv1::chunkindex::ChunkMapping* mapping,
+        dedupv1::base::ErrorContext* ec);
 
     /**
      * Calls when the processing of the started filtering should be aborted.
@@ -173,8 +173,10 @@ public:
      * chunk mapping. The chunk index filter is releasing the chunk lock
      * @return true iff ok, otherwise an error has occurred
      */
-    virtual bool Abort(dedupv1::Session* session, dedupv1::chunkindex::ChunkMapping* chunk_mapping,
-                       dedupv1::base::ErrorContext* ec);
+    virtual bool Abort(dedupv1::Session* session,
+        const dedupv1::blockindex::BlockMapping* block_mapping,
+        dedupv1::chunkindex::ChunkMapping* chunk_mapping,
+        dedupv1::base::ErrorContext* ec);
 
     /**
      * @return true iff ok, otherwise an error has occurred
@@ -197,11 +199,6 @@ public:
      * @return
      */
     virtual std::string PrintProfile();
-
-    /**
-     * Print lock information about the chunk index filter
-     */
-    virtual std::string PrintLockStatistics();
 
     /**
      * Create a new chunk index filter object

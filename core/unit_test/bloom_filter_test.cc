@@ -43,10 +43,6 @@ INSTANTIATE_TEST_CASE_P(BloomFilter,
         "data/dedupv1_bloomfilter_test.conf"
         ));
 
-INSTANTIATE_TEST_CASE_P(BloomFilter,
-    DedupSystemTest,
-    ::testing::Values("data/dedupv1_bloomfilter_test.conf"));
-
 }
 }
 

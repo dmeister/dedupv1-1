@@ -59,15 +59,13 @@ namespace dedupv1 {
 namespace filter {
 
 SparseChunkIndexFilter::Statistics::Statistics() : average_latency_(256) {
-    hits = 0;
-    empty_fp_hits = 0;
-    miss = 0;
-    reads = 0;
-    writes = 0;
-    lock_free = 0;
-    lock_busy = 0;
-    failures = 0;
-    anchor_count_  = 0;
+    weak_hits_ = 0;
+    strong_hits_ = 0;
+    miss_ = 0;
+    reads_ = 0;
+    writes_ = 0;
+    failures_ = 0;
+    anchor_count_ = 0;
 }
 
 SparseChunkIndexFilter::SparseChunkIndexFilter() :
@@ -157,14 +155,9 @@ Filter::filter_result SparseChunkIndexFilter::Check(Session* session,
     ProfileTimer timer(this->stats_.time_);
     SlidingAverageProfileTimer timer2(this->stats_.average_latency_);
 
-    if (Fingerprinter::IsEmptyDataFingerprint(mapping->fingerprint(), mapping->fingerprint_size())) {
-        mapping->set_data_address(Storage::EMPTY_DATA_STORAGE_ADDRESS);
-        this->stats_.reads++;
-        this->stats_.empty_fp_hits++;
-        return FILTER_EXISTING;
-    }
-
+    this->stats_.reads_++;
     if (!IsAnchor(*mapping)) {
+        stats_.weak_hits_++;
         return FILTER_WEAK_MAYBE;
     }
     stats_.anchor_count_++;
@@ -172,27 +165,26 @@ Filter::filter_result SparseChunkIndexFilter::Check(Session* session,
     CHECK_RETURN(AcquireChunkLock(*mapping), FILTER_ERROR,
         "Failed to acquire chunk lock: " << mapping->DebugString());
 
-    this->stats_.reads++;
     enum lookup_result index_result = this->chunk_index_->Lookup(mapping, true, ec);
     if (index_result == LOOKUP_NOT_FOUND) {
         if (likely(chunk_index_->IsAcceptingNewChunks())) {
             result = FILTER_NOT_EXISTING;
-            this->stats_.miss++;
+            this->stats_.miss_++;
         } else {
             if (ec) {
                 ec->set_full();
             }
-            stats_.failures++;
+            stats_.failures_++;
             result = FILTER_ERROR;
         }
     } else if (index_result == LOOKUP_FOUND) {
         mapping->set_usage_count(0); // TODO (dmeister): Why???
-        this->stats_.hits++;
+        this->stats_.strong_hits_++;
         result = FILTER_STRONG_MAYBE;
     } else if (index_result == LOOKUP_ERROR) {
         ERROR("Chunk index filter lookup failed: " <<
             "mapping " << mapping->DebugString());
-        stats_.failures++;
+        stats_.failures_++;
         result = FILTER_ERROR;
     }
     if (result == FILTER_ERROR) {
@@ -205,8 +197,9 @@ Filter::filter_result SparseChunkIndexFilter::Check(Session* session,
 }
 
 bool SparseChunkIndexFilter::Update(Session* session,
-                                    ChunkMapping* mapping,
-                                    ErrorContext* ec) {
+    const BlockMapping* block_mapping,
+    ChunkMapping* mapping,
+    ErrorContext* ec) {
     ProfileTimer timer(this->stats_.time_);
 
     DCHECK(mapping, "Mapping must be set");
@@ -214,7 +207,7 @@ bool SparseChunkIndexFilter::Update(Session* session,
     if (!IsAnchor(*mapping)) {
         return true;
     }
-    this->stats_.writes++;
+    this->stats_.writes_++;
 
     bool r = this->chunk_index_->Put(*mapping, ec);
 
@@ -225,8 +218,9 @@ bool SparseChunkIndexFilter::Update(Session* session,
 }
 
 bool SparseChunkIndexFilter::Abort(Session* session,
-                                   ChunkMapping* chunk_mapping,
-                                   ErrorContext* ec) {
+    const BlockMapping* block_mapping,
+    ChunkMapping* chunk_mapping,
+    ErrorContext* ec) {
     DCHECK(chunk_mapping, "Chunk mapping not set");
 
     // if we have the empty fingerprint, we do not need to release the chunk lock
@@ -245,33 +239,28 @@ bool SparseChunkIndexFilter::Abort(Session* session,
 bool SparseChunkIndexFilter::PersistStatistics(std::string prefix,
                                                dedupv1::PersistStatistics* ps) {
     SparseChunkIndexFilterStatsData data;
-    data.set_hit_count(this->stats_.hits);
-    data.set_miss_count(this->stats_.miss);
-    data.set_read_count(this->stats_.reads);
-    data.set_write_count(this->stats_.writes);
+    data.set_strong_hit_count(this->stats_.strong_hits_);
+    data.set_weak_hit_count(stats_.weak_hits_);
+    data.set_miss_count(this->stats_.miss_);
+    data.set_read_count(this->stats_.reads_);
+    data.set_write_count(this->stats_.writes_);
     data.set_anchor_count(stats_.anchor_count_);
-    data.set_empty_fp_hit_count(this->stats_.empty_fp_hits);
-    data.set_failure_count(stats_.failures);
-    CHECK(ps->Persist(prefix, data), "Failed to persist chunk index filter stats");
+    data.set_failure_count(stats_.failures_);
+    CHECK(ps->Persist(prefix, data), "Failed to persist sparse chunk index filter stats");
     return true;
 }
 
 bool SparseChunkIndexFilter::RestoreStatistics(std::string prefix,
                                                dedupv1::PersistStatistics* ps) {
     SparseChunkIndexFilterStatsData data;
-    CHECK(ps->Restore(prefix, &data), "Failed to restore chunk index filter stats");
-    this->stats_.reads = data.read_count();
-    this->stats_.hits = data.hit_count();
-    this->stats_.miss = data.miss_count();
-    this->stats_.writes = data.write_count();
-    this->stats_.anchor_count_ = data.anchor_count();
-
-    if (data.has_empty_fp_hit_count()) {
-        this->stats_.empty_fp_hits = data.empty_fp_hit_count();
-    }
-    if (data.has_failure_count()) {
-        stats_.failures = data.failure_count();
-    }
+    CHECK(ps->Restore(prefix, &data), "Failed to restore sparse chunk index filter stats");
+    stats_.reads_ = data.read_count();
+    stats_.strong_hits_ = data.strong_hit_count();
+    stats_.weak_hits_ = data.weak_hit_count();
+    stats_.miss_ = data.miss_count();
+    stats_.writes_ = data.write_count();
+    stats_.anchor_count_ = data.anchor_count();
+    stats_.failures_ = data.failure_count();
     return true;
 }
 
@@ -279,21 +268,12 @@ string SparseChunkIndexFilter::PrintStatistics() {
     stringstream sstr;
     sstr << "{";
     sstr << "\"anchor count\": " << stats_.anchor_count_ << "," << std::endl;
-    sstr << "\"reads\": " << this->stats_.reads << "," << std::endl;
-    sstr << "\"writes\": " << this->stats_.writes << "," << std::endl;
-    sstr << "\"existing\": " << this->stats_.empty_fp_hits << "," << std::endl;
-    sstr << "\"strong\": " << this->stats_.hits << "," << std::endl;
-    sstr << "\"failures\": " << this->stats_.failures << "," << std::endl;
-    sstr << "\"miss\": " << this->stats_.miss << std::endl;
-    sstr << "}";
-    return sstr.str();
-}
-
-string SparseChunkIndexFilter::PrintLockStatistics() {
-    stringstream sstr;
-    sstr << "{";
-    sstr << "\"lock free\": " << this->stats_.lock_free << "," << std::endl;
-    sstr << "\"lock busy\": " << this->stats_.lock_busy << std::endl;
+    sstr << "\"reads\": " << this->stats_.reads_ << "," << std::endl;
+    sstr << "\"writes\": " << this->stats_.writes_ << "," << std::endl;
+    sstr << "\"strong\": " << this->stats_.strong_hits_ << "," << std::endl;
+    sstr << "\"weak\": " << stats_.weak_hits_ << "," << std::endl;
+    sstr << "\"failures\": " << this->stats_.failures_ << "," << std::endl;
+    sstr << "\"miss\": " << this->stats_.miss_ << std::endl;
     sstr << "}";
     return sstr.str();
 }
