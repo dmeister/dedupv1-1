@@ -46,6 +46,9 @@ namespace gc {
 /**
  * Reference-Counting Garbage collection of the dedup system.
  *
+ * The reference-counting garbage collection is not compatible with
+ * a sparse chunk index filter configuration.
+ *
  * The deduplication garbage collection works in the following steps:
  * - If a block is written and all containers of it are committed, a
  *   BlockMappingWritten with a commit flag is written. If a block mapping

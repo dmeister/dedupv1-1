@@ -69,6 +69,7 @@
 #include <core/idle_detector.h>
 #include <core/garbage_collector.h>
 #include <core/usage_count_garbage_collector.h>
+#include <core/none_garbage_collector.h>
 #include <core/container_storage.h>
 #include <core/container_storage_bg.h>
 #include <core/session.h>
@@ -1316,6 +1317,7 @@ void DedupSystem::RegisterDefaults() {
     dedupv1::CryptoFingerprinter::RegisterFingerprinter();
 
     dedupv1::gc::UsageCountGarbageCollector::RegisterGC();
+    dedupv1::gc::NoneGarbageCollector::RegisterGC();
 
     dedupv1::chunkstore::GreedyContainerGCStrategy::RegisterGC();
 
