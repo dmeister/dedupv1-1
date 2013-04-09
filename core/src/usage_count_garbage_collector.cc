@@ -167,11 +167,13 @@ bool UsageCountGarbageCollector::ResumeProcessing() {
     return true;
 }
 
-bool UsageCountGarbageCollector::Start(const StartContext& start_context, DedupSystem* system) {
+bool UsageCountGarbageCollector::Start(const StartContext& start_context,
+    DedupSystem* system) {
     CHECK(system, "System not set");
     CHECK(this->state_ == CREATED, "GC already started");
     CHECK(this->candidate_info_, "Candidate info not set");
-    CHECK(this->candidate_info_->IsPersistent(), "gc candidates index should be persistent");
+    CHECK(this->candidate_info_->IsPersistent(),
+        "gc candidates index should be persistent");
     CHECK(this->candidate_info_->HasCapability(dedupv1::base::PERSISTENT_ITEM_COUNT),
         "gc candidates index has no persistent item count");
 
@@ -197,13 +199,16 @@ bool UsageCountGarbageCollector::Start(const StartContext& start_context, DedupS
     this->tp_ = system->threadpool();
     CHECK(tp_, "Threadpool not set");
 
-    CHECK(this->candidate_info_->Start(start_context), "Cannot open candidate info");
+    CHECK(this->candidate_info_->Start(start_context),
+        "Cannot open candidate info");
 
     this->state_ = STARTED;
     DEBUG("Started gc");
 
-    CHECK(this->idle_detector_->RegisterIdleConsumer("gc", this), "Cannot register gc as idle tick consumer");
-    CHECK(this->log_->RegisterConsumer("gc", this), "Cannot register gc consumer");
+    CHECK(this->idle_detector_->RegisterIdleConsumer("gc", this),
+        "Cannot register gc as idle tick consumer");
+    CHECK(this->log_->RegisterConsumer("gc", this),
+        "Cannot register gc consumer");
 
     CHECK(ReadMetaInfo(), "Failed to read gc info data");
     return true;
@@ -221,7 +226,8 @@ bool UsageCountGarbageCollector::DumpMetaInfo() {
     CHECK(info_store_->PersistInfo("gc", info_data),
         "Failed to persist gc info data: " << info_data.ShortDebugString());
 
-    DEBUG("Dumped gc info data: " << FriendlySubstr(info_data.ShortDebugString(), 0, 256, "..."));
+    DEBUG("Dumped gc info data: " <<
+        FriendlySubstr(info_data.ShortDebugString(), 0, 256, "..."));
     return true;
 }
 
@@ -238,7 +244,8 @@ bool UsageCountGarbageCollector::ReadMetaInfo() {
         replayed_block_failed_event_set_.insert(info_data.replayed_block_failed_event_log_id(i));
     }
 
-    DEBUG("Restored gc info data: " << FriendlySubstr(info_data.ShortDebugString(), 0, 256, "..."));
+    DEBUG("Restored gc info data: " <<
+        FriendlySubstr(info_data.ShortDebugString(), 0, 256, "..."));
 
     return true;
 }
@@ -247,7 +254,8 @@ bool UsageCountGarbageCollector::Close() {
     DEBUG("Closing gc");
 
     if (this->state_ == RUNNING || this->state_ == CANDIDATE_PROCESSING || this->state_ == STOPPING) {
-        CHECK(this->Stop(dedupv1::StopContext::FastStopContext()), "Cannot stop gc");
+        CHECK(this->Stop(dedupv1::StopContext::FastStopContext()),
+            "Cannot stop gc");
     }
 
     if (this->idle_detector_ && idle_detector_->IsRegistered("gc").value()) {
@@ -276,7 +284,8 @@ bool UsageCountGarbageCollector::Close() {
     return true;
 }
 
-bool UsageCountGarbageCollector::SetOption(const std::string& option_name, const std::string& option) {
+bool UsageCountGarbageCollector::SetOption(const std::string& option_name,
+    const std::string& option) {
     if (option_name == "type") {
         Index* index = Index::Factory().Create(option);
         CHECK(index, "Index creation failed: " << option);
@@ -288,8 +297,9 @@ bool UsageCountGarbageCollector::SetOption(const std::string& option_name, const
     return this->candidate_info_->SetOption(option_name, option);
 }
 
-bool UsageCountGarbageCollector::Diff(const BlockMapping& original_block_mapping, const BlockMapping& modified_block_mapping,
-                                      map<bytestring, pair<int, uint64_t> >* diff_result) {
+bool UsageCountGarbageCollector::Diff(const BlockMapping& original_block_mapping,
+    const BlockMapping& modified_block_mapping,
+    map<bytestring, pair<int, uint64_t> >* diff_result) {
     map<bytestring, int> diff;
     map<bytestring, uint64_t> container_map;
     list<BlockMappingItem>::const_iterator i;
@@ -405,7 +415,8 @@ bool UsageCountGarbageCollector::Run() {
     CHECK(original_state == STARTED, "Illegal state: " << this->state_);
 
     // pick up partly processed candidates
-    // We execute them before Run because we can only here assume that e.g. the container allocation data
+    // We execute them before Run because we can only here assume that e.g.
+    // the container allocation data
     // is up to date. It MUST be after the dirty log replay.
     ScopedLock scoped_lock(&candidate_info_lock_);
     CHECK(scoped_lock.AcquireLock(), "Failed to acquire candidate info lock");
@@ -420,11 +431,12 @@ bool UsageCountGarbageCollector::Run() {
     lookup_result lr = i->Next(NULL, NULL, &candidate_data);
     for (; lr == LOOKUP_FOUND; lr = i->Next(NULL, NULL, &candidate_data)) {
         if (candidate_data.processing()) {
-            INFO("Finish processing: container id " << candidate_data.address() << ", item count "
-                                                    << candidate_data.item_size());
+            INFO("Finish processing: container id " << candidate_data.address() <<
+                ", item count " << candidate_data.item_size());
             bool candidate_changes = false;
             if (!DoProcessGCCandidate(&candidate_data, &candidate_changes)) {
-                WARNING("Failed to process GC candidate: container id " << candidate_data.address());
+                WARNING("Failed to process GC candidate: " <<
+                    "container id " << candidate_data.address());
                 return false;
             } else {
                 if (candidate_data.item_size() == 0) {
@@ -447,13 +459,15 @@ bool UsageCountGarbageCollector::Run() {
 
     for (std::list<uint64_t>::iterator i = deleted_candidates.begin(); i != deleted_candidates.end(); i++) {
         uint64_t id = *i;
-        CHECK(this->candidate_info_->Delete(&id, sizeof(id)) != DELETE_ERROR, "Error deleting garbage info element " << *i);
+        CHECK(this->candidate_info_->Delete(&id, sizeof(id)) != DELETE_ERROR,
+            "Error deleting garbage info element " << *i);
     }
 
     for (std::list<GarbageCollectionCandidateData>::iterator i = changed_cadidates.begin(); i
          != changed_cadidates.end(); i++) {
         uint64_t id = i->address();
-        CHECK(this->candidate_info_->Put(&id, sizeof(id), *i) != PUT_ERROR, "Error updating garbage info element " << i->DebugString());
+        CHECK(this->candidate_info_->Put(&id, sizeof(id), *i) != PUT_ERROR,
+            "Error updating garbage info element " << i->DebugString());
     }
 
     DEBUG("Running gc");
@@ -485,7 +499,8 @@ bool UsageCountGarbageCollector::IsProcessing() {
 }
 
 bool UsageCountGarbageCollector::StartProcessing() {
-    // we try to switch from CANDIDATE_PROCESSING to RUNNING. We don't care if this fails.
+    // we try to switch from CANDIDATE_PROCESSING to RUNNING. We don't care if
+    // this fails.
     if (paused_) {
         WARNING("StartProcessing was called while GarbageCollector is in paused mode.");
     }
