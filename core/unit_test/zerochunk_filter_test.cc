@@ -34,7 +34,7 @@ namespace filter {
 
 INSTANTIATE_TEST_CASE_P(ZeroChunkFilter,
     FilterTest,
-    ::testing::Values("zerochunk-filter;size=1024"));
+    ::testing::Values("zerochunk-filter"));
 
 }
 }
