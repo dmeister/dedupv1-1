@@ -379,7 +379,7 @@ string BlockChunkCache::PrintTrace() {
     sstr << "\"no block hint count\": " << this->stats_.no_hint_count_ << "," << std::endl;
     sstr << "\"block lookup missing count\": " << this->stats_.block_lookup_missing_ << "," << std::endl;
     sstr << "\"block evict count\": " << this->stats_.block_evict_count_ << "," << std::endl;
-    sstr << "\"diff evict count\": " << this->stats_.diff_evict_count_ << "," << std::endl;
+    sstr << "\"diff evict count\": " << this->stats_.diff_evict_count_ << std::endl;
     sstr << "}";
     return sstr.str();
 }
