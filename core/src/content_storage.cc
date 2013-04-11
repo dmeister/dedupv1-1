@@ -703,7 +703,7 @@ bool ContentStorage::ProcessChunkFilterChain(std::tr1::tuple<Session*, const Blo
     FAULT_POINT("content-storage.handle.pre-chunk-store");
     if (likely(!failed)) {
         SlidingAverageProfileTimer method_timer2(this->stats_.average_process_chunk_filter_chain_write_block_latency_);
-        if (!this->chunk_store_->WriteBlock(session->storage_session(), chunk_mapping, ec)) {
+        if (!this->chunk_store_->WriteBlock(chunk_mapping, ec)) {
             ERROR("Storing of chunk data failed: " <<
                 "block mapping " << (block_mapping ? block_mapping->DebugString() : "<no block mapping>") <<
                 ", chunk mapping " << chunk_mapping->DebugString());
@@ -783,7 +783,7 @@ bool ContentStorage::ProcessFilterChain(Session* session,
     return !failed;
 }
 
-bool ContentStorage::MergeChunksIntoCurrentRequest(uint64_t block_id, 
+bool ContentStorage::MergeChunksIntoCurrentRequest(uint64_t block_id,
     RequestStatistics* request_stats,
     unsigned int block_offset,
     unsigned long open_chunk_pos,
@@ -798,7 +798,7 @@ bool ContentStorage::MergeChunksIntoCurrentRequest(uint64_t block_id,
 
     BlockMappingItem request(session->open_chunk_position(), chunk_mappings->at(0).chunk()->size()
                              - session->open_chunk_position());
-    CHECK(request.Convert(chunk_mappings->at(0)), 
+    CHECK(request.Convert(chunk_mappings->at(0)),
         "Failed to convert chunk mapping: " << chunk_mappings->at(0).DebugString());
 
     // TODO(fermat): Is this necessary? Is is used anywhere? It is also set in the last line of this method.
@@ -1146,7 +1146,7 @@ bool ContentStorage::ReadDataForItem(BlockMappingItem* item, Session* session, b
         size_t local_buffer_size = session->buffer_size();
         memset(session->buffer(), 0, session->buffer_size());
 
-        CHECK(this->chunk_store_->ReadBlock(session->storage_session(), item, session->buffer(), &local_buffer_size, ec),
+        CHECK(this->chunk_store_->ReadBlock(item, session->buffer(), &local_buffer_size, ec),
             "Chunk reading failed " << item->DebugString() << ", offset = " << offset);
 
         CHECK(local_buffer_size >= item->chunk_offset() + item->size(),

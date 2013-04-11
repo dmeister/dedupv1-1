@@ -78,7 +78,6 @@ using dedupv1::base::IndexIterator;
 using dedupv1::blockindex::BlockMappingItem;
 using dedupv1::blockindex::BlockMapping;
 using dedupv1::blockindex::BlockMappingPair;
-using dedupv1::chunkstore::StorageSession;
 using dedupv1::Fingerprinter;
 using dedupv1::chunkindex::ChunkMapping;
 using dedupv1::base::put_result;
@@ -688,9 +687,6 @@ bool GarbageCollector::DoProcessGCCandidate(GarbageCollectionCandidateData* cand
     DCHECK(candidate_data, "Candidate data not set");
     DCHECK(this->chunk_index_, "Chunk index not set");
 
-    StorageSession* session = this->storage_->CreateSession();
-    CHECK(session, "Cannot create storage session");
-
     DEBUG("Process gc candidates: " <<
         "container id " << candidate_data->address() <<
         ", item count " << candidate_data->item_size());
@@ -745,7 +741,7 @@ bool GarbageCollector::DoProcessGCCandidate(GarbageCollectionCandidateData* cand
 
     if (key_list.size() > 0) {
         TRACE("Delete from storage: container id " << candidate_data->address() << ", count " << key_list.size());
-        bool delete_result = session->Delete(candidate_data->address(), key_list, NO_EC);
+        bool delete_result = storage_->DeleteChunks(candidate_data->address(), key_list, NO_EC);
         if (!delete_result) {
             // something went wrong
             if (candidate_data->processing()) {
@@ -757,10 +753,6 @@ bool GarbageCollector::DoProcessGCCandidate(GarbageCollectionCandidateData* cand
                 failed = true;
             }
         }
-    }
-
-    if (!session->Close()) {
-        WARNING("Failed to close session");
     }
 
     FAULT_POINT("gc.process.post");
@@ -891,15 +883,15 @@ public:
      * that always a EnsurePersistent is all we need to do here.
      */
     bool ProcessMapping() {
-        TRACE("Process gc: " << mapping_->DebugString() << 
+        TRACE("Process gc: " << mapping_->DebugString() <<
             ", usage modifier " << usage_modifier_);
         bool failed = false;
         bool should_ensure_persistence = false;
 
         ChunkLocks& chunk_locks(gc_->chunk_index_->chunk_locks());
-        if (!chunk_locks.Lock(mapping_->fingerprint(), 
+        if (!chunk_locks.Lock(mapping_->fingerprint(),
               mapping_->fingerprint_size())) {
-            ERROR("Failed to lock chunk index for mapping: " << 
+            ERROR("Failed to lock chunk index for mapping: " <<
                 mapping_->DebugString());
             mapping_->set_data_address(Storage::ILLEGAL_STORAGE_ADDRESS);
             return false;
@@ -907,7 +899,7 @@ public:
 
         enum lookup_result lookup_result = gc_->chunk_index_->LookupPersistentIndex(
             mapping_,
-            dedupv1::base::CACHE_LOOKUP_DEFAULT, 
+            dedupv1::base::CACHE_LOOKUP_DEFAULT,
             dedupv1::base::CACHE_ALLOW_DIRTY, NO_EC);
         if (lookup_result == LOOKUP_ERROR) {
             ERROR("Cannot lookup chunk index for chunk mapping " << mapping_->DebugString());
@@ -928,11 +920,11 @@ public:
             // for all entries is committed.
             // if the change result should now be applied to chunk index
 
-            if (!invert_failed_write_ && 
+            if (!invert_failed_write_ &&
                 mapping_->usage_count_change_log_id() >= context_.log_id()) {
                 // This happens when the system crashes during a log replay and
                 // the last entry has already been processed
-                // In this case, we skip the processing as what should be done 
+                // In this case, we skip the processing as what should be done
                 // is already done.
                 DEBUG("Current event has already been processed: " <<
                     "current log id " << context_.log_id() <<
@@ -941,10 +933,10 @@ public:
 
                 should_ensure_persistence = true;
 
-            } else if (invert_failed_write_ 
+            } else if (invert_failed_write_
                 && mapping_->usage_count_failed_write_change_log_id()
                        >= context_.log_id()) {
-                // This happens when the system crashes during a log replay and 
+                // This happens when the system crashes during a log replay and
                 // the last entry has already been processed
                 // In this case, we skip the processing as what should be done
                 // is already done.
@@ -966,12 +958,12 @@ public:
 
                 DEBUG("Chunk " << mapping_->DebugString() <<
                     ", old usage count " << old_usage_count <<
-                    ", usage modifier " << (usage_modifier_ > 0 ? "+" : "") << 
+                    ", usage modifier " << (usage_modifier_ > 0 ? "+" : "") <<
                     usage_modifier_ <<
                     ", current log id " << context_.log_id());
 
                 // Overwrites the data in the persistent chunk index
-                if (gc_->chunk_index_->PutPersistentIndex(*mapping_, true, false, NO_EC) 
+                if (gc_->chunk_index_->PutPersistentIndex(*mapping_, true, false, NO_EC)
                     == PUT_ERROR) {
                     ERROR("Failed to put usage change to index: " <<
                         "usage modifier " << usage_modifier_ <<
@@ -1006,7 +998,7 @@ public:
                 // I am sure that the container is committed
                 // It is checked in ProcessBlockMappingParallel
                 enum lookup_result lr = gc_->chunk_index_->ChangePinningState(
-                    mapping_->fingerprint(), 
+                    mapping_->fingerprint(),
                     mapping_->fingerprint_size(),
                     false);
                 if (lr == LOOKUP_ERROR) {
@@ -1477,7 +1469,7 @@ public:
         const bytestring& fp,
         uint64_t address,
         int usage_mod) :
-        gc_(gc), usage_modifier_(usage_mod), context_(context), 
+        gc_(gc), usage_modifier_(usage_mod), context_(context),
         block_id_(block_id),fp_(fp), address_(address) {
     }
 
@@ -1517,39 +1509,39 @@ bool GarbageCollector::ProcessDiffDirtyStart(ChunkMapping* mapping,
         ChunkMapping aux_mapping(mapping->fingerprint(), mapping->fingerprint_size());
         enum lookup_result ci_lr = chunk_index_->LookupPersistentIndex(&aux_mapping,
             dedupv1::base::CACHE_LOOKUP_DEFAULT, dedupv1::base::CACHE_ALLOW_DIRTY, NO_EC);
-        CHECK(ci_lr != LOOKUP_ERROR, 
+        CHECK(ci_lr != LOOKUP_ERROR,
             "Failed to lookup chunk index: " << mapping->DebugString());
         if (ci_lr == LOOKUP_NOT_FOUND) {
             uint64_t container_id = mapping->data_address();
             storage_commit_state commit_state = storage_->IsCommittedWait(container_id);
-            CHECK(commit_state != STORAGE_ADDRESS_ERROR, 
+            CHECK(commit_state != STORAGE_ADDRESS_ERROR,
                 "Failed to check commit state: " << container_id);
             if (commit_state == STORAGE_ADDRESS_WILL_NEVER_COMMITTED) {
                 INFO( "Missing container for block write during dirty start: " <<
-                    "usage modifier " << (usage_modifier > 0 ? "+" : "") << 
+                    "usage modifier " << (usage_modifier > 0 ? "+" : "") <<
                     usage_modifier <<
                     ", chunk " << mapping->DebugString());
                 return true; // leave method
             } else if (commit_state == STORAGE_ADDRESS_NOT_COMMITED) {
                 INFO("Missing container for block write during dirty start: " <<
-                    "usage modifier " << (usage_modifier > 0 ? "+" : "") << 
+                    "usage modifier " << (usage_modifier > 0 ? "+" : "") <<
                     usage_modifier <<
                     ", chunk " << mapping->DebugString());
                 return true; // leave method
             }
-            // the container is actually committed (and imported), and we cannot 
+            // the container is actually committed (and imported), and we cannot
             // find the chunk in the chunk index
             WARNING("Failed to find chunk in chunk index for block write during dirty start: " <<
                 "usage modifier " << (usage_modifier > 0 ? "+" : "") << usage_modifier <<
                 ", chunk " << mapping->DebugString());
         } else if (aux_mapping.usage_count_change_log_id() < context.log_id()) {
             DEBUG(
-                "Load chunk into gc startup index: " << mapping->DebugString() << 
+                "Load chunk into gc startup index: " << mapping->DebugString() <<
                 ", stored mapping " << aux_mapping.DebugString());
             mapping->set_usage_count(aux_mapping.usage_count() + usage_modifier);
             mapping->set_usage_count_change_log_id(context.log_id());
 
-            CHECK(chunk_index_->PutPersistentIndex(*mapping, false, false, NO_EC) 
+            CHECK(chunk_index_->PutPersistentIndex(*mapping, false, false, NO_EC)
                 != PUT_ERROR,
                 "Failed to put usage change to index: " <<
                 ", usage modifier " << usage_modifier <<
@@ -1558,7 +1550,7 @@ bool GarbageCollector::ProcessDiffDirtyStart(ChunkMapping* mapping,
             DEBUG("Skip update chunk mapping during dirty start: " <<
                 "current mapping " << mapping->DebugString() <<
                 ", stored mapping " << aux_mapping.DebugString() <<
-                ", usage modifier " << (usage_modifier > 0 ? "+" : "") << 
+                ", usage modifier " << (usage_modifier > 0 ? "+" : "") <<
                 usage_modifier <<
                 ", log id " << context.log_id());
         }
@@ -1583,10 +1575,10 @@ bool GarbageCollector::ProcessDiffDirtyStart(ChunkMapping* mapping,
             CHECK(commit_state != STORAGE_ADDRESS_ERROR, "Failed to check commit state");
             if (commit_state == STORAGE_ADDRESS_COMMITED) {
                 has_to_pin = false;
-                // this is one of the major cases where we know that a container 
-                // is committed even before the end of the dirty replay. But we 
+                // this is one of the major cases where we know that a container
+                // is committed even before the end of the dirty replay. But we
                 // cannot get the correct location of the container or similar
-                // things. Some container might be committed, but we don't know 
+                // things. Some container might be committed, but we don't know
                 // that yet. Therefore we have to pin them.
                 // Some container might not be committed, we pin them, too.
             }
@@ -1603,10 +1595,10 @@ bool GarbageCollector::ProcessDiffDirtyStart(ChunkMapping* mapping,
             mapping->set_usage_count(aux_mapping.usage_count() + usage_modifier);
             mapping->set_usage_count_change_log_id(context.log_id());
 
-            // The problem here is that we have no information if the address is 
+            // The problem here is that we have no information if the address is
             // committed or not.
             // Therefore we pin it to the main memory
-            CHECK(chunk_index_->PutPersistentIndex(*mapping, false, true, NO_EC) 
+            CHECK(chunk_index_->PutPersistentIndex(*mapping, false, true, NO_EC)
                 != PUT_ERROR,
                 "Failed to put usage change to index: " <<
                 "usage modifier " << usage_modifier <<
@@ -1643,13 +1635,13 @@ bool GarbageCollector::ProcessDiffDirect(ChunkMapping* mapping,
         failed = true;
     }
     if (lookup_result == LOOKUP_FOUND) {
-        // we are now sure that the chunk index exists and that the container 
+        // we are now sure that the chunk index exists and that the container
         // for all entries is committed.
         // if the change result should now be applied to chunk index
         // This happens when the background replay is faster than the direct replay
         if (mapping->usage_count_change_log_id() >= context.log_id()) {
             ERROR("Current event has already been processed: " <<
-                "current log id " << context.log_id() << 
+                "current log id " << context.log_id() <<
                 ", chunk " << mapping->DebugString());
             failed = true;
         } else {
@@ -1661,9 +1653,9 @@ bool GarbageCollector::ProcessDiffDirect(ChunkMapping* mapping,
             DEBUG("Chunk " << mapping->DebugString() <<
                     ", old usage count " << old_usage_count <<
                     ", block hint " << mapping->block_hint() <<
-                    ", usage modifier " << (usage_modifier > 0 ? "+" : "") << 
+                    ", usage modifier " << (usage_modifier > 0 ? "+" : "") <<
                     usage_modifier <<
-                    ", replay type " << 
+                    ", replay type " <<
                     dedupv1::log::Log::GetReplayModeName(context.replay_mode()));
 
             // Overwrites the data in the chunk index as dirty chunk
@@ -1685,7 +1677,7 @@ bool GarbageCollector::ProcessDiffDirect(ChunkMapping* mapping,
 bool GarbageCollector::ProcessBlockMappingDirect(const BlockMappingPair& mapping_pair,
     const dedupv1::log::LogReplayContext& context) {
 
-    DEBUG("Process block mapping (direct): " << mapping_pair.DebugString() << 
+    DEBUG("Process block mapping (direct): " << mapping_pair.DebugString() <<
         ", log id " << context.log_id());
 
     bool failed = false;
@@ -1699,7 +1691,7 @@ bool GarbageCollector::ProcessBlockMappingDirect(const BlockMappingPair& mapping
         uint64_t address = j->second.second;
 
         if (Fingerprinter::IsEmptyDataFingerprint(fp, fp_size)) {
-            // the artificial fingerprint for an unused block should never be 
+            // the artificial fingerprint for an unused block should never be
             // garbage collected.
             continue;
         }
@@ -1727,7 +1719,7 @@ bool GarbageCollector::ProcessBlockMappingDirect(const BlockMappingPair& mapping
 bool GarbageCollector::ProcessBlockMappingDirtyStart(const BlockMappingPair& mapping_pair,
     const dedupv1::log::LogReplayContext& context) {
 
-    DEBUG("Process process block mapping (dirty start): " << mapping_pair.DebugString() << 
+    DEBUG("Process process block mapping (dirty start): " << mapping_pair.DebugString() <<
         ", log id " << context.log_id());
 
     map<bytestring, pair<int, uint64_t> > diff = mapping_pair.GetDiff();
@@ -1742,7 +1734,7 @@ bool GarbageCollector::ProcessBlockMappingDirtyStart(const BlockMappingPair& map
         uint64_t address = j->second.second;
 
         if (Fingerprinter::IsEmptyDataFingerprint(fp, fp_size)) {
-            // the artificial fingerprint for an unused block should never be 
+            // the artificial fingerprint for an unused block should never be
             // garbage collected.
             continue;
         }
@@ -1755,8 +1747,8 @@ bool GarbageCollector::ProcessBlockMappingDirtyStart(const BlockMappingPair& map
 
         Runnable<bool>* r = new ProcessMappingDirtyDiffTask(this, context,
             mapping_pair.block_id(),
-            fp_str, 
-            address, 
+            fp_str,
+            address,
             usage_modifier);
 
         Future<bool>* future = this->tp_->Submit(r);
@@ -1791,14 +1783,14 @@ bool GarbageCollector::ProcessBlockMappingDirtyStart(const BlockMappingPair& map
     return !failed;
 }
 
-Option<bool> GarbageCollector::IsGCCandidate(uint64_t address, 
-    const void* fp, 
+Option<bool> GarbageCollector::IsGCCandidate(uint64_t address,
+    const void* fp,
     size_t fp_size) {
     ScopedLock scoped_lock(&this->candidate_info_lock_);
     CHECK(scoped_lock.AcquireLock(), "Failed to acquire candidate info lock");
 
     GarbageCollectionCandidateData candidate_data;
-    lookup_result r = this->candidate_info_->Lookup(&address, sizeof(address), 
+    lookup_result r = this->candidate_info_->Lookup(&address, sizeof(address),
         &candidate_data);
     CHECK(r != LOOKUP_ERROR,
         "Failed to lookup candidate data: container id " << address);
@@ -1820,7 +1812,7 @@ Option<bool> GarbageCollector::IsGCCandidate(uint64_t address,
     return make_option(result);
 }
 
-bool GarbageCollector::Put(const multimap<uint64_t, ChunkMapping>& gc_chunks, 
+bool GarbageCollector::Put(const multimap<uint64_t, ChunkMapping>& gc_chunks,
     bool failed_mode) {
     ProfileTimer timer(stats_.update_index_time_);
 
