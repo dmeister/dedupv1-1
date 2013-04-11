@@ -118,7 +118,6 @@ LOGGER("DedupSystem");
 
 namespace dedupv1 {
 
-const size_t DedupSystem::kChunkResourceFactor = 512;
 const uint32_t DedupSystem::kDefaultLogFullPauseTime = 100 * 1000;
 const uint32_t DedupSystem::kDefaultBlockSize = 256 * 1024;
 const uint32_t DedupSystem::kDefaultSessionCount = 128;
@@ -146,7 +145,6 @@ DedupSystem::DedupSystem() {
     readonly_ = false;
 
     volume_info_ = NULL;
-    chunk_management_ = NULL;
     gc_ = NULL;
     tp_ = NULL;
     write_retry_count_ = 0;
@@ -343,12 +341,6 @@ bool DedupSystem::Start(const StartContext& start_context, dedupv1::InfoStore* i
 
     readonly_ = start_context.readonly();
 
-    this->chunk_management_ = new ResourceManagement<Chunk>();
-    CHECK(this->chunk_management_, "Cannot create chunk resource management");
-    CHECK(this->chunk_management_->Init("chunk", 32 * kChunkResourceFactor,
-            new ChunkResourceType(), false),
-        "Cannot init chunk resource management");
-
     tp_ = tp;
     info_store_ = info_store;
     CHECK(info_store_, "Info store not set");
@@ -373,7 +365,7 @@ bool DedupSystem::Start(const StartContext& start_context, dedupv1::InfoStore* i
     CHECK(this->content_storage_->Start(
             this->tp_,
             this->block_index_, this->chunk_index_, this->chunk_store_, this->filter_chain_,
-            this->chunk_management_, this->log_, &this->block_locks_, this->block_size_),
+            this->log_, &this->block_locks_, this->block_size_),
         "Content Storage start failed");
 
     CHECK(this->gc_->Start(start_context, this), "Cannot start gc");
@@ -532,14 +524,6 @@ bool DedupSystem::Close() {
             result = false;
         }
         this->gc_ = NULL;
-    }
-
-    if (this->chunk_management_) {
-        if (!this->chunk_management_->Close()) {
-            ERROR("Chunk management close failed");
-            result = false;
-        }
-        this->chunk_management_ = NULL;
     }
 
     if (this->chunk_index_) {
@@ -1276,10 +1260,6 @@ void DedupSystem::RegisterDefaults() {
 
 dedupv1::InfoStore* DedupSystem::info_store() {
     return info_store_;
-}
-
-dedupv1::base::ResourceManagement<Chunk>* DedupSystem::chunk_management() {
-    return chunk_management_;
 }
 
 dedupv1::BlockLocks* DedupSystem::block_locks() {
