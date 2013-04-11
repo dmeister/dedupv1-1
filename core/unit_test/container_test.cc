@@ -91,8 +91,7 @@ protected:
     void CompressionUniqueTest(dedupv1::base::Compression* comp) {
         ASSERT_TRUE(comp);
 
-        Container container;
-        container.Init(0, CONTAINER_SIZE);
+        Container container(0, CONTAINER_SIZE, false);
         for (int i = 4; i < 8; i++) {
             // Use small items to avoid an overflow
             DEBUG("Add " << i << ", " << crc(test_data[i], 16 * 1024));
@@ -118,8 +117,7 @@ protected:
     void CompressionRandomTest(dedupv1::base::Compression* comp) {
         ASSERT_TRUE(comp);
 
-        Container container;
-        container.Init(0, CONTAINER_SIZE);
+        Container container(0, CONTAINER_SIZE, false);
         int count = 1;
         for (int i = 0; i < count; i++) {
             // Use small items to avoid an overflow
@@ -147,8 +145,7 @@ protected:
 };
 
 TEST_F(ContainerTest, AddItem) {
-    Container container;
-    container.Init(0, CONTAINER_SIZE);
+    Container container(0, CONTAINER_SIZE, false);
     for (int i = 0; i < 4; i++) {
         size_t old_pos = container.data_position();
         // Use small items to avoid an overflow
@@ -165,8 +162,7 @@ TEST_F(ContainerTest, AddItem) {
 }
 
 TEST_F(ContainerTest, AddItemRandomFingerprints) {
-    Container container;
-    container.Init(0, CONTAINER_SIZE);
+    Container container(0, CONTAINER_SIZE, false);
 
     test_fp[0] = 123;
     test_fp[1] = 12;
@@ -189,8 +185,7 @@ TEST_F(ContainerTest, AddItemRandomFingerprints) {
 }
 
 TEST_F(ContainerTest, NoLineFeedInDebugString) {
-    Container container;
-    container.Init(Container::kLeastValidContainerId, CONTAINER_SIZE);
+    Container container(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     for (int i = 0; i < 4; i++) {
         // Use small items to avoid an overflow
         ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024))
@@ -208,8 +203,7 @@ TEST_F(ContainerTest, NoLineFeedInDebugString) {
 }
 
 TEST_F(ContainerTest, SerializeContainer) {
-    Container container;
-    container.Init(0, CONTAINER_SIZE);
+    Container container(0, CONTAINER_SIZE, false);
     for (int i = 0; i < 4; i++) {
         // Use small items to avoid an overflow
         ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024))
@@ -218,8 +212,7 @@ TEST_F(ContainerTest, SerializeContainer) {
 
     ASSERT_TRUE(container.SerializeMetadata(true));
 
-    Container container2;
-    container2.Init(0, CONTAINER_SIZE);
+    Container container2(0, CONTAINER_SIZE, false);
 
     // Transfer data
     memcpy(container2.mutable_data(), container.mutable_data(), CONTAINER_SIZE);
@@ -230,16 +223,14 @@ TEST_F(ContainerTest, SerializeContainer) {
 }
 
 TEST_F(ContainerTest, CopyFrom) {
-    Container container;
-    container.Init(0, CONTAINER_SIZE);
+    Container container(0, CONTAINER_SIZE, false);
     for (int i = 0; i < 4; i++) {
         // Use small items to avoid an overflow
         ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024))
         << "Add item " << i << " failed";
     }
 
-    Container container2;
-    container2.Init(1, CONTAINER_SIZE);
+    Container container2(1, CONTAINER_SIZE, false);
 
     ASSERT_TRUE(container2.CopyFrom(container, true));
     ASSERT_TRUE(container2.Equals(container)) << "Containers should be equal";
@@ -286,8 +277,7 @@ TEST_F(ContainerTest, CompressSnappyUnique) {
 }
 
 TEST_F(ContainerTest, StoreAndLoad) {
-    Container container;
-    container.Init(Container::kLeastValidContainerId, CONTAINER_SIZE);
+    Container container(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     for (int i = 0; i < 4; i++) {
         // Use small items to avoid an overflow
         ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024))
@@ -302,8 +292,7 @@ TEST_F(ContainerTest, StoreAndLoad) {
 
     f = dedupv1::base::File::Open("work/container", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
     ASSERT_TRUE(f);
-    Container container2;
-    container2.Init(Container::kLeastValidContainerId, CONTAINER_SIZE);
+    Container container2(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     ASSERT_TRUE(container2.LoadFromFile(f, 0, true));
     ASSERT_TRUE(f->Close());
     f = NULL;
@@ -314,8 +303,7 @@ TEST_F(ContainerTest, StoreAndLoad) {
 TEST_F(ContainerTest, AddAfterLoad) {
     EXPECT_LOGGING(dedupv1::test::ERROR).Once();
 
-    Container container;
-    container.Init(Container::kLeastValidContainerId, CONTAINER_SIZE);
+    Container container(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     for (int i = 0; i < 3; i++) {
         // Use small items to avoid an overflow
         ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024))
@@ -330,8 +318,7 @@ TEST_F(ContainerTest, AddAfterLoad) {
 
     f = dedupv1::base::File::Open("work/container", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
     ASSERT_TRUE(f);
-    Container container2;
-    container2.Init(Container::kLeastValidContainerId, CONTAINER_SIZE);
+    Container container2(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     ASSERT_TRUE(container2.LoadFromFile(f, 0, true));
 
     ASSERT_FALSE(
@@ -344,8 +331,7 @@ TEST_F(ContainerTest, AddAfterLoad) {
 TEST_F(ContainerTest, AddAfterStore) {
     EXPECT_LOGGING(dedupv1::test::ERROR).Once();
 
-    Container container;
-    container.Init(Container::kLeastValidContainerId, CONTAINER_SIZE);
+    Container container(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     for (int i = 0; i < 3; i++) {
         // Use small items to avoid an overflow
         ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024))
@@ -363,8 +349,8 @@ TEST_F(ContainerTest, AddAfterStore) {
 }
 
 TEST_F(ContainerTest, StoreMinimalChunks) {
-    Container container;
-    container.Init(Container::kLeastValidContainerId, Container::kDefaultContainerSize);
+    Container container(Container::kLeastValidContainerId,
+        Container::kDefaultContainerSize, false);
 
     size_t data_size = Chunk::kMinChunkSize;
     size_t key_size = Fingerprinter::kMaxFingerprintSize;
@@ -381,8 +367,8 @@ TEST_F(ContainerTest, StoreMinimalChunks) {
 }
 
 TEST_F(ContainerTest, StoreMinimalCompressableChunks) {
-    Container container;
-    container.Init(Container::kLeastValidContainerId, Container::kDefaultContainerSize);
+    Container container(Container::kLeastValidContainerId,
+        Container::kDefaultContainerSize, false);
 
     size_t data_size = Container::kMinCompressedChunkSize;
     size_t key_size = Fingerprinter::kMaxFingerprintSize;
@@ -399,8 +385,8 @@ TEST_F(ContainerTest, StoreMinimalCompressableChunks) {
 }
 
 TEST_F(ContainerTest, DeleteItem) {
-    Container container;
-    container.Init(Container::kLeastValidContainerId, CONTAINER_SIZE);
+    Container container(Container::kLeastValidContainerId,
+        CONTAINER_SIZE, false);
     for (int i = 0; i < 4; i++) {
         // Use small items to avoid an overflow
         ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024))
@@ -421,8 +407,7 @@ TEST_F(ContainerTest, DeleteItem) {
 }
 
 TEST_F(ContainerTest, AddItemAfterDeleteItem) {
-    Container container;
-    container.Init(Container::kLeastValidContainerId, CONTAINER_SIZE);
+    Container container(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     for (int i = 0; i < 2; i++) {
         // Use small items to avoid an overflow
         ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024));
@@ -441,9 +426,7 @@ TEST_F(ContainerTest, AddItemAfterDeleteItem) {
 }
 
 TEST_F(ContainerTest, ActiveDataSizeAfterStoreLoad) {
-    Container container;
-    container.Init(Container::kLeastValidContainerId, CONTAINER_SIZE);
-    DEBUG("Init : " << container.active_data_size())
+    Container container(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     for (int i = 0; i < 4; i++) {
         DEBUG("After adding " << (i + 1) << ": " << container.active_data_size());
         // Use small items to avoid an overflow
@@ -463,8 +446,7 @@ TEST_F(ContainerTest, ActiveDataSizeAfterStoreLoad) {
 
     f = dedupv1::base::File::Open("work/container", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
     ASSERT_TRUE(f);
-    Container container2;
-    container2.Init(Container::kLeastValidContainerId, CONTAINER_SIZE);
+    Container container2(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     ASSERT_TRUE(container2.LoadFromFile(f, 0, true));
     ASSERT_TRUE(f->Close());
     f = NULL;
@@ -474,8 +456,7 @@ TEST_F(ContainerTest, ActiveDataSizeAfterStoreLoad) {
 }
 
 TEST_F(ContainerTest, DeleteItemAfterLoad) {
-    Container container;
-    container.Init(Container::kLeastValidContainerId, CONTAINER_SIZE);
+    Container container(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     for (int i = 0; i < 4; i++) {
         // Use small items to avoid an overflow
         ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024))
@@ -495,8 +476,7 @@ TEST_F(ContainerTest, DeleteItemAfterLoad) {
 
     f = dedupv1::base::File::Open("work/container", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
     ASSERT_TRUE(f);
-    Container container2;
-    container2.Init(Container::kLeastValidContainerId, CONTAINER_SIZE);
+    Container container2(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     ASSERT_TRUE(container2.LoadFromFile(f, 0, true));
     ASSERT_TRUE(f->Close());
     f = NULL;
@@ -509,24 +489,21 @@ TEST_F(ContainerTest, DeleteItemAfterLoad) {
 }
 
 TEST_F(ContainerTest, MergeContainer) {
-    Container container1;
-    container1.Init(Container::kLeastValidContainerId, CONTAINER_SIZE);
+    Container container1(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     for (int i = 0; i < 2; i++) {
         // Use small items to avoid an overflow
         ASSERT_TRUE(container1.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024))
         << "Add item " << i << " failed";
     }
 
-    Container container2;
-    container2.Init(Container::kLeastValidContainerId + 1, CONTAINER_SIZE);
+    Container container2(Container::kLeastValidContainerId + 1, CONTAINER_SIZE, false);
     for (int i = 2; i < 4; i++) {
         // Use small items to avoid an overflow
         ASSERT_TRUE(container2.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024))
         << "Add item " << i << " failed";
     }
 
-    Container new_container;
-    new_container.Init(Storage::ILLEGAL_STORAGE_ADDRESS, CONTAINER_SIZE);
+    Container new_container(Storage::ILLEGAL_STORAGE_ADDRESS, CONTAINER_SIZE, false);
 
     ASSERT_TRUE(new_container.MergeContainer(container1, container2));
     ASSERT_EQ(new_container.primary_id(), container1.primary_id());
@@ -547,24 +524,21 @@ TEST_F(ContainerTest, MergeContainer) {
 }
 
 TEST_F(ContainerTest, MergeContainerSwitched) {
-    Container container1;
-    container1.Init(Container::kLeastValidContainerId, CONTAINER_SIZE);
+    Container container1(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     for (int i = 0; i < 2; i++) {
         // Use small items to avoid an overflow
         ASSERT_TRUE(container1.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024))
         << "Add item " << i << " failed";
     }
 
-    Container container2;
-    container2.Init(Container::kLeastValidContainerId + 1, CONTAINER_SIZE);
+    Container container2(Container::kLeastValidContainerId + 1, CONTAINER_SIZE, false);
     for (int i = 2; i < 4; i++) {
         // Use small items to avoid an overflow
         ASSERT_TRUE(container2.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024))
         << "Add item " << i << " failed";
     }
 
-    Container new_container;
-    new_container.Init(Storage::ILLEGAL_STORAGE_ADDRESS, CONTAINER_SIZE);
+    Container new_container(Storage::ILLEGAL_STORAGE_ADDRESS, CONTAINER_SIZE, false);
 
     ASSERT_TRUE(new_container.MergeContainer(container2, container1));
     ASSERT_EQ(new_container.primary_id(), container1.primary_id());
@@ -587,8 +561,7 @@ TEST_F(ContainerTest, MergeContainerSwitched) {
 TEST_F(ContainerTest, LoadOnlyMetaData) {
     EXPECT_LOGGING(dedupv1::test::ERROR).Once();
 
-    Container container;
-    container.Init(Container::kLeastValidContainerId, CONTAINER_SIZE);
+    Container container(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     for (int i = 0; i < 3; i++) {
         // Use small items to avoid an overflow
         ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024))
@@ -603,8 +576,7 @@ TEST_F(ContainerTest, LoadOnlyMetaData) {
 
     f = dedupv1::base::File::Open("work/container", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
     ASSERT_TRUE(f);
-    Container container2;
-    container2.InitInMetadataOnlyMode(Container::kLeastValidContainerId, CONTAINER_SIZE);
+    Container container2(Container::kLeastValidContainerId, CONTAINER_SIZE, true);
     ASSERT_TRUE(container2.LoadFromFile(f, 0, true));
 
     ContainerItem* item = container2.FindItem((byte *) &test_fp[0], sizeof(test_fp[0]));
@@ -620,16 +592,14 @@ TEST_F(ContainerTest, LoadOnlyMetaData) {
 }
 
 TEST_F(ContainerTest, CopyFromMetaData) {
-    Container container;
-    container.Init(Container::kLeastValidContainerId, CONTAINER_SIZE);
+    Container container(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     for (int i = 0; i < 3; i++) {
         // Use small items to avoid an overflow
         ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024))
         << "Add item " << i << " failed";
     }
 
-    Container container2;
-    container2.InitInMetadataOnlyMode(Container::kLeastValidContainerId, CONTAINER_SIZE);
+    Container container2(Container::kLeastValidContainerId, CONTAINER_SIZE, true);
     ASSERT_TRUE(container2.CopyFrom(container, true));
 
     ContainerItem* item = container2.FindItem((byte *) &test_fp[0], sizeof(test_fp[0]));
@@ -638,8 +608,7 @@ TEST_F(ContainerTest, CopyFromMetaData) {
 }
 
 TEST_F(ContainerTest, CommitTime) {
-    Container container;
-    container.Init(Container::kLeastValidContainerId, CONTAINER_SIZE);
+    Container container(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
 
     for (int i = 0; i < 4; i++) {
         // Use small items to avoid an overflow
@@ -659,8 +628,7 @@ TEST_F(ContainerTest, CommitTime) {
 
     f = dedupv1::base::File::Open("work/container", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
     ASSERT_TRUE(f);
-    Container container2;
-    container2.Init(Container::kLeastValidContainerId, CONTAINER_SIZE);
+    Container container2(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     ASSERT_TRUE(container2.LoadFromFile(f, 0, true));
     ASSERT_EQ(container2.commit_time(), t) << "Commit time should be preserved";
 

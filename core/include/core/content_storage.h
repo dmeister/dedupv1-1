@@ -313,11 +313,8 @@ class ContentStorage : public dedupv1::StatisticProvider {
             dedupv1::BlockLocks* block_locks,
             uint32_t block_size);
 
-    /**
-     * Creates a new session object.
-     */
-    virtual Session* CreateSession(Chunker* chunker,
-            const std::set<std::string>* enabled_filter_names);
+    dedupv1::base::Option<std::list<dedupv1::filter::Filter*> > GetFilterList(
+        const std::set<std::string>& enabled_filter_names);
 
     /**
      * Configures the content storage.
@@ -521,7 +518,6 @@ class ContentStorage : public dedupv1::StatisticProvider {
             Session* session,
             Request* request,
             RequestStatistics* request_stats,
-            Fingerprinter* fingerprinter,
             const std::list<Chunk*>& chunks,
             std::vector<dedupv1::chunkindex::ChunkMapping>* chunk_mappings,
             dedupv1::base::ErrorContext* ec);

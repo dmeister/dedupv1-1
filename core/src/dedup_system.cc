@@ -155,39 +155,21 @@ DedupSystem::DedupSystem() {
 #else
     report_long_running_requests_ = true;
 #endif
-    state_ = CREATED;
-}
-
-DedupSystem::~DedupSystem() {
-}
-
-bool DedupSystem::Init() {
     filter_chain_ = new FilterChain();
-    CHECK(this->filter_chain_, "Filter chain Init failed");
-
     this->content_storage_ = new ContentStorage();
-    CHECK(this->content_storage_, "Content storage Init failed");
-
     this->log_ = new Log();
-    CHECK(this->log_, "Cannot create log");
-    CHECK(this->log_->Init(), "Cannot init log");
 
     // chunk index is a configurable type and it therefore created
     // later
     this->chunk_index_ = NULL;
 
     this->block_index_ = new BlockIndex();
-    CHECK(this->block_index_, "Block index creation failed");
-    CHECK(this->block_index_->Init(), "Block index init failed");
-
     this->volume_info_ = new DedupVolumeInfo();
-    CHECK(this->volume_info_, "cannot create volume info");
-
     gc_ = new GarbageCollector();
-    CHECK(gc_, "GC creation failed");
-
     state_ = CREATED;
-    return true;
+}
+
+DedupSystem::~DedupSystem() {
 }
 
 bool DedupSystem::LoadOptions(const string& filename) {

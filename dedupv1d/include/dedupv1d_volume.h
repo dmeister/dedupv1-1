@@ -245,12 +245,6 @@ class Dedupv1dVolume: public dedupv1::StatisticProvider {
         virtual ~Dedupv1dVolume();
 
         /**
-         * Inits the volume.
-         * @return true iff ok, otherwise an error has occurred
-         */
-        bool Init();
-
-        /**
          * Starts the volume
          * @param system Should never be NULL
          * @return true iff ok, otherwise an error has occurred

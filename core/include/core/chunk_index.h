@@ -435,15 +435,8 @@ class ChunkIndex: public dedupv1::log::LogConsumer, public dedupv1::StatisticPro
     virtual ~ChunkIndex();
 
     /**
-     * Inits the chunk index.
-     *
-     * @return true iff ok, otherwise an error has occurred
-     */
-    virtual bool Init();
-
-    /**
      * Configures the chunk index.
-     * The configuration should happen after the call of Init() and before the start. It is not
+     * The configuration should happen before the start. It is not
      * possible to change the configuration after the start.
      *
      * Available options:

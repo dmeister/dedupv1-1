@@ -149,10 +149,6 @@ ChunkIndex::ChunkIndex() {
 ChunkIndex::~ChunkIndex() {
 }
 
-bool ChunkIndex::Init() {
-    return true;
-}
-
 bool ChunkIndex::CheckIndeces() {
     CHECK(this->chunk_index_, "Persistent Chunk Index not set");
     return true;
@@ -282,7 +278,7 @@ bool ChunkIndex::Start(const StartContext& start_context, DedupSystem* system) {
         Fingerprinter* fp = Fingerprinter::Factory().Create(content_storage->fingerprinter_name());
         CHECK(fp, "Failed to create fingerprinter");
         size_t fp_size = fp->GetFingerprintSize();
-        CHECK(fp->Close(), "Failed to close fingerprinter");
+        delete fp;
         fp = NULL;
         CHECK(this->chunk_index_->SetOption("max-key-size", ToString(fp_size)), "Failed to set max key size");
 #ifdef DEDUPV1_CORE_TEST
@@ -846,8 +842,7 @@ bool ChunkIndex::LoadContainerIntoCache(uint64_t container_id, dedupv1::base::Er
     // is committed
 
     TRACE("Load container " << container_id << " from log into cache (loading)");
-    Container container;
-    CHECK(container.InitInMetadataOnlyMode(container_id, container_storage->GetContainerSize()), "Container init failed");
+    Container container(container_id, container_storage->GetContainerSize(), true);
 
     enum lookup_result read_result = container_storage->ReadContainerWithCache(&container);
     CHECK(read_result != LOOKUP_ERROR,
@@ -963,8 +958,7 @@ bool ChunkIndex::ImportContainer(uint64_t container_id, dedupv1::base::ErrorCont
 
     FAULT_POINT("chunk-index.import.pre");
     TRACE("Import container " << container_id << " from log (loading)");
-    Container container;
-    CHECK(container.InitInMetadataOnlyMode(container_id, container_storage->GetContainerSize()), "Container init failed");
+    Container container(container_id, container_storage->GetContainerSize(), true);
 
     enum lookup_result read_result = container_storage->ReadContainerWithCache(&container);
     CHECK(read_result != LOOKUP_ERROR,

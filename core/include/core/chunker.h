@@ -143,13 +143,6 @@ class Chunker : public dedupv1::StatisticProvider {
     virtual ~Chunker();
 
     /**
-     * Inits the chunker. The method is designed to be overwritten by subclasses.
-     * The default implementation returns true.
-     * @return
-     */
-    virtual bool Init();
-
-    /**
      * Starts the chunker. The method must be overwritten by subclasses. The
      * chunker object must be ready for chunking after a successful call of this method.
      *

@@ -86,8 +86,6 @@ DedupSystem* DedupSystemTest::CreateDefaultSystem(string config_option,
     CHECK_RETURN(Split(config_option, ";", &options), NULL, "Failed to split: " << config_option);
 
     DedupSystem* system = new DedupSystem();
-    CHECK_RETURN(system, NULL, "Cannot create system");
-    CHECK_RETURN(system->Init(), NULL, "Failed to init system");
     CHECK_RETURN(system->LoadOptions(options[0]), NULL, "Cannot load options");
 
     for (size_t i = 1; i < options.size(); i++) {
@@ -467,7 +465,7 @@ TEST_P(DedupSystemTest, StrictOverwriteRequests) {
     Thread<bool>** threads = new Thread<bool>*[thread_count];
     for (int i = 0; i < thread_count; i++) {
         threads[i] = new Thread<bool>(
-            NewRunnable(&MakeOverwriteRequest, make_tuple(system, i, 
+            NewRunnable(&MakeOverwriteRequest, make_tuple(system, i,
                 requests, true, false)),"write");
     }
     tbb::tick_count start = tbb::tick_count::now();
@@ -506,7 +504,7 @@ TEST_P(DedupSystemTest, StrictOverwriteZeroDataRequests) {
     Thread<bool>** threads = new Thread<bool>*[thread_count];
     for (int i = 0; i < thread_count; i++) {
         threads[i] = new Thread<bool>(
-            NewRunnable(&MakeOverwriteRequest, make_tuple(system, i, 
+            NewRunnable(&MakeOverwriteRequest, make_tuple(system, i,
                 requests, true, true)),"write");
     }
     tbb::tick_count start = tbb::tick_count::now();
@@ -545,7 +543,7 @@ TEST_P(DedupSystemTest, StrictNoOverwriteRequests) {
     Thread<bool>** threads = new Thread<bool>*[thread_count];
     for (int i = 0; i < thread_count; i++) {
         threads[i] = new Thread<bool>(
-            NewRunnable(&MakeOverwriteRequest, make_tuple(system, i, 
+            NewRunnable(&MakeOverwriteRequest, make_tuple(system, i,
                 requests, false, false)),"write");
     }
     tbb::tick_count start = tbb::tick_count::now();

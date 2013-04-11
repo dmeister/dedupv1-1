@@ -843,12 +843,6 @@ class Log: public dedupv1::StatisticProvider {
         virtual ~Log();
 
         /**
-         * Inits the log.
-         * @return true iff ok, otherwise an error has occurred
-         */
-        bool Init();
-
-        /**
          * Starts the log.
          *
          * @param start_context Start context
@@ -1087,7 +1081,7 @@ class Log: public dedupv1::StatisticProvider {
         bool IsFull(bool hard_limit = false);
 
         bool WaitUntilDirectReplayQueueEmpty(uint32_t timeout);
-        
+
         /**
          *
          * @param id

@@ -59,6 +59,8 @@
 #include <base/option.h>
 #include <base/future.h>
 #include <base/runnable.h>
+#include <base/memory.h>
+#include <core/dedup_volume.h>
 
 using std::set;
 using std::list;
@@ -97,6 +99,9 @@ using dedupv1::base::NewRunnable;
 using dedupv1::filter::Filter;
 using dedupv1::base::Threadpool;
 using dedupv1::base::MultiSignalCondition;
+using dedupv1::base::make_option;
+using dedupv1::base::ScopedPtr;
+
 LOGGER("ContentStorage");
 
 namespace dedupv1 {
@@ -136,26 +141,6 @@ ContentStorage::Statistics::Statistics() :
     write_size_ = 0;
     sync_ = 0;
     threads_in_filter_chain_ = 0;
-}
-
-bool ContentStorage::InitEmptyFingerprint(Chunker* chunker, Fingerprinter* fp_gen, bytestring* empty_fp) {
-    DCHECK(chunker, "Chunker not set");
-    DCHECK(empty_fp, "Empty fp not set");
-    DCHECK(fp_gen, "FP generator not set");
-
-    bytestring buffer;
-    buffer.resize(chunker->GetMaxChunkSize(), 0);
-
-    byte fp[Fingerprinter::kMaxFingerprintSize];
-    size_t fp_size = Fingerprinter::kMaxFingerprintSize;
-    bool failed = false;
-    if (!fp_gen->Fingerprint(buffer.data(), buffer.size(), fp, &fp_size)) {
-        ERROR("Failed to fingerprint an empty chunk");
-        failed = true;
-    } else {
-        empty_fp->assign(fp, fp_size);
-    }
-    return !failed;
 }
 
 bool ContentStorage::Start(dedupv1::base::Threadpool* tp,
@@ -204,57 +189,30 @@ bool ContentStorage::Close() {
     return !failed;
 }
 
-Session* ContentStorage::CreateSession(Chunker* chunker, const std::set<std::string>* enabled_filter_names) {
-    ProfileTimer timer(this->stats_.profiling_);
-    CHECK_RETURN(log_, NULL, "Content storage not started");
-    CHECK_RETURN(filter_chain_, NULL, "Filter chain not set");
-    CHECK_RETURN(this->fingerprinter_name_.size() > 0, NULL, "Fingerprinter not configured");
+Option<list<Filter*> > ContentStorage::GetFilterList(const std::set<std::string>& enabled_filter_names) {
+    DCHECK(filter_chain_, "Filter chain not set");
 
-    Fingerprinter* fingerprint = Fingerprinter::Factory().Create(this->fingerprinter_name_);
-    CHECK_RETURN(fingerprint, NULL, "Error creating fingerprint context");
-
-    Session* session = new Session();
-    if (!session) {
-        ERROR("Failed to create a session");
-        if (!fingerprint->Close()) {
-            WARNING("Failed to close fingerprint");
+    std::list<Filter*> filters;
+    if (enabled_filter_names.size() > 0) {
+        list<Filter*> all_filters = filter_chain_->GetChain();
+        for (list<Filter*>::const_iterator i = all_filters.begin(); i != all_filters.end(); ++i) {
+            Filter* filter = *i;
+            if (enabled_filter_names.find(filter->GetName()) != enabled_filter_names.end()) {
+                filters.push_back(filter);
+            }
         }
-        return NULL;
-    }
-    std::set<const Filter*> filters;
-    if (enabled_filter_names && enabled_filter_names->size() > 0) {
-        for (set<string>::const_iterator i = enabled_filter_names->begin(); i != enabled_filter_names->end(); ++i) {
-            Filter* filter = filter_chain_->GetFilterByName(*i);
-            CHECK_RETURN(filter, NULL, "Filter not configured: " << *i);
-            filters.insert(filter);
-        }
+      CHECK(filters.size() == enabled_filter_names.size(), "Illegal filter chain configuration");
     } else {
         // use defaults
         list<Filter*> all_filters = filter_chain_->GetChain();
         for (list<Filter*>::const_iterator i = all_filters.begin(); i != all_filters.end(); ++i) {
             Filter* filter = *i;
             if (filter->is_enabled_by_default()) {
-                filters.insert(filter);
+                filters.push_back(filter);
             }
         }
     }
-    Chunker* chunker_to_use = chunker;
-    if (chunker_to_use == NULL) {
-        chunker_to_use = default_chunker_;
-    }
-
-    if (!session->Init(block_size_, chunker_to_use, fingerprint, filters)) {
-        ERROR("Error initing session: chunker " << (chunker_to_use == chunker ? "volume" : "default"));
-        if (session->fingerprinter() == NULL) {
-            // Init failed before fingerprinter was assigned, we still have to ownership
-            if (!fingerprint->Close()) {
-                WARNING("Failed to close fingerprint");
-            }
-        }
-        session->Close();
-        return NULL;
-    }
-    return session;
+    return make_option(filters);
 }
 
 bool ContentStorage::SetOption(const string& option_name, const string& option) {
@@ -266,7 +224,7 @@ bool ContentStorage::SetOption(const string& option_name, const string& option) 
         this->fingerprinter_name_ = option;
         fingerprint = Fingerprinter::Factory().Create(this->fingerprinter_name_);
         CHECK(fingerprint, "Invalid fingerprinter");
-        fingerprint->Close();
+        delete fingerprint;
         return true;
     }
     if (option_name == "chunking") {
@@ -625,10 +583,9 @@ bool ContentStorage::WriteBlock(Session* session, Request* request, RequestStati
 }
 
 bool ContentStorage::FingerprintChunks(Session* session, Request* request, RequestStatistics* request_stats,
-                                       Fingerprinter* fingerprinter, const list<Chunk*>& chunks, vector<ChunkMapping>* chunk_mappings,
+                                       const list<Chunk*>& chunks, vector<ChunkMapping>* chunk_mappings,
                                        ErrorContext* ec) {
     DCHECK(chunk_mappings, "Chunk mappings not set");
-    DCHECK(fingerprinter, "Fingerprinter not set");
     DCHECK(chunk_mappings->size() == 0, "Chunk mapping not empty");
 
     REQUEST_STATS_START(request_stats, RequestStatistics::FINGERPRINTING);
@@ -636,6 +593,11 @@ bool ContentStorage::FingerprintChunks(Session* session, Request* request, Reque
     chunk_mappings->resize(chunks.size());
     ProfileTimer timer(this->stats_.fingerprint_profiling_);
 
+    Fingerprinter* fingerprinter = Fingerprinter::Factory().Create(fingerprinter_name_);
+    DCHECK(fingerprinter, "Failed to create fingerprinter: " << fingerprinter_name_);
+    ScopedPtr<Fingerprinter> scoped_fingerprinter(fingerprinter);
+
+    const bytestring& zero_chunk_fp(session->volume()->zero_chunk_fingerprint());
     size_t fp_size;
     int i = 0;
     for (list<Chunk*>::const_iterator ci = chunks.begin(); ci != chunks.end(); ci++) {
@@ -649,8 +611,9 @@ bool ContentStorage::FingerprintChunks(Session* session, Request* request, Reque
         chunk_mappings->at(i).set_fingerprint_size(fp_size);
 
         // here we rewrite the calculated fp of the empty chunk with the static empty fp.
-        if (raw_compare(chunk_mappings->at(i).fingerprint(), chunk_mappings->at(i).fingerprint_size(),
-                session->empty_fp().data(), session->empty_fp().size()) == 0) {
+        if (raw_compare(chunk_mappings->at(i).fingerprint(),
+              chunk_mappings->at(i).fingerprint_size(),
+                zero_chunk_fp.data(), zero_chunk_fp.size()) == 0) {
             // the fp is the empty fp
 
             CHECK(Fingerprinter::SetEmptyDataFingerprint(chunk_mappings->at(i).mutable_fingerprint(),
@@ -666,7 +629,7 @@ bool ContentStorage::FingerprintChunks(Session* session, Request* request, Reque
     if (request_stats) {
         stats_.average_fingerprint_latency_.Add(request_stats->latency(RequestStatistics::FINGERPRINTING));
     }
-
+    scoped_fingerprinter.Release();
     return true;
 }
 
@@ -1015,7 +978,7 @@ bool ContentStorage::HandleChunks(Session* session, Request* request, RequestSta
     FAULT_POINT("content-storage.handle.pre");
 
     vector<ChunkMapping> chunk_mappings;
-    CHECK(FingerprintChunks(session, request, request_stats, session->fingerprinter(), chunks, &chunk_mappings, ec),
+    CHECK(FingerprintChunks(session, request, request_stats, chunks, &chunk_mappings, ec),
         "Failed to fingerprint chunks: " << (request ? request->DebugString() : "no request"));
     // do not use the chunks list directly after this
 

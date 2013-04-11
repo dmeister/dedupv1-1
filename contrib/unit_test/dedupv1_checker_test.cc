@@ -89,8 +89,6 @@ TEST_P(Dedupv1CheckerTest, CheckWithUnreplayedLog)
     passes = GetParam();
     // write some data to the system
     system = new Dedupv1d();
-    ASSERT_TRUE(system);
-    ASSERT_TRUE(system->Init());
     ASSERT_TRUE(system->LoadOptions("data/dedupv1_test.conf"));
     ASSERT_TRUE(system->Start(dedupv1::StartContext()));
     ASSERT_TRUE(system->Run());
@@ -126,8 +124,6 @@ TEST_P(Dedupv1CheckerTest, Check)
 
     // write some data to the system
     system = new Dedupv1d();
-    ASSERT_TRUE(system);
-    ASSERT_TRUE(system->Init());
     ASSERT_TRUE(system->LoadOptions("data/dedupv1_test.conf"));
     ASSERT_TRUE(system->Start(dedupv1::StartContext()));
     ASSERT_TRUE(system->Run());
@@ -171,8 +167,6 @@ TEST_P(Dedupv1CheckerTest, CheckWithChunkDataAddressError)
 
     // write some data to the system
     system = new Dedupv1d();
-    ASSERT_TRUE(system);
-    ASSERT_TRUE(system->Init());
     ASSERT_TRUE(system->LoadOptions("data/dedupv1_test.conf"));
     ASSERT_TRUE(system->Start(dedupv1::StartContext()));
     ASSERT_TRUE(system->Run());
@@ -200,8 +194,6 @@ TEST_P(Dedupv1CheckerTest, CheckWithChunkDataAddressError)
 
     // open to introduce an error
     system = new Dedupv1d();
-    ASSERT_TRUE(system);
-    ASSERT_TRUE(system->Init());
     ASSERT_TRUE(system->LoadOptions("data/dedupv1_test.conf"));
     StartContext start_context;
     start_context.set_create(StartContext::NON_CREATE);
@@ -254,8 +246,6 @@ TEST_P(Dedupv1CheckerTest, CheckWithNoGCCandidateError)
 
     // write some data to the system
     system = new Dedupv1d();
-    ASSERT_TRUE(system);
-    ASSERT_TRUE(system->Init());
     ASSERT_TRUE(system->LoadOptions("data/dedupv1_test.conf"));
     ASSERT_TRUE(system->Start(dedupv1::StartContext()));
     ASSERT_TRUE(system->dedup_system()->garbage_collector()->Pause());
@@ -290,8 +280,6 @@ TEST_P(Dedupv1CheckerTest, CheckWithNoGCCandidateError)
 
     // open to introduce an error
     system = new Dedupv1d();
-    ASSERT_TRUE(system);
-    ASSERT_TRUE(system->Init());
     ASSERT_TRUE(system->LoadOptions("data/dedupv1_test.conf"));
     StartContext start_context;
     start_context.set_create(StartContext::NON_CREATE);
@@ -338,8 +326,6 @@ TEST_P(Dedupv1CheckerTest, RepairWithChunkDataAddressError)
 
     // write some data to the system
     system = new Dedupv1d();
-    ASSERT_TRUE(system);
-    ASSERT_TRUE(system->Init());
     ASSERT_TRUE(system->LoadOptions("data/dedupv1_test.conf"));
     ASSERT_TRUE(system->Start(dedupv1::StartContext()));
     ASSERT_TRUE(system->Run());
@@ -367,8 +353,6 @@ TEST_P(Dedupv1CheckerTest, RepairWithChunkDataAddressError)
 
     // open to introduce an error
     system = new Dedupv1d();
-    ASSERT_TRUE(system);
-    ASSERT_TRUE(system->Init());
     ASSERT_TRUE(system->LoadOptions("data/dedupv1_test.conf"));
     StartContext start_context;
     start_context.set_create(StartContext::NON_CREATE);
@@ -427,8 +411,6 @@ TEST_P(Dedupv1CheckerTest, RepairWithUsageCountError)
     EXPECT_LOGGING(dedupv1::test::WARN).Repeatedly();
 
     system = new Dedupv1d();
-    ASSERT_TRUE(system);
-    ASSERT_TRUE(system->Init());
     ASSERT_TRUE(system->LoadOptions("data/dedupv1_test.conf"));
     ASSERT_TRUE(system->Start(dedupv1::StartContext()));
     ASSERT_TRUE(system->Run());
@@ -457,8 +439,6 @@ TEST_P(Dedupv1CheckerTest, RepairWithUsageCountError)
 
     // open to introduce an error
     system = new Dedupv1d();
-    ASSERT_TRUE(system);
-    ASSERT_TRUE(system->Init());
     ASSERT_TRUE(system->LoadOptions("data/dedupv1_test.conf"));
     StartContext start_context;
     start_context.set_create(StartContext::NON_CREATE);
@@ -526,8 +506,6 @@ TEST_P(Dedupv1CheckerTest, RepairWithNoGCCandidateError)
 
     // write some data to the system
     system = new Dedupv1d();
-    ASSERT_TRUE(system);
-    ASSERT_TRUE(system->Init());
     ASSERT_TRUE(system->LoadOptions("data/dedupv1_test.conf"));
     ASSERT_TRUE(system->Start(dedupv1::StartContext()));
     ASSERT_TRUE(system->Run());
@@ -567,8 +545,6 @@ TEST_P(Dedupv1CheckerTest, RepairWithNoGCCandidateError)
 
     // open to introduce an error
     system = new Dedupv1d();
-    ASSERT_TRUE(system);
-    ASSERT_TRUE(system->Init());
     ASSERT_TRUE(system->LoadOptions("data/dedupv1_test.conf"));
     StartContext start_context;
     start_context.set_create(StartContext::NON_CREATE);
