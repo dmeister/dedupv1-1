@@ -34,6 +34,7 @@
 #include <core/log_consumer.h>
 #include <core/block_index.h>
 #include <core/chunk_index.h>
+#include <core/chunk_index_sampling_strategy.h>
 #include <core/filter_chain.h>
 #include <base/strutil.h>
 #include <core/chunk_store.h>
@@ -47,7 +48,6 @@
 #include <core/dedup_volume.h>
 #include <core/filter.h>
 #include <core/chunk_index_filter.h>
-#include <core/sparse_chunk_index_filter.h>
 #include <core/block_index_filter.h>
 #include <core/bytecompare_filter.h>
 #include <core/zerochunk_filter.h>
@@ -299,6 +299,12 @@ bool DedupSystem::SetOption(const string& option_name, const string& option) {
         // "content-storage." is trimmed by content_storage.
         CHECK(this->content_storage_->SetOption(option_name, option),
             "Chunking configuration failed");
+        return true;
+    }
+    if (StartsWith(option_name, "filter-chain.")) {
+        // "filter-chain." is trimmed by content_storage.
+        CHECK(this->content_storage_->SetOption(option_name, option),
+            "Filter chain configuration failed");
         return true;
     }
     // log
@@ -1305,7 +1311,6 @@ void DedupSystem::RegisterDefaults() {
     dedupv1::chunkstore::ContainerStorage::RegisterStorage();
 
     dedupv1::filter::ChunkIndexFilter::RegisterFilter();
-    dedupv1::filter::SparseChunkIndexFilter::RegisterFilter();
     dedupv1::filter::BlockIndexFilter::RegisterFilter();
     dedupv1::filter::ByteCompareFilter::RegisterFilter();
     dedupv1::filter::BloomFilter::RegisterFilter();
@@ -1318,6 +1323,9 @@ void DedupSystem::RegisterDefaults() {
 
     dedupv1::gc::UsageCountGarbageCollector::RegisterGC();
     dedupv1::gc::NoneGarbageCollector::RegisterGC();
+
+    dedupv1::chunkindex::FullChunkIndexSamplingStrategy::RegisterStrategy();
+    dedupv1::chunkindex::SuffixMaskChunkIndexSamplingStrategy::RegisterStrategy();
 
     dedupv1::chunkstore::GreedyContainerGCStrategy::RegisterGC();
 

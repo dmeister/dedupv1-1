@@ -43,7 +43,6 @@ class BloomFilterStatsData;
 class ByteCompareFilterStatsData;
 class ChunkIndexFilterStatsData;
 class ZeroChunkFilterStatsData;
-class SparseChunkIndexFilterStatsData;
 class GarbageCollectorStatsData;
 class RabinChunkerStatsData;
 class ContentStorageStatsData;
@@ -53,2016 +52,1927 @@ class LogStatsData_LogTypeCounter;
 // ===================================================================
 
 class ChunkIndexStatsData : public ::google::protobuf::Message {
- public:
-  ChunkIndexStatsData();
-  virtual ~ChunkIndexStatsData();
+public:
+    ChunkIndexStatsData();
+    virtual ~ChunkIndexStatsData();
 
-  ChunkIndexStatsData(const ChunkIndexStatsData& from);
+    ChunkIndexStatsData(const ChunkIndexStatsData& from);
 
-  inline ChunkIndexStatsData& operator=(const ChunkIndexStatsData& from) {
-    CopyFrom(from);
-    return *this;
-  }
+    inline ChunkIndexStatsData& operator=(const ChunkIndexStatsData& from) {
+        CopyFrom(from);
+        return *this;
+    }
 
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
+    inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+        return _unknown_fields_;
+    }
 
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
+    inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+        return &_unknown_fields_;
+    }
 
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const ChunkIndexStatsData& default_instance();
+    static const ::google::protobuf::Descriptor* descriptor();
+    static const ChunkIndexStatsData& default_instance();
 
-  void Swap(ChunkIndexStatsData* other);
+    void Swap(ChunkIndexStatsData* other);
 
-  // implements Message ----------------------------------------------
+    // implements Message ----------------------------------------------
 
-  ChunkIndexStatsData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const ChunkIndexStatsData& from);
-  void MergeFrom(const ChunkIndexStatsData& from);
-  void Clear();
-  bool IsInitialized() const;
+    ChunkIndexStatsData* New() const;
+    void CopyFrom(const ::google::protobuf::Message& from);
+    void MergeFrom(const ::google::protobuf::Message& from);
+    void CopyFrom(const ChunkIndexStatsData& from);
+    void MergeFrom(const ChunkIndexStatsData& from);
+    void Clear();
+    bool IsInitialized() const;
 
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
+    int ByteSize() const;
+    bool MergePartialFromCodedStream(
+        ::google::protobuf::io::CodedInputStream * input);
+    void SerializeWithCachedSizes(
+        ::google::protobuf::io::CodedOutputStream * output) const;
+    ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8 * output) const;
+    int GetCachedSize() const {
+        return _cached_size_;
+    }
+private:
+    void SharedCtor();
+    void SharedDtor();
+    void SetCachedSize(int size) const;
+public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+    ::google::protobuf::Metadata GetMetadata() const;
 
-  // nested types ----------------------------------------------------
+    // nested types ----------------------------------------------------
 
-  // accessors -------------------------------------------------------
+    // accessors -------------------------------------------------------
 
-  // optional uint64 imported_container_count = 1;
-  inline bool has_imported_container_count() const;
-  inline void clear_imported_container_count();
-  static const int kImportedContainerCountFieldNumber = 1;
-  inline ::google::protobuf::uint64 imported_container_count() const;
-  inline void set_imported_container_count(::google::protobuf::uint64 value);
+    // optional uint64 imported_container_count = 1;
+    inline bool has_imported_container_count() const;
+    inline void clear_imported_container_count();
+    static const int kImportedContainerCountFieldNumber = 1;
+    inline ::google::protobuf::uint64 imported_container_count() const;
+    inline void set_imported_container_count(::google::protobuf::uint64 value);
 
-  // optional uint64 index_full_failure_count = 2;
-  inline bool has_index_full_failure_count() const;
-  inline void clear_index_full_failure_count();
-  static const int kIndexFullFailureCountFieldNumber = 2;
-  inline ::google::protobuf::uint64 index_full_failure_count() const;
-  inline void set_index_full_failure_count(::google::protobuf::uint64 value);
+    // optional uint64 index_full_failure_count = 2;
+    inline bool has_index_full_failure_count() const;
+    inline void clear_index_full_failure_count();
+    static const int kIndexFullFailureCountFieldNumber = 2;
+    inline ::google::protobuf::uint64 index_full_failure_count() const;
+    inline void set_index_full_failure_count(::google::protobuf::uint64 value);
 
-  // @@protoc_insertion_point(class_scope:ChunkIndexStatsData)
- private:
-  inline void set_has_imported_container_count();
-  inline void clear_has_imported_container_count();
-  inline void set_has_index_full_failure_count();
-  inline void clear_has_index_full_failure_count();
+    // @@protoc_insertion_point(class_scope:ChunkIndexStatsData)
+private:
+    inline void set_has_imported_container_count();
+    inline void clear_has_imported_container_count();
+    inline void set_has_index_full_failure_count();
+    inline void clear_has_index_full_failure_count();
 
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+    ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::google::protobuf::uint64 imported_container_count_;
-  ::google::protobuf::uint64 index_full_failure_count_;
+    ::google::protobuf::uint64 imported_container_count_;
+    ::google::protobuf::uint64 index_full_failure_count_;
 
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
+    mutable int _cached_size_;
+    ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
 
-  friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
+    friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
 
-  void InitAsDefaultInstance();
-  static ChunkIndexStatsData* default_instance_;
+    void InitAsDefaultInstance();
+    static ChunkIndexStatsData* default_instance_;
 };
 // -------------------------------------------------------------------
 
 class BlockIndexStatsData : public ::google::protobuf::Message {
- public:
-  BlockIndexStatsData();
-  virtual ~BlockIndexStatsData();
+public:
+    BlockIndexStatsData();
+    virtual ~BlockIndexStatsData();
 
-  BlockIndexStatsData(const BlockIndexStatsData& from);
+    BlockIndexStatsData(const BlockIndexStatsData& from);
 
-  inline BlockIndexStatsData& operator=(const BlockIndexStatsData& from) {
-    CopyFrom(from);
-    return *this;
-  }
+    inline BlockIndexStatsData& operator=(const BlockIndexStatsData& from) {
+        CopyFrom(from);
+        return *this;
+    }
 
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
+    inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+        return _unknown_fields_;
+    }
 
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
+    inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+        return &_unknown_fields_;
+    }
 
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const BlockIndexStatsData& default_instance();
+    static const ::google::protobuf::Descriptor* descriptor();
+    static const BlockIndexStatsData& default_instance();
 
-  void Swap(BlockIndexStatsData* other);
+    void Swap(BlockIndexStatsData* other);
 
-  // implements Message ----------------------------------------------
+    // implements Message ----------------------------------------------
 
-  BlockIndexStatsData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const BlockIndexStatsData& from);
-  void MergeFrom(const BlockIndexStatsData& from);
-  void Clear();
-  bool IsInitialized() const;
+    BlockIndexStatsData* New() const;
+    void CopyFrom(const ::google::protobuf::Message& from);
+    void MergeFrom(const ::google::protobuf::Message& from);
+    void CopyFrom(const BlockIndexStatsData& from);
+    void MergeFrom(const BlockIndexStatsData& from);
+    void Clear();
+    bool IsInitialized() const;
 
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
+    int ByteSize() const;
+    bool MergePartialFromCodedStream(
+        ::google::protobuf::io::CodedInputStream * input);
+    void SerializeWithCachedSizes(
+        ::google::protobuf::io::CodedOutputStream * output) const;
+    ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8 * output) const;
+    int GetCachedSize() const {
+        return _cached_size_;
+    }
+private:
+    void SharedCtor();
+    void SharedDtor();
+    void SetCachedSize(int size) const;
+public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+    ::google::protobuf::Metadata GetMetadata() const;
 
-  // nested types ----------------------------------------------------
+    // nested types ----------------------------------------------------
 
-  // accessors -------------------------------------------------------
+    // accessors -------------------------------------------------------
 
-  // optional uint64 index_read_count = 1;
-  inline bool has_index_read_count() const;
-  inline void clear_index_read_count();
-  static const int kIndexReadCountFieldNumber = 1;
-  inline ::google::protobuf::uint64 index_read_count() const;
-  inline void set_index_read_count(::google::protobuf::uint64 value);
+    // optional uint64 index_read_count = 1;
+    inline bool has_index_read_count() const;
+    inline void clear_index_read_count();
+    static const int kIndexReadCountFieldNumber = 1;
+    inline ::google::protobuf::uint64 index_read_count() const;
+    inline void set_index_read_count(::google::protobuf::uint64 value);
 
-  // optional uint64 index_write_count = 2;
-  inline bool has_index_write_count() const;
-  inline void clear_index_write_count();
-  static const int kIndexWriteCountFieldNumber = 2;
-  inline ::google::protobuf::uint64 index_write_count() const;
-  inline void set_index_write_count(::google::protobuf::uint64 value);
+    // optional uint64 index_write_count = 2;
+    inline bool has_index_write_count() const;
+    inline void clear_index_write_count();
+    static const int kIndexWriteCountFieldNumber = 2;
+    inline ::google::protobuf::uint64 index_write_count() const;
+    inline void set_index_write_count(::google::protobuf::uint64 value);
 
-  // optional uint64 index_real_write_count = 3;
-  inline bool has_index_real_write_count() const;
-  inline void clear_index_real_write_count();
-  static const int kIndexRealWriteCountFieldNumber = 3;
-  inline ::google::protobuf::uint64 index_real_write_count() const;
-  inline void set_index_real_write_count(::google::protobuf::uint64 value);
+    // optional uint64 index_real_write_count = 3;
+    inline bool has_index_real_write_count() const;
+    inline void clear_index_real_write_count();
+    static const int kIndexRealWriteCountFieldNumber = 3;
+    inline ::google::protobuf::uint64 index_real_write_count() const;
+    inline void set_index_real_write_count(::google::protobuf::uint64 value);
 
-  // optional uint64 imported_block_count = 4;
-  inline bool has_imported_block_count() const;
-  inline void clear_imported_block_count();
-  static const int kImportedBlockCountFieldNumber = 4;
-  inline ::google::protobuf::uint64 imported_block_count() const;
-  inline void set_imported_block_count(::google::protobuf::uint64 value);
+    // optional uint64 imported_block_count = 4;
+    inline bool has_imported_block_count() const;
+    inline void clear_imported_block_count();
+    static const int kImportedBlockCountFieldNumber = 4;
+    inline ::google::protobuf::uint64 imported_block_count() const;
+    inline void set_imported_block_count(::google::protobuf::uint64 value);
 
-  // optional uint64 failed_block_write_count = 5;
-  inline bool has_failed_block_write_count() const;
-  inline void clear_failed_block_write_count();
-  static const int kFailedBlockWriteCountFieldNumber = 5;
-  inline ::google::protobuf::uint64 failed_block_write_count() const;
-  inline void set_failed_block_write_count(::google::protobuf::uint64 value);
+    // optional uint64 failed_block_write_count = 5;
+    inline bool has_failed_block_write_count() const;
+    inline void clear_failed_block_write_count();
+    static const int kFailedBlockWriteCountFieldNumber = 5;
+    inline ::google::protobuf::uint64 failed_block_write_count() const;
+    inline void set_failed_block_write_count(::google::protobuf::uint64 value);
 
-  // @@protoc_insertion_point(class_scope:BlockIndexStatsData)
- private:
-  inline void set_has_index_read_count();
-  inline void clear_has_index_read_count();
-  inline void set_has_index_write_count();
-  inline void clear_has_index_write_count();
-  inline void set_has_index_real_write_count();
-  inline void clear_has_index_real_write_count();
-  inline void set_has_imported_block_count();
-  inline void clear_has_imported_block_count();
-  inline void set_has_failed_block_write_count();
-  inline void clear_has_failed_block_write_count();
+    // @@protoc_insertion_point(class_scope:BlockIndexStatsData)
+private:
+    inline void set_has_index_read_count();
+    inline void clear_has_index_read_count();
+    inline void set_has_index_write_count();
+    inline void clear_has_index_write_count();
+    inline void set_has_index_real_write_count();
+    inline void clear_has_index_real_write_count();
+    inline void set_has_imported_block_count();
+    inline void clear_has_imported_block_count();
+    inline void set_has_failed_block_write_count();
+    inline void clear_has_failed_block_write_count();
 
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+    ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::google::protobuf::uint64 index_read_count_;
-  ::google::protobuf::uint64 index_write_count_;
-  ::google::protobuf::uint64 index_real_write_count_;
-  ::google::protobuf::uint64 imported_block_count_;
-  ::google::protobuf::uint64 failed_block_write_count_;
+    ::google::protobuf::uint64 index_read_count_;
+    ::google::protobuf::uint64 index_write_count_;
+    ::google::protobuf::uint64 index_real_write_count_;
+    ::google::protobuf::uint64 imported_block_count_;
+    ::google::protobuf::uint64 failed_block_write_count_;
 
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(5 + 31) / 32];
+    mutable int _cached_size_;
+    ::google::protobuf::uint32 _has_bits_[(5 + 31) / 32];
 
-  friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
+    friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
 
-  void InitAsDefaultInstance();
-  static BlockIndexStatsData* default_instance_;
+    void InitAsDefaultInstance();
+    static BlockIndexStatsData* default_instance_;
 };
 // -------------------------------------------------------------------
 
 class ChunkStoreStatsData : public ::google::protobuf::Message {
- public:
-  ChunkStoreStatsData();
-  virtual ~ChunkStoreStatsData();
+public:
+    ChunkStoreStatsData();
+    virtual ~ChunkStoreStatsData();
 
-  ChunkStoreStatsData(const ChunkStoreStatsData& from);
+    ChunkStoreStatsData(const ChunkStoreStatsData& from);
 
-  inline ChunkStoreStatsData& operator=(const ChunkStoreStatsData& from) {
-    CopyFrom(from);
-    return *this;
-  }
+    inline ChunkStoreStatsData& operator=(const ChunkStoreStatsData& from) {
+        CopyFrom(from);
+        return *this;
+    }
 
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
+    inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+        return _unknown_fields_;
+    }
 
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
+    inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+        return &_unknown_fields_;
+    }
 
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const ChunkStoreStatsData& default_instance();
+    static const ::google::protobuf::Descriptor* descriptor();
+    static const ChunkStoreStatsData& default_instance();
 
-  void Swap(ChunkStoreStatsData* other);
+    void Swap(ChunkStoreStatsData* other);
 
-  // implements Message ----------------------------------------------
+    // implements Message ----------------------------------------------
 
-  ChunkStoreStatsData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const ChunkStoreStatsData& from);
-  void MergeFrom(const ChunkStoreStatsData& from);
-  void Clear();
-  bool IsInitialized() const;
+    ChunkStoreStatsData* New() const;
+    void CopyFrom(const ::google::protobuf::Message& from);
+    void MergeFrom(const ::google::protobuf::Message& from);
+    void CopyFrom(const ChunkStoreStatsData& from);
+    void MergeFrom(const ChunkStoreStatsData& from);
+    void Clear();
+    bool IsInitialized() const;
 
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
+    int ByteSize() const;
+    bool MergePartialFromCodedStream(
+        ::google::protobuf::io::CodedInputStream * input);
+    void SerializeWithCachedSizes(
+        ::google::protobuf::io::CodedOutputStream * output) const;
+    ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8 * output) const;
+    int GetCachedSize() const {
+        return _cached_size_;
+    }
+private:
+    void SharedCtor();
+    void SharedDtor();
+    void SetCachedSize(int size) const;
+public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+    ::google::protobuf::Metadata GetMetadata() const;
 
-  // nested types ----------------------------------------------------
+    // nested types ----------------------------------------------------
 
-  // accessors -------------------------------------------------------
+    // accessors -------------------------------------------------------
 
-  // optional uint64 read_count = 1;
-  inline bool has_read_count() const;
-  inline void clear_read_count();
-  static const int kReadCountFieldNumber = 1;
-  inline ::google::protobuf::uint64 read_count() const;
-  inline void set_read_count(::google::protobuf::uint64 value);
+    // optional uint64 read_count = 1;
+    inline bool has_read_count() const;
+    inline void clear_read_count();
+    static const int kReadCountFieldNumber = 1;
+    inline ::google::protobuf::uint64 read_count() const;
+    inline void set_read_count(::google::protobuf::uint64 value);
 
-  // optional uint64 write_count = 2;
-  inline bool has_write_count() const;
-  inline void clear_write_count();
-  static const int kWriteCountFieldNumber = 2;
-  inline ::google::protobuf::uint64 write_count() const;
-  inline void set_write_count(::google::protobuf::uint64 value);
+    // optional uint64 write_count = 2;
+    inline bool has_write_count() const;
+    inline void clear_write_count();
+    static const int kWriteCountFieldNumber = 2;
+    inline ::google::protobuf::uint64 write_count() const;
+    inline void set_write_count(::google::protobuf::uint64 value);
 
-  // optional uint64 real_write_count = 3;
-  inline bool has_real_write_count() const;
-  inline void clear_real_write_count();
-  static const int kRealWriteCountFieldNumber = 3;
-  inline ::google::protobuf::uint64 real_write_count() const;
-  inline void set_real_write_count(::google::protobuf::uint64 value);
+    // optional uint64 real_write_count = 3;
+    inline bool has_real_write_count() const;
+    inline void clear_real_write_count();
+    static const int kRealWriteCountFieldNumber = 3;
+    inline ::google::protobuf::uint64 real_write_count() const;
+    inline void set_real_write_count(::google::protobuf::uint64 value);
 
-  // @@protoc_insertion_point(class_scope:ChunkStoreStatsData)
- private:
-  inline void set_has_read_count();
-  inline void clear_has_read_count();
-  inline void set_has_write_count();
-  inline void clear_has_write_count();
-  inline void set_has_real_write_count();
-  inline void clear_has_real_write_count();
+    // @@protoc_insertion_point(class_scope:ChunkStoreStatsData)
+private:
+    inline void set_has_read_count();
+    inline void clear_has_read_count();
+    inline void set_has_write_count();
+    inline void clear_has_write_count();
+    inline void set_has_real_write_count();
+    inline void clear_has_real_write_count();
 
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+    ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::google::protobuf::uint64 read_count_;
-  ::google::protobuf::uint64 write_count_;
-  ::google::protobuf::uint64 real_write_count_;
+    ::google::protobuf::uint64 read_count_;
+    ::google::protobuf::uint64 write_count_;
+    ::google::protobuf::uint64 real_write_count_;
 
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
+    mutable int _cached_size_;
+    ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
 
-  friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
+    friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
 
-  void InitAsDefaultInstance();
-  static ChunkStoreStatsData* default_instance_;
+    void InitAsDefaultInstance();
+    static ChunkStoreStatsData* default_instance_;
 };
 // -------------------------------------------------------------------
 
 class ContainerStorageWriteCacheStatsData : public ::google::protobuf::Message {
- public:
-  ContainerStorageWriteCacheStatsData();
-  virtual ~ContainerStorageWriteCacheStatsData();
+public:
+    ContainerStorageWriteCacheStatsData();
+    virtual ~ContainerStorageWriteCacheStatsData();
 
-  ContainerStorageWriteCacheStatsData(const ContainerStorageWriteCacheStatsData& from);
+    ContainerStorageWriteCacheStatsData(const ContainerStorageWriteCacheStatsData& from);
 
-  inline ContainerStorageWriteCacheStatsData& operator=(const ContainerStorageWriteCacheStatsData& from) {
-    CopyFrom(from);
-    return *this;
-  }
+    inline ContainerStorageWriteCacheStatsData& operator=(const ContainerStorageWriteCacheStatsData& from) {
+        CopyFrom(from);
+        return *this;
+    }
 
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
+    inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+        return _unknown_fields_;
+    }
 
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
+    inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+        return &_unknown_fields_;
+    }
 
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const ContainerStorageWriteCacheStatsData& default_instance();
+    static const ::google::protobuf::Descriptor* descriptor();
+    static const ContainerStorageWriteCacheStatsData& default_instance();
 
-  void Swap(ContainerStorageWriteCacheStatsData* other);
+    void Swap(ContainerStorageWriteCacheStatsData* other);
 
-  // implements Message ----------------------------------------------
+    // implements Message ----------------------------------------------
 
-  ContainerStorageWriteCacheStatsData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const ContainerStorageWriteCacheStatsData& from);
-  void MergeFrom(const ContainerStorageWriteCacheStatsData& from);
-  void Clear();
-  bool IsInitialized() const;
+    ContainerStorageWriteCacheStatsData* New() const;
+    void CopyFrom(const ::google::protobuf::Message& from);
+    void MergeFrom(const ::google::protobuf::Message& from);
+    void CopyFrom(const ContainerStorageWriteCacheStatsData& from);
+    void MergeFrom(const ContainerStorageWriteCacheStatsData& from);
+    void Clear();
+    bool IsInitialized() const;
 
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
+    int ByteSize() const;
+    bool MergePartialFromCodedStream(
+        ::google::protobuf::io::CodedInputStream * input);
+    void SerializeWithCachedSizes(
+        ::google::protobuf::io::CodedOutputStream * output) const;
+    ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8 * output) const;
+    int GetCachedSize() const {
+        return _cached_size_;
+    }
+private:
+    void SharedCtor();
+    void SharedDtor();
+    void SetCachedSize(int size) const;
+public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+    ::google::protobuf::Metadata GetMetadata() const;
 
-  // nested types ----------------------------------------------------
+    // nested types ----------------------------------------------------
 
-  // accessors -------------------------------------------------------
+    // accessors -------------------------------------------------------
 
-  // optional uint64 hit_count = 1;
-  inline bool has_hit_count() const;
-  inline void clear_hit_count();
-  static const int kHitCountFieldNumber = 1;
-  inline ::google::protobuf::uint64 hit_count() const;
-  inline void set_hit_count(::google::protobuf::uint64 value);
+    // optional uint64 hit_count = 1;
+    inline bool has_hit_count() const;
+    inline void clear_hit_count();
+    static const int kHitCountFieldNumber = 1;
+    inline ::google::protobuf::uint64 hit_count() const;
+    inline void set_hit_count(::google::protobuf::uint64 value);
 
-  // optional uint64 miss_count = 2;
-  inline bool has_miss_count() const;
-  inline void clear_miss_count();
-  static const int kMissCountFieldNumber = 2;
-  inline ::google::protobuf::uint64 miss_count() const;
-  inline void set_miss_count(::google::protobuf::uint64 value);
+    // optional uint64 miss_count = 2;
+    inline bool has_miss_count() const;
+    inline void clear_miss_count();
+    static const int kMissCountFieldNumber = 2;
+    inline ::google::protobuf::uint64 miss_count() const;
+    inline void set_miss_count(::google::protobuf::uint64 value);
 
-  // optional uint64 check_count = 3;
-  inline bool has_check_count() const;
-  inline void clear_check_count();
-  static const int kCheckCountFieldNumber = 3;
-  inline ::google::protobuf::uint64 check_count() const;
-  inline void set_check_count(::google::protobuf::uint64 value);
+    // optional uint64 check_count = 3;
+    inline bool has_check_count() const;
+    inline void clear_check_count();
+    static const int kCheckCountFieldNumber = 3;
+    inline ::google::protobuf::uint64 check_count() const;
+    inline void set_check_count(::google::protobuf::uint64 value);
 
-  // @@protoc_insertion_point(class_scope:ContainerStorageWriteCacheStatsData)
- private:
-  inline void set_has_hit_count();
-  inline void clear_has_hit_count();
-  inline void set_has_miss_count();
-  inline void clear_has_miss_count();
-  inline void set_has_check_count();
-  inline void clear_has_check_count();
+    // @@protoc_insertion_point(class_scope:ContainerStorageWriteCacheStatsData)
+private:
+    inline void set_has_hit_count();
+    inline void clear_has_hit_count();
+    inline void set_has_miss_count();
+    inline void clear_has_miss_count();
+    inline void set_has_check_count();
+    inline void clear_has_check_count();
 
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+    ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::google::protobuf::uint64 hit_count_;
-  ::google::protobuf::uint64 miss_count_;
-  ::google::protobuf::uint64 check_count_;
+    ::google::protobuf::uint64 hit_count_;
+    ::google::protobuf::uint64 miss_count_;
+    ::google::protobuf::uint64 check_count_;
 
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
+    mutable int _cached_size_;
+    ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
 
-  friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
+    friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
 
-  void InitAsDefaultInstance();
-  static ContainerStorageWriteCacheStatsData* default_instance_;
+    void InitAsDefaultInstance();
+    static ContainerStorageWriteCacheStatsData* default_instance_;
 };
 // -------------------------------------------------------------------
 
 class ContainerStorageStatsData : public ::google::protobuf::Message {
- public:
-  ContainerStorageStatsData();
-  virtual ~ContainerStorageStatsData();
+public:
+    ContainerStorageStatsData();
+    virtual ~ContainerStorageStatsData();
 
-  ContainerStorageStatsData(const ContainerStorageStatsData& from);
+    ContainerStorageStatsData(const ContainerStorageStatsData& from);
 
-  inline ContainerStorageStatsData& operator=(const ContainerStorageStatsData& from) {
-    CopyFrom(from);
-    return *this;
-  }
+    inline ContainerStorageStatsData& operator=(const ContainerStorageStatsData& from) {
+        CopyFrom(from);
+        return *this;
+    }
 
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
+    inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+        return _unknown_fields_;
+    }
 
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
+    inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+        return &_unknown_fields_;
+    }
 
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const ContainerStorageStatsData& default_instance();
+    static const ::google::protobuf::Descriptor* descriptor();
+    static const ContainerStorageStatsData& default_instance();
 
-  void Swap(ContainerStorageStatsData* other);
+    void Swap(ContainerStorageStatsData* other);
 
-  // implements Message ----------------------------------------------
+    // implements Message ----------------------------------------------
 
-  ContainerStorageStatsData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const ContainerStorageStatsData& from);
-  void MergeFrom(const ContainerStorageStatsData& from);
-  void Clear();
-  bool IsInitialized() const;
+    ContainerStorageStatsData* New() const;
+    void CopyFrom(const ::google::protobuf::Message& from);
+    void MergeFrom(const ::google::protobuf::Message& from);
+    void CopyFrom(const ContainerStorageStatsData& from);
+    void MergeFrom(const ContainerStorageStatsData& from);
+    void Clear();
+    bool IsInitialized() const;
 
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
+    int ByteSize() const;
+    bool MergePartialFromCodedStream(
+        ::google::protobuf::io::CodedInputStream * input);
+    void SerializeWithCachedSizes(
+        ::google::protobuf::io::CodedOutputStream * output) const;
+    ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8 * output) const;
+    int GetCachedSize() const {
+        return _cached_size_;
+    }
+private:
+    void SharedCtor();
+    void SharedDtor();
+    void SetCachedSize(int size) const;
+public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+    ::google::protobuf::Metadata GetMetadata() const;
 
-  // nested types ----------------------------------------------------
+    // nested types ----------------------------------------------------
 
-  // accessors -------------------------------------------------------
+    // accessors -------------------------------------------------------
 
-  // optional uint64 read_count = 1;
-  inline bool has_read_count() const;
-  inline void clear_read_count();
-  static const int kReadCountFieldNumber = 1;
-  inline ::google::protobuf::uint64 read_count() const;
-  inline void set_read_count(::google::protobuf::uint64 value);
+    // optional uint64 read_count = 1;
+    inline bool has_read_count() const;
+    inline void clear_read_count();
+    static const int kReadCountFieldNumber = 1;
+    inline ::google::protobuf::uint64 read_count() const;
+    inline void set_read_count(::google::protobuf::uint64 value);
 
-  // optional uint64 write_cache_hit_count = 2;
-  inline bool has_write_cache_hit_count() const;
-  inline void clear_write_cache_hit_count();
-  static const int kWriteCacheHitCountFieldNumber = 2;
-  inline ::google::protobuf::uint64 write_cache_hit_count() const;
-  inline void set_write_cache_hit_count(::google::protobuf::uint64 value);
+    // optional uint64 write_cache_hit_count = 2;
+    inline bool has_write_cache_hit_count() const;
+    inline void clear_write_cache_hit_count();
+    static const int kWriteCacheHitCountFieldNumber = 2;
+    inline ::google::protobuf::uint64 write_cache_hit_count() const;
+    inline void set_write_cache_hit_count(::google::protobuf::uint64 value);
 
-  // optional uint64 container_timeout_count = 3;
-  inline bool has_container_timeout_count() const;
-  inline void clear_container_timeout_count();
-  static const int kContainerTimeoutCountFieldNumber = 3;
-  inline ::google::protobuf::uint64 container_timeout_count() const;
-  inline void set_container_timeout_count(::google::protobuf::uint64 value);
+    // optional uint64 container_timeout_count = 3;
+    inline bool has_container_timeout_count() const;
+    inline void clear_container_timeout_count();
+    static const int kContainerTimeoutCountFieldNumber = 3;
+    inline ::google::protobuf::uint64 container_timeout_count() const;
+    inline void set_container_timeout_count(::google::protobuf::uint64 value);
 
-  // optional uint64 readed_container_count = 4;
-  inline bool has_readed_container_count() const;
-  inline void clear_readed_container_count();
-  static const int kReadedContainerCountFieldNumber = 4;
-  inline ::google::protobuf::uint64 readed_container_count() const;
-  inline void set_readed_container_count(::google::protobuf::uint64 value);
+    // optional uint64 readed_container_count = 4;
+    inline bool has_readed_container_count() const;
+    inline void clear_readed_container_count();
+    static const int kReadedContainerCountFieldNumber = 4;
+    inline ::google::protobuf::uint64 readed_container_count() const;
+    inline void set_readed_container_count(::google::protobuf::uint64 value);
 
-  // optional uint64 committed_container_count = 5;
-  inline bool has_committed_container_count() const;
-  inline void clear_committed_container_count();
-  static const int kCommittedContainerCountFieldNumber = 5;
-  inline ::google::protobuf::uint64 committed_container_count() const;
-  inline void set_committed_container_count(::google::protobuf::uint64 value);
+    // optional uint64 committed_container_count = 5;
+    inline bool has_committed_container_count() const;
+    inline void clear_committed_container_count();
+    static const int kCommittedContainerCountFieldNumber = 5;
+    inline ::google::protobuf::uint64 committed_container_count() const;
+    inline void set_committed_container_count(::google::protobuf::uint64 value);
 
-  // optional uint64 moved_container_count = 6;
-  inline bool has_moved_container_count() const;
-  inline void clear_moved_container_count();
-  static const int kMovedContainerCountFieldNumber = 6;
-  inline ::google::protobuf::uint64 moved_container_count() const;
-  inline void set_moved_container_count(::google::protobuf::uint64 value);
+    // optional uint64 moved_container_count = 6;
+    inline bool has_moved_container_count() const;
+    inline void clear_moved_container_count();
+    static const int kMovedContainerCountFieldNumber = 6;
+    inline ::google::protobuf::uint64 moved_container_count() const;
+    inline void set_moved_container_count(::google::protobuf::uint64 value);
 
-  // optional uint64 merged_container_count = 7;
-  inline bool has_merged_container_count() const;
-  inline void clear_merged_container_count();
-  static const int kMergedContainerCountFieldNumber = 7;
-  inline ::google::protobuf::uint64 merged_container_count() const;
-  inline void set_merged_container_count(::google::protobuf::uint64 value);
+    // optional uint64 merged_container_count = 7;
+    inline bool has_merged_container_count() const;
+    inline void clear_merged_container_count();
+    static const int kMergedContainerCountFieldNumber = 7;
+    inline ::google::protobuf::uint64 merged_container_count() const;
+    inline void set_merged_container_count(::google::protobuf::uint64 value);
 
-  // optional uint64 failed_container_count = 8;
-  inline bool has_failed_container_count() const;
-  inline void clear_failed_container_count();
-  static const int kFailedContainerCountFieldNumber = 8;
-  inline ::google::protobuf::uint64 failed_container_count() const;
-  inline void set_failed_container_count(::google::protobuf::uint64 value);
+    // optional uint64 failed_container_count = 8;
+    inline bool has_failed_container_count() const;
+    inline void clear_failed_container_count();
+    static const int kFailedContainerCountFieldNumber = 8;
+    inline ::google::protobuf::uint64 failed_container_count() const;
+    inline void set_failed_container_count(::google::protobuf::uint64 value);
 
-  // optional uint64 deleted_container_count = 9;
-  inline bool has_deleted_container_count() const;
-  inline void clear_deleted_container_count();
-  static const int kDeletedContainerCountFieldNumber = 9;
-  inline ::google::protobuf::uint64 deleted_container_count() const;
-  inline void set_deleted_container_count(::google::protobuf::uint64 value);
+    // optional uint64 deleted_container_count = 9;
+    inline bool has_deleted_container_count() const;
+    inline void clear_deleted_container_count();
+    static const int kDeletedContainerCountFieldNumber = 9;
+    inline ::google::protobuf::uint64 deleted_container_count() const;
+    inline void set_deleted_container_count(::google::protobuf::uint64 value);
 
-  // @@protoc_insertion_point(class_scope:ContainerStorageStatsData)
- private:
-  inline void set_has_read_count();
-  inline void clear_has_read_count();
-  inline void set_has_write_cache_hit_count();
-  inline void clear_has_write_cache_hit_count();
-  inline void set_has_container_timeout_count();
-  inline void clear_has_container_timeout_count();
-  inline void set_has_readed_container_count();
-  inline void clear_has_readed_container_count();
-  inline void set_has_committed_container_count();
-  inline void clear_has_committed_container_count();
-  inline void set_has_moved_container_count();
-  inline void clear_has_moved_container_count();
-  inline void set_has_merged_container_count();
-  inline void clear_has_merged_container_count();
-  inline void set_has_failed_container_count();
-  inline void clear_has_failed_container_count();
-  inline void set_has_deleted_container_count();
-  inline void clear_has_deleted_container_count();
+    // @@protoc_insertion_point(class_scope:ContainerStorageStatsData)
+private:
+    inline void set_has_read_count();
+    inline void clear_has_read_count();
+    inline void set_has_write_cache_hit_count();
+    inline void clear_has_write_cache_hit_count();
+    inline void set_has_container_timeout_count();
+    inline void clear_has_container_timeout_count();
+    inline void set_has_readed_container_count();
+    inline void clear_has_readed_container_count();
+    inline void set_has_committed_container_count();
+    inline void clear_has_committed_container_count();
+    inline void set_has_moved_container_count();
+    inline void clear_has_moved_container_count();
+    inline void set_has_merged_container_count();
+    inline void clear_has_merged_container_count();
+    inline void set_has_failed_container_count();
+    inline void clear_has_failed_container_count();
+    inline void set_has_deleted_container_count();
+    inline void clear_has_deleted_container_count();
 
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+    ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::google::protobuf::uint64 read_count_;
-  ::google::protobuf::uint64 write_cache_hit_count_;
-  ::google::protobuf::uint64 container_timeout_count_;
-  ::google::protobuf::uint64 readed_container_count_;
-  ::google::protobuf::uint64 committed_container_count_;
-  ::google::protobuf::uint64 moved_container_count_;
-  ::google::protobuf::uint64 merged_container_count_;
-  ::google::protobuf::uint64 failed_container_count_;
-  ::google::protobuf::uint64 deleted_container_count_;
+    ::google::protobuf::uint64 read_count_;
+    ::google::protobuf::uint64 write_cache_hit_count_;
+    ::google::protobuf::uint64 container_timeout_count_;
+    ::google::protobuf::uint64 readed_container_count_;
+    ::google::protobuf::uint64 committed_container_count_;
+    ::google::protobuf::uint64 moved_container_count_;
+    ::google::protobuf::uint64 merged_container_count_;
+    ::google::protobuf::uint64 failed_container_count_;
+    ::google::protobuf::uint64 deleted_container_count_;
 
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(9 + 31) / 32];
+    mutable int _cached_size_;
+    ::google::protobuf::uint32 _has_bits_[(9 + 31) / 32];
 
-  friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
+    friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
 
-  void InitAsDefaultInstance();
-  static ContainerStorageStatsData* default_instance_;
+    void InitAsDefaultInstance();
+    static ContainerStorageStatsData* default_instance_;
 };
 // -------------------------------------------------------------------
 
 class ContainerStorageReadCacheStatsData : public ::google::protobuf::Message {
- public:
-  ContainerStorageReadCacheStatsData();
-  virtual ~ContainerStorageReadCacheStatsData();
+public:
+    ContainerStorageReadCacheStatsData();
+    virtual ~ContainerStorageReadCacheStatsData();
 
-  ContainerStorageReadCacheStatsData(const ContainerStorageReadCacheStatsData& from);
+    ContainerStorageReadCacheStatsData(const ContainerStorageReadCacheStatsData& from);
 
-  inline ContainerStorageReadCacheStatsData& operator=(const ContainerStorageReadCacheStatsData& from) {
-    CopyFrom(from);
-    return *this;
-  }
+    inline ContainerStorageReadCacheStatsData& operator=(const ContainerStorageReadCacheStatsData& from) {
+        CopyFrom(from);
+        return *this;
+    }
 
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
+    inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+        return _unknown_fields_;
+    }
 
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
+    inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+        return &_unknown_fields_;
+    }
 
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const ContainerStorageReadCacheStatsData& default_instance();
+    static const ::google::protobuf::Descriptor* descriptor();
+    static const ContainerStorageReadCacheStatsData& default_instance();
 
-  void Swap(ContainerStorageReadCacheStatsData* other);
+    void Swap(ContainerStorageReadCacheStatsData* other);
 
-  // implements Message ----------------------------------------------
+    // implements Message ----------------------------------------------
 
-  ContainerStorageReadCacheStatsData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const ContainerStorageReadCacheStatsData& from);
-  void MergeFrom(const ContainerStorageReadCacheStatsData& from);
-  void Clear();
-  bool IsInitialized() const;
+    ContainerStorageReadCacheStatsData* New() const;
+    void CopyFrom(const ::google::protobuf::Message& from);
+    void MergeFrom(const ::google::protobuf::Message& from);
+    void CopyFrom(const ContainerStorageReadCacheStatsData& from);
+    void MergeFrom(const ContainerStorageReadCacheStatsData& from);
+    void Clear();
+    bool IsInitialized() const;
 
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
+    int ByteSize() const;
+    bool MergePartialFromCodedStream(
+        ::google::protobuf::io::CodedInputStream * input);
+    void SerializeWithCachedSizes(
+        ::google::protobuf::io::CodedOutputStream * output) const;
+    ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8 * output) const;
+    int GetCachedSize() const {
+        return _cached_size_;
+    }
+private:
+    void SharedCtor();
+    void SharedDtor();
+    void SetCachedSize(int size) const;
+public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+    ::google::protobuf::Metadata GetMetadata() const;
 
-  // nested types ----------------------------------------------------
+    // nested types ----------------------------------------------------
 
-  // accessors -------------------------------------------------------
+    // accessors -------------------------------------------------------
 
-  // optional uint64 hit_count = 1;
-  inline bool has_hit_count() const;
-  inline void clear_hit_count();
-  static const int kHitCountFieldNumber = 1;
-  inline ::google::protobuf::uint64 hit_count() const;
-  inline void set_hit_count(::google::protobuf::uint64 value);
+    // optional uint64 hit_count = 1;
+    inline bool has_hit_count() const;
+    inline void clear_hit_count();
+    static const int kHitCountFieldNumber = 1;
+    inline ::google::protobuf::uint64 hit_count() const;
+    inline void set_hit_count(::google::protobuf::uint64 value);
 
-  // optional uint64 miss_count = 2;
-  inline bool has_miss_count() const;
-  inline void clear_miss_count();
-  static const int kMissCountFieldNumber = 2;
-  inline ::google::protobuf::uint64 miss_count() const;
-  inline void set_miss_count(::google::protobuf::uint64 value);
+    // optional uint64 miss_count = 2;
+    inline bool has_miss_count() const;
+    inline void clear_miss_count();
+    static const int kMissCountFieldNumber = 2;
+    inline ::google::protobuf::uint64 miss_count() const;
+    inline void set_miss_count(::google::protobuf::uint64 value);
 
-  // optional uint64 check_count = 3;
-  inline bool has_check_count() const;
-  inline void clear_check_count();
-  static const int kCheckCountFieldNumber = 3;
-  inline ::google::protobuf::uint64 check_count() const;
-  inline void set_check_count(::google::protobuf::uint64 value);
+    // optional uint64 check_count = 3;
+    inline bool has_check_count() const;
+    inline void clear_check_count();
+    static const int kCheckCountFieldNumber = 3;
+    inline ::google::protobuf::uint64 check_count() const;
+    inline void set_check_count(::google::protobuf::uint64 value);
 
-  // optional uint64 update_count = 4;
-  inline bool has_update_count() const;
-  inline void clear_update_count();
-  static const int kUpdateCountFieldNumber = 4;
-  inline ::google::protobuf::uint64 update_count() const;
-  inline void set_update_count(::google::protobuf::uint64 value);
+    // optional uint64 update_count = 4;
+    inline bool has_update_count() const;
+    inline void clear_update_count();
+    static const int kUpdateCountFieldNumber = 4;
+    inline ::google::protobuf::uint64 update_count() const;
+    inline void set_update_count(::google::protobuf::uint64 value);
 
-  // @@protoc_insertion_point(class_scope:ContainerStorageReadCacheStatsData)
- private:
-  inline void set_has_hit_count();
-  inline void clear_has_hit_count();
-  inline void set_has_miss_count();
-  inline void clear_has_miss_count();
-  inline void set_has_check_count();
-  inline void clear_has_check_count();
-  inline void set_has_update_count();
-  inline void clear_has_update_count();
+    // @@protoc_insertion_point(class_scope:ContainerStorageReadCacheStatsData)
+private:
+    inline void set_has_hit_count();
+    inline void clear_has_hit_count();
+    inline void set_has_miss_count();
+    inline void clear_has_miss_count();
+    inline void set_has_check_count();
+    inline void clear_has_check_count();
+    inline void set_has_update_count();
+    inline void clear_has_update_count();
 
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+    ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::google::protobuf::uint64 hit_count_;
-  ::google::protobuf::uint64 miss_count_;
-  ::google::protobuf::uint64 check_count_;
-  ::google::protobuf::uint64 update_count_;
+    ::google::protobuf::uint64 hit_count_;
+    ::google::protobuf::uint64 miss_count_;
+    ::google::protobuf::uint64 check_count_;
+    ::google::protobuf::uint64 update_count_;
 
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
+    mutable int _cached_size_;
+    ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
 
-  friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
+    friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
 
-  void InitAsDefaultInstance();
-  static ContainerStorageReadCacheStatsData* default_instance_;
+    void InitAsDefaultInstance();
+    static ContainerStorageReadCacheStatsData* default_instance_;
 };
 // -------------------------------------------------------------------
 
 class BlockIndexFilterStatsData : public ::google::protobuf::Message {
- public:
-  BlockIndexFilterStatsData();
-  virtual ~BlockIndexFilterStatsData();
+public:
+    BlockIndexFilterStatsData();
+    virtual ~BlockIndexFilterStatsData();
 
-  BlockIndexFilterStatsData(const BlockIndexFilterStatsData& from);
+    BlockIndexFilterStatsData(const BlockIndexFilterStatsData& from);
 
-  inline BlockIndexFilterStatsData& operator=(const BlockIndexFilterStatsData& from) {
-    CopyFrom(from);
-    return *this;
-  }
+    inline BlockIndexFilterStatsData& operator=(const BlockIndexFilterStatsData& from) {
+        CopyFrom(from);
+        return *this;
+    }
 
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
+    inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+        return _unknown_fields_;
+    }
 
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
+    inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+        return &_unknown_fields_;
+    }
 
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const BlockIndexFilterStatsData& default_instance();
+    static const ::google::protobuf::Descriptor* descriptor();
+    static const BlockIndexFilterStatsData& default_instance();
 
-  void Swap(BlockIndexFilterStatsData* other);
+    void Swap(BlockIndexFilterStatsData* other);
 
-  // implements Message ----------------------------------------------
+    // implements Message ----------------------------------------------
 
-  BlockIndexFilterStatsData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const BlockIndexFilterStatsData& from);
-  void MergeFrom(const BlockIndexFilterStatsData& from);
-  void Clear();
-  bool IsInitialized() const;
+    BlockIndexFilterStatsData* New() const;
+    void CopyFrom(const ::google::protobuf::Message& from);
+    void MergeFrom(const ::google::protobuf::Message& from);
+    void CopyFrom(const BlockIndexFilterStatsData& from);
+    void MergeFrom(const BlockIndexFilterStatsData& from);
+    void Clear();
+    bool IsInitialized() const;
 
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
+    int ByteSize() const;
+    bool MergePartialFromCodedStream(
+        ::google::protobuf::io::CodedInputStream * input);
+    void SerializeWithCachedSizes(
+        ::google::protobuf::io::CodedOutputStream * output) const;
+    ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8 * output) const;
+    int GetCachedSize() const {
+        return _cached_size_;
+    }
+private:
+    void SharedCtor();
+    void SharedDtor();
+    void SetCachedSize(int size) const;
+public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+    ::google::protobuf::Metadata GetMetadata() const;
 
-  // nested types ----------------------------------------------------
+    // nested types ----------------------------------------------------
 
-  // accessors -------------------------------------------------------
+    // accessors -------------------------------------------------------
 
-  // optional uint64 hit_count = 1;
-  inline bool has_hit_count() const;
-  inline void clear_hit_count();
-  static const int kHitCountFieldNumber = 1;
-  inline ::google::protobuf::uint64 hit_count() const;
-  inline void set_hit_count(::google::protobuf::uint64 value);
+    // optional uint64 hit_count = 1;
+    inline bool has_hit_count() const;
+    inline void clear_hit_count();
+    static const int kHitCountFieldNumber = 1;
+    inline ::google::protobuf::uint64 hit_count() const;
+    inline void set_hit_count(::google::protobuf::uint64 value);
 
-  // optional uint64 miss_count = 2;
-  inline bool has_miss_count() const;
-  inline void clear_miss_count();
-  static const int kMissCountFieldNumber = 2;
-  inline ::google::protobuf::uint64 miss_count() const;
-  inline void set_miss_count(::google::protobuf::uint64 value);
+    // optional uint64 miss_count = 2;
+    inline bool has_miss_count() const;
+    inline void clear_miss_count();
+    static const int kMissCountFieldNumber = 2;
+    inline ::google::protobuf::uint64 miss_count() const;
+    inline void set_miss_count(::google::protobuf::uint64 value);
 
-  // optional uint64 read_count = 3;
-  inline bool has_read_count() const;
-  inline void clear_read_count();
-  static const int kReadCountFieldNumber = 3;
-  inline ::google::protobuf::uint64 read_count() const;
-  inline void set_read_count(::google::protobuf::uint64 value);
+    // optional uint64 read_count = 3;
+    inline bool has_read_count() const;
+    inline void clear_read_count();
+    static const int kReadCountFieldNumber = 3;
+    inline ::google::protobuf::uint64 read_count() const;
+    inline void set_read_count(::google::protobuf::uint64 value);
 
-  // @@protoc_insertion_point(class_scope:BlockIndexFilterStatsData)
- private:
-  inline void set_has_hit_count();
-  inline void clear_has_hit_count();
-  inline void set_has_miss_count();
-  inline void clear_has_miss_count();
-  inline void set_has_read_count();
-  inline void clear_has_read_count();
+    // @@protoc_insertion_point(class_scope:BlockIndexFilterStatsData)
+private:
+    inline void set_has_hit_count();
+    inline void clear_has_hit_count();
+    inline void set_has_miss_count();
+    inline void clear_has_miss_count();
+    inline void set_has_read_count();
+    inline void clear_has_read_count();
 
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+    ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::google::protobuf::uint64 hit_count_;
-  ::google::protobuf::uint64 miss_count_;
-  ::google::protobuf::uint64 read_count_;
+    ::google::protobuf::uint64 hit_count_;
+    ::google::protobuf::uint64 miss_count_;
+    ::google::protobuf::uint64 read_count_;
 
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
+    mutable int _cached_size_;
+    ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
 
-  friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
+    friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
 
-  void InitAsDefaultInstance();
-  static BlockIndexFilterStatsData* default_instance_;
+    void InitAsDefaultInstance();
+    static BlockIndexFilterStatsData* default_instance_;
 };
 // -------------------------------------------------------------------
 
 class BlockChunkCacheStatsData : public ::google::protobuf::Message {
- public:
-  BlockChunkCacheStatsData();
-  virtual ~BlockChunkCacheStatsData();
+public:
+    BlockChunkCacheStatsData();
+    virtual ~BlockChunkCacheStatsData();
 
-  BlockChunkCacheStatsData(const BlockChunkCacheStatsData& from);
+    BlockChunkCacheStatsData(const BlockChunkCacheStatsData& from);
 
-  inline BlockChunkCacheStatsData& operator=(const BlockChunkCacheStatsData& from) {
-    CopyFrom(from);
-    return *this;
-  }
+    inline BlockChunkCacheStatsData& operator=(const BlockChunkCacheStatsData& from) {
+        CopyFrom(from);
+        return *this;
+    }
 
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
+    inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+        return _unknown_fields_;
+    }
 
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
+    inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+        return &_unknown_fields_;
+    }
 
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const BlockChunkCacheStatsData& default_instance();
+    static const ::google::protobuf::Descriptor* descriptor();
+    static const BlockChunkCacheStatsData& default_instance();
 
-  void Swap(BlockChunkCacheStatsData* other);
+    void Swap(BlockChunkCacheStatsData* other);
 
-  // implements Message ----------------------------------------------
+    // implements Message ----------------------------------------------
 
-  BlockChunkCacheStatsData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const BlockChunkCacheStatsData& from);
-  void MergeFrom(const BlockChunkCacheStatsData& from);
-  void Clear();
-  bool IsInitialized() const;
+    BlockChunkCacheStatsData* New() const;
+    void CopyFrom(const ::google::protobuf::Message& from);
+    void MergeFrom(const ::google::protobuf::Message& from);
+    void CopyFrom(const BlockChunkCacheStatsData& from);
+    void MergeFrom(const BlockChunkCacheStatsData& from);
+    void Clear();
+    bool IsInitialized() const;
 
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
+    int ByteSize() const;
+    bool MergePartialFromCodedStream(
+        ::google::protobuf::io::CodedInputStream * input);
+    void SerializeWithCachedSizes(
+        ::google::protobuf::io::CodedOutputStream * output) const;
+    ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8 * output) const;
+    int GetCachedSize() const {
+        return _cached_size_;
+    }
+private:
+    void SharedCtor();
+    void SharedDtor();
+    void SetCachedSize(int size) const;
+public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+    ::google::protobuf::Metadata GetMetadata() const;
 
-  // nested types ----------------------------------------------------
+    // nested types ----------------------------------------------------
 
-  // accessors -------------------------------------------------------
+    // accessors -------------------------------------------------------
 
-  // optional uint64 fetch_count = 1;
-  inline bool has_fetch_count() const;
-  inline void clear_fetch_count();
-  static const int kFetchCountFieldNumber = 1;
-  inline ::google::protobuf::uint64 fetch_count() const;
-  inline void set_fetch_count(::google::protobuf::uint64 value);
+    // optional uint64 fetch_count = 1;
+    inline bool has_fetch_count() const;
+    inline void clear_fetch_count();
+    static const int kFetchCountFieldNumber = 1;
+    inline ::google::protobuf::uint64 fetch_count() const;
+    inline void set_fetch_count(::google::protobuf::uint64 value);
 
-  // optional uint64 hit_count = 2;
-  inline bool has_hit_count() const;
-  inline void clear_hit_count();
-  static const int kHitCountFieldNumber = 2;
-  inline ::google::protobuf::uint64 hit_count() const;
-  inline void set_hit_count(::google::protobuf::uint64 value);
+    // optional uint64 hit_count = 2;
+    inline bool has_hit_count() const;
+    inline void clear_hit_count();
+    static const int kHitCountFieldNumber = 2;
+    inline ::google::protobuf::uint64 hit_count() const;
+    inline void set_hit_count(::google::protobuf::uint64 value);
 
-  // optional uint64 miss_count = 3;
-  inline bool has_miss_count() const;
-  inline void clear_miss_count();
-  static const int kMissCountFieldNumber = 3;
-  inline ::google::protobuf::uint64 miss_count() const;
-  inline void set_miss_count(::google::protobuf::uint64 value);
+    // optional uint64 miss_count = 3;
+    inline bool has_miss_count() const;
+    inline void clear_miss_count();
+    static const int kMissCountFieldNumber = 3;
+    inline ::google::protobuf::uint64 miss_count() const;
+    inline void set_miss_count(::google::protobuf::uint64 value);
 
-  // @@protoc_insertion_point(class_scope:BlockChunkCacheStatsData)
- private:
-  inline void set_has_fetch_count();
-  inline void clear_has_fetch_count();
-  inline void set_has_hit_count();
-  inline void clear_has_hit_count();
-  inline void set_has_miss_count();
-  inline void clear_has_miss_count();
+    // @@protoc_insertion_point(class_scope:BlockChunkCacheStatsData)
+private:
+    inline void set_has_fetch_count();
+    inline void clear_has_fetch_count();
+    inline void set_has_hit_count();
+    inline void clear_has_hit_count();
+    inline void set_has_miss_count();
+    inline void clear_has_miss_count();
 
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+    ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::google::protobuf::uint64 fetch_count_;
-  ::google::protobuf::uint64 hit_count_;
-  ::google::protobuf::uint64 miss_count_;
+    ::google::protobuf::uint64 fetch_count_;
+    ::google::protobuf::uint64 hit_count_;
+    ::google::protobuf::uint64 miss_count_;
 
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
+    mutable int _cached_size_;
+    ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
 
-  friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
+    friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
 
-  void InitAsDefaultInstance();
-  static BlockChunkCacheStatsData* default_instance_;
+    void InitAsDefaultInstance();
+    static BlockChunkCacheStatsData* default_instance_;
 };
 // -------------------------------------------------------------------
 
 class BloomFilterStatsData : public ::google::protobuf::Message {
- public:
-  BloomFilterStatsData();
-  virtual ~BloomFilterStatsData();
+public:
+    BloomFilterStatsData();
+    virtual ~BloomFilterStatsData();
 
-  BloomFilterStatsData(const BloomFilterStatsData& from);
+    BloomFilterStatsData(const BloomFilterStatsData& from);
 
-  inline BloomFilterStatsData& operator=(const BloomFilterStatsData& from) {
-    CopyFrom(from);
-    return *this;
-  }
+    inline BloomFilterStatsData& operator=(const BloomFilterStatsData& from) {
+        CopyFrom(from);
+        return *this;
+    }
 
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
+    inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+        return _unknown_fields_;
+    }
 
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
+    inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+        return &_unknown_fields_;
+    }
 
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const BloomFilterStatsData& default_instance();
+    static const ::google::protobuf::Descriptor* descriptor();
+    static const BloomFilterStatsData& default_instance();
 
-  void Swap(BloomFilterStatsData* other);
+    void Swap(BloomFilterStatsData* other);
 
-  // implements Message ----------------------------------------------
+    // implements Message ----------------------------------------------
 
-  BloomFilterStatsData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const BloomFilterStatsData& from);
-  void MergeFrom(const BloomFilterStatsData& from);
-  void Clear();
-  bool IsInitialized() const;
+    BloomFilterStatsData* New() const;
+    void CopyFrom(const ::google::protobuf::Message& from);
+    void MergeFrom(const ::google::protobuf::Message& from);
+    void CopyFrom(const BloomFilterStatsData& from);
+    void MergeFrom(const BloomFilterStatsData& from);
+    void Clear();
+    bool IsInitialized() const;
 
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
+    int ByteSize() const;
+    bool MergePartialFromCodedStream(
+        ::google::protobuf::io::CodedInputStream * input);
+    void SerializeWithCachedSizes(
+        ::google::protobuf::io::CodedOutputStream * output) const;
+    ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8 * output) const;
+    int GetCachedSize() const {
+        return _cached_size_;
+    }
+private:
+    void SharedCtor();
+    void SharedDtor();
+    void SetCachedSize(int size) const;
+public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+    ::google::protobuf::Metadata GetMetadata() const;
 
-  // nested types ----------------------------------------------------
+    // nested types ----------------------------------------------------
 
-  // accessors -------------------------------------------------------
+    // accessors -------------------------------------------------------
 
-  // optional uint64 hit_count = 1;
-  inline bool has_hit_count() const;
-  inline void clear_hit_count();
-  static const int kHitCountFieldNumber = 1;
-  inline ::google::protobuf::uint64 hit_count() const;
-  inline void set_hit_count(::google::protobuf::uint64 value);
+    // optional uint64 hit_count = 1;
+    inline bool has_hit_count() const;
+    inline void clear_hit_count();
+    static const int kHitCountFieldNumber = 1;
+    inline ::google::protobuf::uint64 hit_count() const;
+    inline void set_hit_count(::google::protobuf::uint64 value);
 
-  // optional uint64 miss_count = 2;
-  inline bool has_miss_count() const;
-  inline void clear_miss_count();
-  static const int kMissCountFieldNumber = 2;
-  inline ::google::protobuf::uint64 miss_count() const;
-  inline void set_miss_count(::google::protobuf::uint64 value);
+    // optional uint64 miss_count = 2;
+    inline bool has_miss_count() const;
+    inline void clear_miss_count();
+    static const int kMissCountFieldNumber = 2;
+    inline ::google::protobuf::uint64 miss_count() const;
+    inline void set_miss_count(::google::protobuf::uint64 value);
 
-  // optional uint64 read_count = 3;
-  inline bool has_read_count() const;
-  inline void clear_read_count();
-  static const int kReadCountFieldNumber = 3;
-  inline ::google::protobuf::uint64 read_count() const;
-  inline void set_read_count(::google::protobuf::uint64 value);
+    // optional uint64 read_count = 3;
+    inline bool has_read_count() const;
+    inline void clear_read_count();
+    static const int kReadCountFieldNumber = 3;
+    inline ::google::protobuf::uint64 read_count() const;
+    inline void set_read_count(::google::protobuf::uint64 value);
 
-  // optional uint64 write_count = 4;
-  inline bool has_write_count() const;
-  inline void clear_write_count();
-  static const int kWriteCountFieldNumber = 4;
-  inline ::google::protobuf::uint64 write_count() const;
-  inline void set_write_count(::google::protobuf::uint64 value);
+    // optional uint64 write_count = 4;
+    inline bool has_write_count() const;
+    inline void clear_write_count();
+    static const int kWriteCountFieldNumber = 4;
+    inline ::google::protobuf::uint64 write_count() const;
+    inline void set_write_count(::google::protobuf::uint64 value);
 
-  // @@protoc_insertion_point(class_scope:BloomFilterStatsData)
- private:
-  inline void set_has_hit_count();
-  inline void clear_has_hit_count();
-  inline void set_has_miss_count();
-  inline void clear_has_miss_count();
-  inline void set_has_read_count();
-  inline void clear_has_read_count();
-  inline void set_has_write_count();
-  inline void clear_has_write_count();
+    // @@protoc_insertion_point(class_scope:BloomFilterStatsData)
+private:
+    inline void set_has_hit_count();
+    inline void clear_has_hit_count();
+    inline void set_has_miss_count();
+    inline void clear_has_miss_count();
+    inline void set_has_read_count();
+    inline void clear_has_read_count();
+    inline void set_has_write_count();
+    inline void clear_has_write_count();
 
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+    ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::google::protobuf::uint64 hit_count_;
-  ::google::protobuf::uint64 miss_count_;
-  ::google::protobuf::uint64 read_count_;
-  ::google::protobuf::uint64 write_count_;
+    ::google::protobuf::uint64 hit_count_;
+    ::google::protobuf::uint64 miss_count_;
+    ::google::protobuf::uint64 read_count_;
+    ::google::protobuf::uint64 write_count_;
 
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
+    mutable int _cached_size_;
+    ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
 
-  friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
+    friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
 
-  void InitAsDefaultInstance();
-  static BloomFilterStatsData* default_instance_;
+    void InitAsDefaultInstance();
+    static BloomFilterStatsData* default_instance_;
 };
 // -------------------------------------------------------------------
 
 class ByteCompareFilterStatsData : public ::google::protobuf::Message {
- public:
-  ByteCompareFilterStatsData();
-  virtual ~ByteCompareFilterStatsData();
+public:
+    ByteCompareFilterStatsData();
+    virtual ~ByteCompareFilterStatsData();
 
-  ByteCompareFilterStatsData(const ByteCompareFilterStatsData& from);
+    ByteCompareFilterStatsData(const ByteCompareFilterStatsData& from);
 
-  inline ByteCompareFilterStatsData& operator=(const ByteCompareFilterStatsData& from) {
-    CopyFrom(from);
-    return *this;
-  }
+    inline ByteCompareFilterStatsData& operator=(const ByteCompareFilterStatsData& from) {
+        CopyFrom(from);
+        return *this;
+    }
 
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
+    inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+        return _unknown_fields_;
+    }
 
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
+    inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+        return &_unknown_fields_;
+    }
 
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const ByteCompareFilterStatsData& default_instance();
+    static const ::google::protobuf::Descriptor* descriptor();
+    static const ByteCompareFilterStatsData& default_instance();
 
-  void Swap(ByteCompareFilterStatsData* other);
+    void Swap(ByteCompareFilterStatsData* other);
 
-  // implements Message ----------------------------------------------
+    // implements Message ----------------------------------------------
 
-  ByteCompareFilterStatsData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const ByteCompareFilterStatsData& from);
-  void MergeFrom(const ByteCompareFilterStatsData& from);
-  void Clear();
-  bool IsInitialized() const;
+    ByteCompareFilterStatsData* New() const;
+    void CopyFrom(const ::google::protobuf::Message& from);
+    void MergeFrom(const ::google::protobuf::Message& from);
+    void CopyFrom(const ByteCompareFilterStatsData& from);
+    void MergeFrom(const ByteCompareFilterStatsData& from);
+    void Clear();
+    bool IsInitialized() const;
 
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
+    int ByteSize() const;
+    bool MergePartialFromCodedStream(
+        ::google::protobuf::io::CodedInputStream * input);
+    void SerializeWithCachedSizes(
+        ::google::protobuf::io::CodedOutputStream * output) const;
+    ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8 * output) const;
+    int GetCachedSize() const {
+        return _cached_size_;
+    }
+private:
+    void SharedCtor();
+    void SharedDtor();
+    void SetCachedSize(int size) const;
+public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+    ::google::protobuf::Metadata GetMetadata() const;
 
-  // nested types ----------------------------------------------------
+    // nested types ----------------------------------------------------
 
-  // accessors -------------------------------------------------------
+    // accessors -------------------------------------------------------
 
-  // optional uint64 hit_count = 1;
-  inline bool has_hit_count() const;
-  inline void clear_hit_count();
-  static const int kHitCountFieldNumber = 1;
-  inline ::google::protobuf::uint64 hit_count() const;
-  inline void set_hit_count(::google::protobuf::uint64 value);
+    // optional uint64 hit_count = 1;
+    inline bool has_hit_count() const;
+    inline void clear_hit_count();
+    static const int kHitCountFieldNumber = 1;
+    inline ::google::protobuf::uint64 hit_count() const;
+    inline void set_hit_count(::google::protobuf::uint64 value);
 
-  // optional uint64 miss_count = 2;
-  inline bool has_miss_count() const;
-  inline void clear_miss_count();
-  static const int kMissCountFieldNumber = 2;
-  inline ::google::protobuf::uint64 miss_count() const;
-  inline void set_miss_count(::google::protobuf::uint64 value);
+    // optional uint64 miss_count = 2;
+    inline bool has_miss_count() const;
+    inline void clear_miss_count();
+    static const int kMissCountFieldNumber = 2;
+    inline ::google::protobuf::uint64 miss_count() const;
+    inline void set_miss_count(::google::protobuf::uint64 value);
 
-  // optional uint64 read_count = 3;
-  inline bool has_read_count() const;
-  inline void clear_read_count();
-  static const int kReadCountFieldNumber = 3;
-  inline ::google::protobuf::uint64 read_count() const;
-  inline void set_read_count(::google::protobuf::uint64 value);
+    // optional uint64 read_count = 3;
+    inline bool has_read_count() const;
+    inline void clear_read_count();
+    static const int kReadCountFieldNumber = 3;
+    inline ::google::protobuf::uint64 read_count() const;
+    inline void set_read_count(::google::protobuf::uint64 value);
 
-  // @@protoc_insertion_point(class_scope:ByteCompareFilterStatsData)
- private:
-  inline void set_has_hit_count();
-  inline void clear_has_hit_count();
-  inline void set_has_miss_count();
-  inline void clear_has_miss_count();
-  inline void set_has_read_count();
-  inline void clear_has_read_count();
+    // @@protoc_insertion_point(class_scope:ByteCompareFilterStatsData)
+private:
+    inline void set_has_hit_count();
+    inline void clear_has_hit_count();
+    inline void set_has_miss_count();
+    inline void clear_has_miss_count();
+    inline void set_has_read_count();
+    inline void clear_has_read_count();
 
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+    ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::google::protobuf::uint64 hit_count_;
-  ::google::protobuf::uint64 miss_count_;
-  ::google::protobuf::uint64 read_count_;
+    ::google::protobuf::uint64 hit_count_;
+    ::google::protobuf::uint64 miss_count_;
+    ::google::protobuf::uint64 read_count_;
 
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
+    mutable int _cached_size_;
+    ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
 
-  friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
+    friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
 
-  void InitAsDefaultInstance();
-  static ByteCompareFilterStatsData* default_instance_;
+    void InitAsDefaultInstance();
+    static ByteCompareFilterStatsData* default_instance_;
 };
 // -------------------------------------------------------------------
 
 class ChunkIndexFilterStatsData : public ::google::protobuf::Message {
- public:
-  ChunkIndexFilterStatsData();
-  virtual ~ChunkIndexFilterStatsData();
+public:
+    ChunkIndexFilterStatsData();
+    virtual ~ChunkIndexFilterStatsData();
 
-  ChunkIndexFilterStatsData(const ChunkIndexFilterStatsData& from);
+    ChunkIndexFilterStatsData(const ChunkIndexFilterStatsData& from);
 
-  inline ChunkIndexFilterStatsData& operator=(const ChunkIndexFilterStatsData& from) {
-    CopyFrom(from);
-    return *this;
-  }
+    inline ChunkIndexFilterStatsData& operator=(const ChunkIndexFilterStatsData& from) {
+        CopyFrom(from);
+        return *this;
+    }
 
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
+    inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+        return _unknown_fields_;
+    }
 
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
+    inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+        return &_unknown_fields_;
+    }
 
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const ChunkIndexFilterStatsData& default_instance();
+    static const ::google::protobuf::Descriptor* descriptor();
+    static const ChunkIndexFilterStatsData& default_instance();
 
-  void Swap(ChunkIndexFilterStatsData* other);
+    void Swap(ChunkIndexFilterStatsData* other);
 
-  // implements Message ----------------------------------------------
+    // implements Message ----------------------------------------------
 
-  ChunkIndexFilterStatsData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const ChunkIndexFilterStatsData& from);
-  void MergeFrom(const ChunkIndexFilterStatsData& from);
-  void Clear();
-  bool IsInitialized() const;
+    ChunkIndexFilterStatsData* New() const;
+    void CopyFrom(const ::google::protobuf::Message& from);
+    void MergeFrom(const ::google::protobuf::Message& from);
+    void CopyFrom(const ChunkIndexFilterStatsData& from);
+    void MergeFrom(const ChunkIndexFilterStatsData& from);
+    void Clear();
+    bool IsInitialized() const;
 
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
+    int ByteSize() const;
+    bool MergePartialFromCodedStream(
+        ::google::protobuf::io::CodedInputStream * input);
+    void SerializeWithCachedSizes(
+        ::google::protobuf::io::CodedOutputStream * output) const;
+    ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8 * output) const;
+    int GetCachedSize() const {
+        return _cached_size_;
+    }
+private:
+    void SharedCtor();
+    void SharedDtor();
+    void SetCachedSize(int size) const;
+public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+    ::google::protobuf::Metadata GetMetadata() const;
 
-  // nested types ----------------------------------------------------
+    // nested types ----------------------------------------------------
 
-  // accessors -------------------------------------------------------
+    // accessors -------------------------------------------------------
 
-  // optional uint64 hit_count = 1;
-  inline bool has_hit_count() const;
-  inline void clear_hit_count();
-  static const int kHitCountFieldNumber = 1;
-  inline ::google::protobuf::uint64 hit_count() const;
-  inline void set_hit_count(::google::protobuf::uint64 value);
+    // optional uint64 strong_hit_count = 1;
+    inline bool has_strong_hit_count() const;
+    inline void clear_strong_hit_count();
+    static const int kStrongHitCountFieldNumber = 1;
+    inline ::google::protobuf::uint64 strong_hit_count() const;
+    inline void set_strong_hit_count(::google::protobuf::uint64 value);
 
-  // optional uint64 miss_count = 2;
-  inline bool has_miss_count() const;
-  inline void clear_miss_count();
-  static const int kMissCountFieldNumber = 2;
-  inline ::google::protobuf::uint64 miss_count() const;
-  inline void set_miss_count(::google::protobuf::uint64 value);
+    // optional uint64 weak_hit_count = 8;
+    inline bool has_weak_hit_count() const;
+    inline void clear_weak_hit_count();
+    static const int kWeakHitCountFieldNumber = 8;
+    inline ::google::protobuf::uint64 weak_hit_count() const;
+    inline void set_weak_hit_count(::google::protobuf::uint64 value);
 
-  // optional uint64 read_count = 3;
-  inline bool has_read_count() const;
-  inline void clear_read_count();
-  static const int kReadCountFieldNumber = 3;
-  inline ::google::protobuf::uint64 read_count() const;
-  inline void set_read_count(::google::protobuf::uint64 value);
+    // optional uint64 miss_count = 2;
+    inline bool has_miss_count() const;
+    inline void clear_miss_count();
+    static const int kMissCountFieldNumber = 2;
+    inline ::google::protobuf::uint64 miss_count() const;
+    inline void set_miss_count(::google::protobuf::uint64 value);
 
-  // optional uint64 write_count = 4;
-  inline bool has_write_count() const;
-  inline void clear_write_count();
-  static const int kWriteCountFieldNumber = 4;
-  inline ::google::protobuf::uint64 write_count() const;
-  inline void set_write_count(::google::protobuf::uint64 value);
+    // optional uint64 read_count = 3;
+    inline bool has_read_count() const;
+    inline void clear_read_count();
+    static const int kReadCountFieldNumber = 3;
+    inline ::google::protobuf::uint64 read_count() const;
+    inline void set_read_count(::google::protobuf::uint64 value);
 
-  // optional uint64 failure_count = 6;
-  inline bool has_failure_count() const;
-  inline void clear_failure_count();
-  static const int kFailureCountFieldNumber = 6;
-  inline ::google::protobuf::uint64 failure_count() const;
-  inline void set_failure_count(::google::protobuf::uint64 value);
+    // optional uint64 write_count = 4;
+    inline bool has_write_count() const;
+    inline void clear_write_count();
+    static const int kWriteCountFieldNumber = 4;
+    inline ::google::protobuf::uint64 write_count() const;
+    inline void set_write_count(::google::protobuf::uint64 value);
 
-  // @@protoc_insertion_point(class_scope:ChunkIndexFilterStatsData)
- private:
-  inline void set_has_hit_count();
-  inline void clear_has_hit_count();
-  inline void set_has_miss_count();
-  inline void clear_has_miss_count();
-  inline void set_has_read_count();
-  inline void clear_has_read_count();
-  inline void set_has_write_count();
-  inline void clear_has_write_count();
-  inline void set_has_failure_count();
-  inline void clear_has_failure_count();
+    // optional uint64 failure_count = 6;
+    inline bool has_failure_count() const;
+    inline void clear_failure_count();
+    static const int kFailureCountFieldNumber = 6;
+    inline ::google::protobuf::uint64 failure_count() const;
+    inline void set_failure_count(::google::protobuf::uint64 value);
 
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+    // optional uint64 anchor_count = 7;
+    inline bool has_anchor_count() const;
+    inline void clear_anchor_count();
+    static const int kAnchorCountFieldNumber = 7;
+    inline ::google::protobuf::uint64 anchor_count() const;
+    inline void set_anchor_count(::google::protobuf::uint64 value);
 
-  ::google::protobuf::uint64 hit_count_;
-  ::google::protobuf::uint64 miss_count_;
-  ::google::protobuf::uint64 read_count_;
-  ::google::protobuf::uint64 write_count_;
-  ::google::protobuf::uint64 failure_count_;
+    // @@protoc_insertion_point(class_scope:ChunkIndexFilterStatsData)
+private:
+    inline void set_has_strong_hit_count();
+    inline void clear_has_strong_hit_count();
+    inline void set_has_weak_hit_count();
+    inline void clear_has_weak_hit_count();
+    inline void set_has_miss_count();
+    inline void clear_has_miss_count();
+    inline void set_has_read_count();
+    inline void clear_has_read_count();
+    inline void set_has_write_count();
+    inline void clear_has_write_count();
+    inline void set_has_failure_count();
+    inline void clear_has_failure_count();
+    inline void set_has_anchor_count();
+    inline void clear_has_anchor_count();
 
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(5 + 31) / 32];
+    ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
+    ::google::protobuf::uint64 strong_hit_count_;
+    ::google::protobuf::uint64 weak_hit_count_;
+    ::google::protobuf::uint64 miss_count_;
+    ::google::protobuf::uint64 read_count_;
+    ::google::protobuf::uint64 write_count_;
+    ::google::protobuf::uint64 failure_count_;
+    ::google::protobuf::uint64 anchor_count_;
 
-  void InitAsDefaultInstance();
-  static ChunkIndexFilterStatsData* default_instance_;
+    mutable int _cached_size_;
+    ::google::protobuf::uint32 _has_bits_[(7 + 31) / 32];
+
+    friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
+
+    void InitAsDefaultInstance();
+    static ChunkIndexFilterStatsData* default_instance_;
 };
 // -------------------------------------------------------------------
 
 class ZeroChunkFilterStatsData : public ::google::protobuf::Message {
- public:
-  ZeroChunkFilterStatsData();
-  virtual ~ZeroChunkFilterStatsData();
+public:
+    ZeroChunkFilterStatsData();
+    virtual ~ZeroChunkFilterStatsData();
 
-  ZeroChunkFilterStatsData(const ZeroChunkFilterStatsData& from);
+    ZeroChunkFilterStatsData(const ZeroChunkFilterStatsData& from);
 
-  inline ZeroChunkFilterStatsData& operator=(const ZeroChunkFilterStatsData& from) {
-    CopyFrom(from);
-    return *this;
-  }
+    inline ZeroChunkFilterStatsData& operator=(const ZeroChunkFilterStatsData& from) {
+        CopyFrom(from);
+        return *this;
+    }
 
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
+    inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+        return _unknown_fields_;
+    }
 
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
+    inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+        return &_unknown_fields_;
+    }
 
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const ZeroChunkFilterStatsData& default_instance();
+    static const ::google::protobuf::Descriptor* descriptor();
+    static const ZeroChunkFilterStatsData& default_instance();
 
-  void Swap(ZeroChunkFilterStatsData* other);
+    void Swap(ZeroChunkFilterStatsData* other);
 
-  // implements Message ----------------------------------------------
+    // implements Message ----------------------------------------------
 
-  ZeroChunkFilterStatsData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const ZeroChunkFilterStatsData& from);
-  void MergeFrom(const ZeroChunkFilterStatsData& from);
-  void Clear();
-  bool IsInitialized() const;
+    ZeroChunkFilterStatsData* New() const;
+    void CopyFrom(const ::google::protobuf::Message& from);
+    void MergeFrom(const ::google::protobuf::Message& from);
+    void CopyFrom(const ZeroChunkFilterStatsData& from);
+    void MergeFrom(const ZeroChunkFilterStatsData& from);
+    void Clear();
+    bool IsInitialized() const;
 
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
+    int ByteSize() const;
+    bool MergePartialFromCodedStream(
+        ::google::protobuf::io::CodedInputStream * input);
+    void SerializeWithCachedSizes(
+        ::google::protobuf::io::CodedOutputStream * output) const;
+    ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8 * output) const;
+    int GetCachedSize() const {
+        return _cached_size_;
+    }
+private:
+    void SharedCtor();
+    void SharedDtor();
+    void SetCachedSize(int size) const;
+public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+    ::google::protobuf::Metadata GetMetadata() const;
 
-  // nested types ----------------------------------------------------
+    // nested types ----------------------------------------------------
 
-  // accessors -------------------------------------------------------
+    // accessors -------------------------------------------------------
 
-  // optional uint64 existing_hit_count = 1;
-  inline bool has_existing_hit_count() const;
-  inline void clear_existing_hit_count();
-  static const int kExistingHitCountFieldNumber = 1;
-  inline ::google::protobuf::uint64 existing_hit_count() const;
-  inline void set_existing_hit_count(::google::protobuf::uint64 value);
+    // optional uint64 existing_hit_count = 1;
+    inline bool has_existing_hit_count() const;
+    inline void clear_existing_hit_count();
+    static const int kExistingHitCountFieldNumber = 1;
+    inline ::google::protobuf::uint64 existing_hit_count() const;
+    inline void set_existing_hit_count(::google::protobuf::uint64 value);
 
-  // optional uint64 weak_hit_count = 2;
-  inline bool has_weak_hit_count() const;
-  inline void clear_weak_hit_count();
-  static const int kWeakHitCountFieldNumber = 2;
-  inline ::google::protobuf::uint64 weak_hit_count() const;
-  inline void set_weak_hit_count(::google::protobuf::uint64 value);
+    // optional uint64 weak_hit_count = 2;
+    inline bool has_weak_hit_count() const;
+    inline void clear_weak_hit_count();
+    static const int kWeakHitCountFieldNumber = 2;
+    inline ::google::protobuf::uint64 weak_hit_count() const;
+    inline void set_weak_hit_count(::google::protobuf::uint64 value);
 
-  // optional uint64 read_count = 3;
-  inline bool has_read_count() const;
-  inline void clear_read_count();
-  static const int kReadCountFieldNumber = 3;
-  inline ::google::protobuf::uint64 read_count() const;
-  inline void set_read_count(::google::protobuf::uint64 value);
+    // optional uint64 read_count = 3;
+    inline bool has_read_count() const;
+    inline void clear_read_count();
+    static const int kReadCountFieldNumber = 3;
+    inline ::google::protobuf::uint64 read_count() const;
+    inline void set_read_count(::google::protobuf::uint64 value);
 
-  // @@protoc_insertion_point(class_scope:ZeroChunkFilterStatsData)
- private:
-  inline void set_has_existing_hit_count();
-  inline void clear_has_existing_hit_count();
-  inline void set_has_weak_hit_count();
-  inline void clear_has_weak_hit_count();
-  inline void set_has_read_count();
-  inline void clear_has_read_count();
+    // @@protoc_insertion_point(class_scope:ZeroChunkFilterStatsData)
+private:
+    inline void set_has_existing_hit_count();
+    inline void clear_has_existing_hit_count();
+    inline void set_has_weak_hit_count();
+    inline void clear_has_weak_hit_count();
+    inline void set_has_read_count();
+    inline void clear_has_read_count();
 
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+    ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::google::protobuf::uint64 existing_hit_count_;
-  ::google::protobuf::uint64 weak_hit_count_;
-  ::google::protobuf::uint64 read_count_;
+    ::google::protobuf::uint64 existing_hit_count_;
+    ::google::protobuf::uint64 weak_hit_count_;
+    ::google::protobuf::uint64 read_count_;
 
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
+    mutable int _cached_size_;
+    ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
 
-  friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
+    friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
 
-  void InitAsDefaultInstance();
-  static ZeroChunkFilterStatsData* default_instance_;
-};
-// -------------------------------------------------------------------
-
-class SparseChunkIndexFilterStatsData : public ::google::protobuf::Message {
- public:
-  SparseChunkIndexFilterStatsData();
-  virtual ~SparseChunkIndexFilterStatsData();
-
-  SparseChunkIndexFilterStatsData(const SparseChunkIndexFilterStatsData& from);
-
-  inline SparseChunkIndexFilterStatsData& operator=(const SparseChunkIndexFilterStatsData& from) {
-    CopyFrom(from);
-    return *this;
-  }
-
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
-
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
-
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const SparseChunkIndexFilterStatsData& default_instance();
-
-  void Swap(SparseChunkIndexFilterStatsData* other);
-
-  // implements Message ----------------------------------------------
-
-  SparseChunkIndexFilterStatsData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const SparseChunkIndexFilterStatsData& from);
-  void MergeFrom(const SparseChunkIndexFilterStatsData& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
-
-  ::google::protobuf::Metadata GetMetadata() const;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // optional uint64 strong_hit_count = 1;
-  inline bool has_strong_hit_count() const;
-  inline void clear_strong_hit_count();
-  static const int kStrongHitCountFieldNumber = 1;
-  inline ::google::protobuf::uint64 strong_hit_count() const;
-  inline void set_strong_hit_count(::google::protobuf::uint64 value);
-
-  // optional uint64 miss_count = 2;
-  inline bool has_miss_count() const;
-  inline void clear_miss_count();
-  static const int kMissCountFieldNumber = 2;
-  inline ::google::protobuf::uint64 miss_count() const;
-  inline void set_miss_count(::google::protobuf::uint64 value);
-
-  // optional uint64 read_count = 3;
-  inline bool has_read_count() const;
-  inline void clear_read_count();
-  static const int kReadCountFieldNumber = 3;
-  inline ::google::protobuf::uint64 read_count() const;
-  inline void set_read_count(::google::protobuf::uint64 value);
-
-  // optional uint64 write_count = 4;
-  inline bool has_write_count() const;
-  inline void clear_write_count();
-  static const int kWriteCountFieldNumber = 4;
-  inline ::google::protobuf::uint64 write_count() const;
-  inline void set_write_count(::google::protobuf::uint64 value);
-
-  // optional uint64 failure_count = 6;
-  inline bool has_failure_count() const;
-  inline void clear_failure_count();
-  static const int kFailureCountFieldNumber = 6;
-  inline ::google::protobuf::uint64 failure_count() const;
-  inline void set_failure_count(::google::protobuf::uint64 value);
-
-  // optional uint64 anchor_count = 7;
-  inline bool has_anchor_count() const;
-  inline void clear_anchor_count();
-  static const int kAnchorCountFieldNumber = 7;
-  inline ::google::protobuf::uint64 anchor_count() const;
-  inline void set_anchor_count(::google::protobuf::uint64 value);
-
-  // optional uint64 weak_hit_count = 8;
-  inline bool has_weak_hit_count() const;
-  inline void clear_weak_hit_count();
-  static const int kWeakHitCountFieldNumber = 8;
-  inline ::google::protobuf::uint64 weak_hit_count() const;
-  inline void set_weak_hit_count(::google::protobuf::uint64 value);
-
-  // @@protoc_insertion_point(class_scope:SparseChunkIndexFilterStatsData)
- private:
-  inline void set_has_strong_hit_count();
-  inline void clear_has_strong_hit_count();
-  inline void set_has_miss_count();
-  inline void clear_has_miss_count();
-  inline void set_has_read_count();
-  inline void clear_has_read_count();
-  inline void set_has_write_count();
-  inline void clear_has_write_count();
-  inline void set_has_failure_count();
-  inline void clear_has_failure_count();
-  inline void set_has_anchor_count();
-  inline void clear_has_anchor_count();
-  inline void set_has_weak_hit_count();
-  inline void clear_has_weak_hit_count();
-
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
-
-  ::google::protobuf::uint64 strong_hit_count_;
-  ::google::protobuf::uint64 miss_count_;
-  ::google::protobuf::uint64 read_count_;
-  ::google::protobuf::uint64 write_count_;
-  ::google::protobuf::uint64 failure_count_;
-  ::google::protobuf::uint64 anchor_count_;
-  ::google::protobuf::uint64 weak_hit_count_;
-
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(7 + 31) / 32];
-
-  friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
-
-  void InitAsDefaultInstance();
-  static SparseChunkIndexFilterStatsData* default_instance_;
+    void InitAsDefaultInstance();
+    static ZeroChunkFilterStatsData* default_instance_;
 };
 // -------------------------------------------------------------------
 
 class GarbageCollectorStatsData : public ::google::protobuf::Message {
- public:
-  GarbageCollectorStatsData();
-  virtual ~GarbageCollectorStatsData();
+public:
+    GarbageCollectorStatsData();
+    virtual ~GarbageCollectorStatsData();
 
-  GarbageCollectorStatsData(const GarbageCollectorStatsData& from);
+    GarbageCollectorStatsData(const GarbageCollectorStatsData& from);
 
-  inline GarbageCollectorStatsData& operator=(const GarbageCollectorStatsData& from) {
-    CopyFrom(from);
-    return *this;
-  }
+    inline GarbageCollectorStatsData& operator=(const GarbageCollectorStatsData& from) {
+        CopyFrom(from);
+        return *this;
+    }
 
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
+    inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+        return _unknown_fields_;
+    }
 
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
+    inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+        return &_unknown_fields_;
+    }
 
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const GarbageCollectorStatsData& default_instance();
+    static const ::google::protobuf::Descriptor* descriptor();
+    static const GarbageCollectorStatsData& default_instance();
 
-  void Swap(GarbageCollectorStatsData* other);
+    void Swap(GarbageCollectorStatsData* other);
 
-  // implements Message ----------------------------------------------
+    // implements Message ----------------------------------------------
 
-  GarbageCollectorStatsData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const GarbageCollectorStatsData& from);
-  void MergeFrom(const GarbageCollectorStatsData& from);
-  void Clear();
-  bool IsInitialized() const;
+    GarbageCollectorStatsData* New() const;
+    void CopyFrom(const ::google::protobuf::Message& from);
+    void MergeFrom(const ::google::protobuf::Message& from);
+    void CopyFrom(const GarbageCollectorStatsData& from);
+    void MergeFrom(const GarbageCollectorStatsData& from);
+    void Clear();
+    bool IsInitialized() const;
 
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
+    int ByteSize() const;
+    bool MergePartialFromCodedStream(
+        ::google::protobuf::io::CodedInputStream * input);
+    void SerializeWithCachedSizes(
+        ::google::protobuf::io::CodedOutputStream * output) const;
+    ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8 * output) const;
+    int GetCachedSize() const {
+        return _cached_size_;
+    }
+private:
+    void SharedCtor();
+    void SharedDtor();
+    void SetCachedSize(int size) const;
+public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+    ::google::protobuf::Metadata GetMetadata() const;
 
-  // nested types ----------------------------------------------------
+    // nested types ----------------------------------------------------
 
-  // accessors -------------------------------------------------------
+    // accessors -------------------------------------------------------
 
-  // optional uint64 processed_block_count = 1;
-  inline bool has_processed_block_count() const;
-  inline void clear_processed_block_count();
-  static const int kProcessedBlockCountFieldNumber = 1;
-  inline ::google::protobuf::uint64 processed_block_count() const;
-  inline void set_processed_block_count(::google::protobuf::uint64 value);
+    // optional uint64 processed_block_count = 1;
+    inline bool has_processed_block_count() const;
+    inline void clear_processed_block_count();
+    static const int kProcessedBlockCountFieldNumber = 1;
+    inline ::google::protobuf::uint64 processed_block_count() const;
+    inline void set_processed_block_count(::google::protobuf::uint64 value);
 
-  // optional uint64 processed_gc_candidate_count = 2;
-  inline bool has_processed_gc_candidate_count() const;
-  inline void clear_processed_gc_candidate_count();
-  static const int kProcessedGcCandidateCountFieldNumber = 2;
-  inline ::google::protobuf::uint64 processed_gc_candidate_count() const;
-  inline void set_processed_gc_candidate_count(::google::protobuf::uint64 value);
+    // optional uint64 processed_gc_candidate_count = 2;
+    inline bool has_processed_gc_candidate_count() const;
+    inline void clear_processed_gc_candidate_count();
+    static const int kProcessedGcCandidateCountFieldNumber = 2;
+    inline ::google::protobuf::uint64 processed_gc_candidate_count() const;
+    inline void set_processed_gc_candidate_count(::google::protobuf::uint64 value);
 
-  // optional uint64 skipped_chunk_count = 3;
-  inline bool has_skipped_chunk_count() const;
-  inline void clear_skipped_chunk_count();
-  static const int kSkippedChunkCountFieldNumber = 3;
-  inline ::google::protobuf::uint64 skipped_chunk_count() const;
-  inline void set_skipped_chunk_count(::google::protobuf::uint64 value);
+    // optional uint64 skipped_chunk_count = 3;
+    inline bool has_skipped_chunk_count() const;
+    inline void clear_skipped_chunk_count();
+    static const int kSkippedChunkCountFieldNumber = 3;
+    inline ::google::protobuf::uint64 skipped_chunk_count() const;
+    inline void set_skipped_chunk_count(::google::protobuf::uint64 value);
 
-  // optional uint64 already_processed_chunk_count = 4;
-  inline bool has_already_processed_chunk_count() const;
-  inline void clear_already_processed_chunk_count();
-  static const int kAlreadyProcessedChunkCountFieldNumber = 4;
-  inline ::google::protobuf::uint64 already_processed_chunk_count() const;
-  inline void set_already_processed_chunk_count(::google::protobuf::uint64 value);
+    // optional uint64 already_processed_chunk_count = 4;
+    inline bool has_already_processed_chunk_count() const;
+    inline void clear_already_processed_chunk_count();
+    static const int kAlreadyProcessedChunkCountFieldNumber = 4;
+    inline ::google::protobuf::uint64 already_processed_chunk_count() const;
+    inline void set_already_processed_chunk_count(::google::protobuf::uint64 value);
 
-  // optional uint64 processed_chunk_count = 5;
-  inline bool has_processed_chunk_count() const;
-  inline void clear_processed_chunk_count();
-  static const int kProcessedChunkCountFieldNumber = 5;
-  inline ::google::protobuf::uint64 processed_chunk_count() const;
-  inline void set_processed_chunk_count(::google::protobuf::uint64 value);
+    // optional uint64 processed_chunk_count = 5;
+    inline bool has_processed_chunk_count() const;
+    inline void clear_processed_chunk_count();
+    static const int kProcessedChunkCountFieldNumber = 5;
+    inline ::google::protobuf::uint64 processed_chunk_count() const;
+    inline void set_processed_chunk_count(::google::protobuf::uint64 value);
 
-  // @@protoc_insertion_point(class_scope:GarbageCollectorStatsData)
- private:
-  inline void set_has_processed_block_count();
-  inline void clear_has_processed_block_count();
-  inline void set_has_processed_gc_candidate_count();
-  inline void clear_has_processed_gc_candidate_count();
-  inline void set_has_skipped_chunk_count();
-  inline void clear_has_skipped_chunk_count();
-  inline void set_has_already_processed_chunk_count();
-  inline void clear_has_already_processed_chunk_count();
-  inline void set_has_processed_chunk_count();
-  inline void clear_has_processed_chunk_count();
+    // @@protoc_insertion_point(class_scope:GarbageCollectorStatsData)
+private:
+    inline void set_has_processed_block_count();
+    inline void clear_has_processed_block_count();
+    inline void set_has_processed_gc_candidate_count();
+    inline void clear_has_processed_gc_candidate_count();
+    inline void set_has_skipped_chunk_count();
+    inline void clear_has_skipped_chunk_count();
+    inline void set_has_already_processed_chunk_count();
+    inline void clear_has_already_processed_chunk_count();
+    inline void set_has_processed_chunk_count();
+    inline void clear_has_processed_chunk_count();
 
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+    ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::google::protobuf::uint64 processed_block_count_;
-  ::google::protobuf::uint64 processed_gc_candidate_count_;
-  ::google::protobuf::uint64 skipped_chunk_count_;
-  ::google::protobuf::uint64 already_processed_chunk_count_;
-  ::google::protobuf::uint64 processed_chunk_count_;
+    ::google::protobuf::uint64 processed_block_count_;
+    ::google::protobuf::uint64 processed_gc_candidate_count_;
+    ::google::protobuf::uint64 skipped_chunk_count_;
+    ::google::protobuf::uint64 already_processed_chunk_count_;
+    ::google::protobuf::uint64 processed_chunk_count_;
 
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(5 + 31) / 32];
+    mutable int _cached_size_;
+    ::google::protobuf::uint32 _has_bits_[(5 + 31) / 32];
 
-  friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
+    friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
 
-  void InitAsDefaultInstance();
-  static GarbageCollectorStatsData* default_instance_;
+    void InitAsDefaultInstance();
+    static GarbageCollectorStatsData* default_instance_;
 };
 // -------------------------------------------------------------------
 
 class RabinChunkerStatsData : public ::google::protobuf::Message {
- public:
-  RabinChunkerStatsData();
-  virtual ~RabinChunkerStatsData();
+public:
+    RabinChunkerStatsData();
+    virtual ~RabinChunkerStatsData();
 
-  RabinChunkerStatsData(const RabinChunkerStatsData& from);
+    RabinChunkerStatsData(const RabinChunkerStatsData& from);
 
-  inline RabinChunkerStatsData& operator=(const RabinChunkerStatsData& from) {
-    CopyFrom(from);
-    return *this;
-  }
+    inline RabinChunkerStatsData& operator=(const RabinChunkerStatsData& from) {
+        CopyFrom(from);
+        return *this;
+    }
 
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
+    inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+        return _unknown_fields_;
+    }
 
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
+    inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+        return &_unknown_fields_;
+    }
 
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const RabinChunkerStatsData& default_instance();
+    static const ::google::protobuf::Descriptor* descriptor();
+    static const RabinChunkerStatsData& default_instance();
 
-  void Swap(RabinChunkerStatsData* other);
+    void Swap(RabinChunkerStatsData* other);
 
-  // implements Message ----------------------------------------------
+    // implements Message ----------------------------------------------
 
-  RabinChunkerStatsData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const RabinChunkerStatsData& from);
-  void MergeFrom(const RabinChunkerStatsData& from);
-  void Clear();
-  bool IsInitialized() const;
+    RabinChunkerStatsData* New() const;
+    void CopyFrom(const ::google::protobuf::Message& from);
+    void MergeFrom(const ::google::protobuf::Message& from);
+    void CopyFrom(const RabinChunkerStatsData& from);
+    void MergeFrom(const RabinChunkerStatsData& from);
+    void Clear();
+    bool IsInitialized() const;
 
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
+    int ByteSize() const;
+    bool MergePartialFromCodedStream(
+        ::google::protobuf::io::CodedInputStream * input);
+    void SerializeWithCachedSizes(
+        ::google::protobuf::io::CodedOutputStream * output) const;
+    ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8 * output) const;
+    int GetCachedSize() const {
+        return _cached_size_;
+    }
+private:
+    void SharedCtor();
+    void SharedDtor();
+    void SetCachedSize(int size) const;
+public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+    ::google::protobuf::Metadata GetMetadata() const;
 
-  // nested types ----------------------------------------------------
+    // nested types ----------------------------------------------------
 
-  // accessors -------------------------------------------------------
+    // accessors -------------------------------------------------------
 
-  // optional uint64 chunk_count = 1;
-  inline bool has_chunk_count() const;
-  inline void clear_chunk_count();
-  static const int kChunkCountFieldNumber = 1;
-  inline ::google::protobuf::uint64 chunk_count() const;
-  inline void set_chunk_count(::google::protobuf::uint64 value);
+    // optional uint64 chunk_count = 1;
+    inline bool has_chunk_count() const;
+    inline void clear_chunk_count();
+    static const int kChunkCountFieldNumber = 1;
+    inline ::google::protobuf::uint64 chunk_count() const;
+    inline void set_chunk_count(::google::protobuf::uint64 value);
 
-  // optional uint64 size_forced_chunk_count = 2;
-  inline bool has_size_forced_chunk_count() const;
-  inline void clear_size_forced_chunk_count();
-  static const int kSizeForcedChunkCountFieldNumber = 2;
-  inline ::google::protobuf::uint64 size_forced_chunk_count() const;
-  inline void set_size_forced_chunk_count(::google::protobuf::uint64 value);
+    // optional uint64 size_forced_chunk_count = 2;
+    inline bool has_size_forced_chunk_count() const;
+    inline void clear_size_forced_chunk_count();
+    static const int kSizeForcedChunkCountFieldNumber = 2;
+    inline ::google::protobuf::uint64 size_forced_chunk_count() const;
+    inline void set_size_forced_chunk_count(::google::protobuf::uint64 value);
 
-  // optional uint64 close_forced_chunk_count = 3;
-  inline bool has_close_forced_chunk_count() const;
-  inline void clear_close_forced_chunk_count();
-  static const int kCloseForcedChunkCountFieldNumber = 3;
-  inline ::google::protobuf::uint64 close_forced_chunk_count() const;
-  inline void set_close_forced_chunk_count(::google::protobuf::uint64 value);
+    // optional uint64 close_forced_chunk_count = 3;
+    inline bool has_close_forced_chunk_count() const;
+    inline void clear_close_forced_chunk_count();
+    static const int kCloseForcedChunkCountFieldNumber = 3;
+    inline ::google::protobuf::uint64 close_forced_chunk_count() const;
+    inline void set_close_forced_chunk_count(::google::protobuf::uint64 value);
 
-  // @@protoc_insertion_point(class_scope:RabinChunkerStatsData)
- private:
-  inline void set_has_chunk_count();
-  inline void clear_has_chunk_count();
-  inline void set_has_size_forced_chunk_count();
-  inline void clear_has_size_forced_chunk_count();
-  inline void set_has_close_forced_chunk_count();
-  inline void clear_has_close_forced_chunk_count();
+    // @@protoc_insertion_point(class_scope:RabinChunkerStatsData)
+private:
+    inline void set_has_chunk_count();
+    inline void clear_has_chunk_count();
+    inline void set_has_size_forced_chunk_count();
+    inline void clear_has_size_forced_chunk_count();
+    inline void set_has_close_forced_chunk_count();
+    inline void clear_has_close_forced_chunk_count();
 
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+    ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::google::protobuf::uint64 chunk_count_;
-  ::google::protobuf::uint64 size_forced_chunk_count_;
-  ::google::protobuf::uint64 close_forced_chunk_count_;
+    ::google::protobuf::uint64 chunk_count_;
+    ::google::protobuf::uint64 size_forced_chunk_count_;
+    ::google::protobuf::uint64 close_forced_chunk_count_;
 
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
+    mutable int _cached_size_;
+    ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
 
-  friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
+    friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
 
-  void InitAsDefaultInstance();
-  static RabinChunkerStatsData* default_instance_;
+    void InitAsDefaultInstance();
+    static RabinChunkerStatsData* default_instance_;
 };
 // -------------------------------------------------------------------
 
 class ContentStorageStatsData : public ::google::protobuf::Message {
- public:
-  ContentStorageStatsData();
-  virtual ~ContentStorageStatsData();
+public:
+    ContentStorageStatsData();
+    virtual ~ContentStorageStatsData();
 
-  ContentStorageStatsData(const ContentStorageStatsData& from);
+    ContentStorageStatsData(const ContentStorageStatsData& from);
 
-  inline ContentStorageStatsData& operator=(const ContentStorageStatsData& from) {
-    CopyFrom(from);
-    return *this;
-  }
+    inline ContentStorageStatsData& operator=(const ContentStorageStatsData& from) {
+        CopyFrom(from);
+        return *this;
+    }
 
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
+    inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+        return _unknown_fields_;
+    }
 
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
+    inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+        return &_unknown_fields_;
+    }
 
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const ContentStorageStatsData& default_instance();
+    static const ::google::protobuf::Descriptor* descriptor();
+    static const ContentStorageStatsData& default_instance();
 
-  void Swap(ContentStorageStatsData* other);
+    void Swap(ContentStorageStatsData* other);
 
-  // implements Message ----------------------------------------------
+    // implements Message ----------------------------------------------
 
-  ContentStorageStatsData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const ContentStorageStatsData& from);
-  void MergeFrom(const ContentStorageStatsData& from);
-  void Clear();
-  bool IsInitialized() const;
+    ContentStorageStatsData* New() const;
+    void CopyFrom(const ::google::protobuf::Message& from);
+    void MergeFrom(const ::google::protobuf::Message& from);
+    void CopyFrom(const ContentStorageStatsData& from);
+    void MergeFrom(const ContentStorageStatsData& from);
+    void Clear();
+    bool IsInitialized() const;
 
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
+    int ByteSize() const;
+    bool MergePartialFromCodedStream(
+        ::google::protobuf::io::CodedInputStream * input);
+    void SerializeWithCachedSizes(
+        ::google::protobuf::io::CodedOutputStream * output) const;
+    ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8 * output) const;
+    int GetCachedSize() const {
+        return _cached_size_;
+    }
+private:
+    void SharedCtor();
+    void SharedDtor();
+    void SetCachedSize(int size) const;
+public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+    ::google::protobuf::Metadata GetMetadata() const;
 
-  // nested types ----------------------------------------------------
+    // nested types ----------------------------------------------------
 
-  // accessors -------------------------------------------------------
+    // accessors -------------------------------------------------------
 
-  // optional uint64 read_count = 1;
-  inline bool has_read_count() const;
-  inline void clear_read_count();
-  static const int kReadCountFieldNumber = 1;
-  inline ::google::protobuf::uint64 read_count() const;
-  inline void set_read_count(::google::protobuf::uint64 value);
+    // optional uint64 read_count = 1;
+    inline bool has_read_count() const;
+    inline void clear_read_count();
+    static const int kReadCountFieldNumber = 1;
+    inline ::google::protobuf::uint64 read_count() const;
+    inline void set_read_count(::google::protobuf::uint64 value);
 
-  // optional uint64 write_count = 2;
-  inline bool has_write_count() const;
-  inline void clear_write_count();
-  static const int kWriteCountFieldNumber = 2;
-  inline ::google::protobuf::uint64 write_count() const;
-  inline void set_write_count(::google::protobuf::uint64 value);
+    // optional uint64 write_count = 2;
+    inline bool has_write_count() const;
+    inline void clear_write_count();
+    static const int kWriteCountFieldNumber = 2;
+    inline ::google::protobuf::uint64 write_count() const;
+    inline void set_write_count(::google::protobuf::uint64 value);
 
-  // optional uint64 read_size = 3;
-  inline bool has_read_size() const;
-  inline void clear_read_size();
-  static const int kReadSizeFieldNumber = 3;
-  inline ::google::protobuf::uint64 read_size() const;
-  inline void set_read_size(::google::protobuf::uint64 value);
+    // optional uint64 read_size = 3;
+    inline bool has_read_size() const;
+    inline void clear_read_size();
+    static const int kReadSizeFieldNumber = 3;
+    inline ::google::protobuf::uint64 read_size() const;
+    inline void set_read_size(::google::protobuf::uint64 value);
 
-  // optional uint64 write_size = 4;
-  inline bool has_write_size() const;
-  inline void clear_write_size();
-  static const int kWriteSizeFieldNumber = 4;
-  inline ::google::protobuf::uint64 write_size() const;
-  inline void set_write_size(::google::protobuf::uint64 value);
+    // optional uint64 write_size = 4;
+    inline bool has_write_size() const;
+    inline void clear_write_size();
+    static const int kWriteSizeFieldNumber = 4;
+    inline ::google::protobuf::uint64 write_size() const;
+    inline void set_write_size(::google::protobuf::uint64 value);
 
-  // @@protoc_insertion_point(class_scope:ContentStorageStatsData)
- private:
-  inline void set_has_read_count();
-  inline void clear_has_read_count();
-  inline void set_has_write_count();
-  inline void clear_has_write_count();
-  inline void set_has_read_size();
-  inline void clear_has_read_size();
-  inline void set_has_write_size();
-  inline void clear_has_write_size();
+    // @@protoc_insertion_point(class_scope:ContentStorageStatsData)
+private:
+    inline void set_has_read_count();
+    inline void clear_has_read_count();
+    inline void set_has_write_count();
+    inline void clear_has_write_count();
+    inline void set_has_read_size();
+    inline void clear_has_read_size();
+    inline void set_has_write_size();
+    inline void clear_has_write_size();
 
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+    ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::google::protobuf::uint64 read_count_;
-  ::google::protobuf::uint64 write_count_;
-  ::google::protobuf::uint64 read_size_;
-  ::google::protobuf::uint64 write_size_;
+    ::google::protobuf::uint64 read_count_;
+    ::google::protobuf::uint64 write_count_;
+    ::google::protobuf::uint64 read_size_;
+    ::google::protobuf::uint64 write_size_;
 
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
+    mutable int _cached_size_;
+    ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
 
-  friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
+    friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
 
-  void InitAsDefaultInstance();
-  static ContentStorageStatsData* default_instance_;
+    void InitAsDefaultInstance();
+    static ContentStorageStatsData* default_instance_;
 };
 // -------------------------------------------------------------------
 
 class LogStatsData_LogTypeCounter : public ::google::protobuf::Message {
- public:
-  LogStatsData_LogTypeCounter();
-  virtual ~LogStatsData_LogTypeCounter();
+public:
+    LogStatsData_LogTypeCounter();
+    virtual ~LogStatsData_LogTypeCounter();
 
-  LogStatsData_LogTypeCounter(const LogStatsData_LogTypeCounter& from);
+    LogStatsData_LogTypeCounter(const LogStatsData_LogTypeCounter& from);
 
-  inline LogStatsData_LogTypeCounter& operator=(const LogStatsData_LogTypeCounter& from) {
-    CopyFrom(from);
-    return *this;
-  }
+    inline LogStatsData_LogTypeCounter& operator=(const LogStatsData_LogTypeCounter& from) {
+        CopyFrom(from);
+        return *this;
+    }
 
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
+    inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+        return _unknown_fields_;
+    }
 
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
+    inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+        return &_unknown_fields_;
+    }
 
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const LogStatsData_LogTypeCounter& default_instance();
+    static const ::google::protobuf::Descriptor* descriptor();
+    static const LogStatsData_LogTypeCounter& default_instance();
 
-  void Swap(LogStatsData_LogTypeCounter* other);
+    void Swap(LogStatsData_LogTypeCounter* other);
 
-  // implements Message ----------------------------------------------
+    // implements Message ----------------------------------------------
 
-  LogStatsData_LogTypeCounter* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const LogStatsData_LogTypeCounter& from);
-  void MergeFrom(const LogStatsData_LogTypeCounter& from);
-  void Clear();
-  bool IsInitialized() const;
+    LogStatsData_LogTypeCounter* New() const;
+    void CopyFrom(const ::google::protobuf::Message& from);
+    void MergeFrom(const ::google::protobuf::Message& from);
+    void CopyFrom(const LogStatsData_LogTypeCounter& from);
+    void MergeFrom(const LogStatsData_LogTypeCounter& from);
+    void Clear();
+    bool IsInitialized() const;
 
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
+    int ByteSize() const;
+    bool MergePartialFromCodedStream(
+        ::google::protobuf::io::CodedInputStream * input);
+    void SerializeWithCachedSizes(
+        ::google::protobuf::io::CodedOutputStream * output) const;
+    ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8 * output) const;
+    int GetCachedSize() const {
+        return _cached_size_;
+    }
+private:
+    void SharedCtor();
+    void SharedDtor();
+    void SetCachedSize(int size) const;
+public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+    ::google::protobuf::Metadata GetMetadata() const;
 
-  // nested types ----------------------------------------------------
+    // nested types ----------------------------------------------------
 
-  // accessors -------------------------------------------------------
+    // accessors -------------------------------------------------------
 
-  // optional int32 type = 1;
-  inline bool has_type() const;
-  inline void clear_type();
-  static const int kTypeFieldNumber = 1;
-  inline ::google::protobuf::int32 type() const;
-  inline void set_type(::google::protobuf::int32 value);
+    // optional int32 type = 1;
+    inline bool has_type() const;
+    inline void clear_type();
+    static const int kTypeFieldNumber = 1;
+    inline ::google::protobuf::int32 type() const;
+    inline void set_type(::google::protobuf::int32 value);
 
-  // optional uint64 count = 2;
-  inline bool has_count() const;
-  inline void clear_count();
-  static const int kCountFieldNumber = 2;
-  inline ::google::protobuf::uint64 count() const;
-  inline void set_count(::google::protobuf::uint64 value);
+    // optional uint64 count = 2;
+    inline bool has_count() const;
+    inline void clear_count();
+    static const int kCountFieldNumber = 2;
+    inline ::google::protobuf::uint64 count() const;
+    inline void set_count(::google::protobuf::uint64 value);
 
-  // @@protoc_insertion_point(class_scope:LogStatsData.LogTypeCounter)
- private:
-  inline void set_has_type();
-  inline void clear_has_type();
-  inline void set_has_count();
-  inline void clear_has_count();
+    // @@protoc_insertion_point(class_scope:LogStatsData.LogTypeCounter)
+private:
+    inline void set_has_type();
+    inline void clear_has_type();
+    inline void set_has_count();
+    inline void clear_has_count();
 
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+    ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::google::protobuf::uint64 count_;
-  ::google::protobuf::int32 type_;
+    ::google::protobuf::uint64 count_;
+    ::google::protobuf::int32 type_;
 
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
+    mutable int _cached_size_;
+    ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
 
-  friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
+    friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
 
-  void InitAsDefaultInstance();
-  static LogStatsData_LogTypeCounter* default_instance_;
+    void InitAsDefaultInstance();
+    static LogStatsData_LogTypeCounter* default_instance_;
 };
 // -------------------------------------------------------------------
 
 class LogStatsData : public ::google::protobuf::Message {
- public:
-  LogStatsData();
-  virtual ~LogStatsData();
+public:
+    LogStatsData();
+    virtual ~LogStatsData();
 
-  LogStatsData(const LogStatsData& from);
+    LogStatsData(const LogStatsData& from);
 
-  inline LogStatsData& operator=(const LogStatsData& from) {
-    CopyFrom(from);
-    return *this;
-  }
+    inline LogStatsData& operator=(const LogStatsData& from) {
+        CopyFrom(from);
+        return *this;
+    }
 
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
+    inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+        return _unknown_fields_;
+    }
 
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
+    inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+        return &_unknown_fields_;
+    }
 
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const LogStatsData& default_instance();
+    static const ::google::protobuf::Descriptor* descriptor();
+    static const LogStatsData& default_instance();
 
-  void Swap(LogStatsData* other);
+    void Swap(LogStatsData* other);
 
-  // implements Message ----------------------------------------------
+    // implements Message ----------------------------------------------
 
-  LogStatsData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const LogStatsData& from);
-  void MergeFrom(const LogStatsData& from);
-  void Clear();
-  bool IsInitialized() const;
+    LogStatsData* New() const;
+    void CopyFrom(const ::google::protobuf::Message& from);
+    void MergeFrom(const ::google::protobuf::Message& from);
+    void CopyFrom(const LogStatsData& from);
+    void MergeFrom(const LogStatsData& from);
+    void Clear();
+    bool IsInitialized() const;
 
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
+    int ByteSize() const;
+    bool MergePartialFromCodedStream(
+        ::google::protobuf::io::CodedInputStream * input);
+    void SerializeWithCachedSizes(
+        ::google::protobuf::io::CodedOutputStream * output) const;
+    ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8 * output) const;
+    int GetCachedSize() const {
+        return _cached_size_;
+    }
+private:
+    void SharedCtor();
+    void SharedDtor();
+    void SetCachedSize(int size) const;
+public:
 
-  ::google::protobuf::Metadata GetMetadata() const;
+    ::google::protobuf::Metadata GetMetadata() const;
 
-  // nested types ----------------------------------------------------
+    // nested types ----------------------------------------------------
 
-  typedef LogStatsData_LogTypeCounter LogTypeCounter;
+    typedef LogStatsData_LogTypeCounter LogTypeCounter;
 
-  // accessors -------------------------------------------------------
+    // accessors -------------------------------------------------------
 
-  // optional uint64 event_count = 1;
-  inline bool has_event_count() const;
-  inline void clear_event_count();
-  static const int kEventCountFieldNumber = 1;
-  inline ::google::protobuf::uint64 event_count() const;
-  inline void set_event_count(::google::protobuf::uint64 value);
+    // optional uint64 event_count = 1;
+    inline bool has_event_count() const;
+    inline void clear_event_count();
+    static const int kEventCountFieldNumber = 1;
+    inline ::google::protobuf::uint64 event_count() const;
+    inline void set_event_count(::google::protobuf::uint64 value);
 
-  // optional uint64 replayed_event_count = 2;
-  inline bool has_replayed_event_count() const;
-  inline void clear_replayed_event_count();
-  static const int kReplayedEventCountFieldNumber = 2;
-  inline ::google::protobuf::uint64 replayed_event_count() const;
-  inline void set_replayed_event_count(::google::protobuf::uint64 value);
+    // optional uint64 replayed_event_count = 2;
+    inline bool has_replayed_event_count() const;
+    inline void clear_replayed_event_count();
+    static const int kReplayedEventCountFieldNumber = 2;
+    inline ::google::protobuf::uint64 replayed_event_count() const;
+    inline void set_replayed_event_count(::google::protobuf::uint64 value);
 
-  // repeated .LogStatsData.LogTypeCounter logtype_count = 3;
-  inline int logtype_count_size() const;
-  inline void clear_logtype_count();
-  static const int kLogtypeCountFieldNumber = 3;
-  inline const ::LogStatsData_LogTypeCounter& logtype_count(int index) const;
-  inline ::LogStatsData_LogTypeCounter* mutable_logtype_count(int index);
-  inline ::LogStatsData_LogTypeCounter* add_logtype_count();
-  inline const ::google::protobuf::RepeatedPtrField< ::LogStatsData_LogTypeCounter >&
-      logtype_count() const;
-  inline ::google::protobuf::RepeatedPtrField< ::LogStatsData_LogTypeCounter >*
-      mutable_logtype_count();
+    // repeated .LogStatsData.LogTypeCounter logtype_count = 3;
+    inline int logtype_count_size() const;
+    inline void clear_logtype_count();
+    static const int kLogtypeCountFieldNumber = 3;
+    inline const ::LogStatsData_LogTypeCounter& logtype_count(int index) const;
+    inline ::LogStatsData_LogTypeCounter* mutable_logtype_count(int index);
+    inline ::LogStatsData_LogTypeCounter* add_logtype_count();
+    inline const ::google::protobuf::RepeatedPtrField< ::LogStatsData_LogTypeCounter >&
+    logtype_count() const;
+    inline ::google::protobuf::RepeatedPtrField< ::LogStatsData_LogTypeCounter >*
+    mutable_logtype_count();
 
-  // @@protoc_insertion_point(class_scope:LogStatsData)
- private:
-  inline void set_has_event_count();
-  inline void clear_has_event_count();
-  inline void set_has_replayed_event_count();
-  inline void clear_has_replayed_event_count();
+    // @@protoc_insertion_point(class_scope:LogStatsData)
+private:
+    inline void set_has_event_count();
+    inline void clear_has_event_count();
+    inline void set_has_replayed_event_count();
+    inline void clear_has_replayed_event_count();
 
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+    ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::google::protobuf::uint64 event_count_;
-  ::google::protobuf::uint64 replayed_event_count_;
-  ::google::protobuf::RepeatedPtrField< ::LogStatsData_LogTypeCounter > logtype_count_;
+    ::google::protobuf::uint64 event_count_;
+    ::google::protobuf::uint64 replayed_event_count_;
+    ::google::protobuf::RepeatedPtrField< ::LogStatsData_LogTypeCounter > logtype_count_;
 
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
+    mutable int _cached_size_;
+    ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
 
-  friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
+    friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
+    friend void protobuf_ShutdownFile_dedupv1_5fstats_2eproto();
 
-  void InitAsDefaultInstance();
-  static LogStatsData* default_instance_;
+    void InitAsDefaultInstance();
+    static LogStatsData* default_instance_;
 };
 // ===================================================================
-
 
 // ===================================================================
 
@@ -2070,46 +1980,46 @@ class LogStatsData : public ::google::protobuf::Message {
 
 // optional uint64 imported_container_count = 1;
 inline bool ChunkIndexStatsData::has_imported_container_count() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
+    return (_has_bits_[0] & 0x00000001u) != 0;
 }
 inline void ChunkIndexStatsData::set_has_imported_container_count() {
-  _has_bits_[0] |= 0x00000001u;
+    _has_bits_[0] |= 0x00000001u;
 }
 inline void ChunkIndexStatsData::clear_has_imported_container_count() {
-  _has_bits_[0] &= ~0x00000001u;
+    _has_bits_[0] &= ~0x00000001u;
 }
 inline void ChunkIndexStatsData::clear_imported_container_count() {
-  imported_container_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_imported_container_count();
+    imported_container_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_imported_container_count();
 }
 inline ::google::protobuf::uint64 ChunkIndexStatsData::imported_container_count() const {
-  return imported_container_count_;
+    return imported_container_count_;
 }
 inline void ChunkIndexStatsData::set_imported_container_count(::google::protobuf::uint64 value) {
-  set_has_imported_container_count();
-  imported_container_count_ = value;
+    set_has_imported_container_count();
+    imported_container_count_ = value;
 }
 
 // optional uint64 index_full_failure_count = 2;
 inline bool ChunkIndexStatsData::has_index_full_failure_count() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
+    return (_has_bits_[0] & 0x00000002u) != 0;
 }
 inline void ChunkIndexStatsData::set_has_index_full_failure_count() {
-  _has_bits_[0] |= 0x00000002u;
+    _has_bits_[0] |= 0x00000002u;
 }
 inline void ChunkIndexStatsData::clear_has_index_full_failure_count() {
-  _has_bits_[0] &= ~0x00000002u;
+    _has_bits_[0] &= ~0x00000002u;
 }
 inline void ChunkIndexStatsData::clear_index_full_failure_count() {
-  index_full_failure_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_index_full_failure_count();
+    index_full_failure_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_index_full_failure_count();
 }
 inline ::google::protobuf::uint64 ChunkIndexStatsData::index_full_failure_count() const {
-  return index_full_failure_count_;
+    return index_full_failure_count_;
 }
 inline void ChunkIndexStatsData::set_index_full_failure_count(::google::protobuf::uint64 value) {
-  set_has_index_full_failure_count();
-  index_full_failure_count_ = value;
+    set_has_index_full_failure_count();
+    index_full_failure_count_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -2118,112 +2028,112 @@ inline void ChunkIndexStatsData::set_index_full_failure_count(::google::protobuf
 
 // optional uint64 index_read_count = 1;
 inline bool BlockIndexStatsData::has_index_read_count() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
+    return (_has_bits_[0] & 0x00000001u) != 0;
 }
 inline void BlockIndexStatsData::set_has_index_read_count() {
-  _has_bits_[0] |= 0x00000001u;
+    _has_bits_[0] |= 0x00000001u;
 }
 inline void BlockIndexStatsData::clear_has_index_read_count() {
-  _has_bits_[0] &= ~0x00000001u;
+    _has_bits_[0] &= ~0x00000001u;
 }
 inline void BlockIndexStatsData::clear_index_read_count() {
-  index_read_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_index_read_count();
+    index_read_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_index_read_count();
 }
 inline ::google::protobuf::uint64 BlockIndexStatsData::index_read_count() const {
-  return index_read_count_;
+    return index_read_count_;
 }
 inline void BlockIndexStatsData::set_index_read_count(::google::protobuf::uint64 value) {
-  set_has_index_read_count();
-  index_read_count_ = value;
+    set_has_index_read_count();
+    index_read_count_ = value;
 }
 
 // optional uint64 index_write_count = 2;
 inline bool BlockIndexStatsData::has_index_write_count() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
+    return (_has_bits_[0] & 0x00000002u) != 0;
 }
 inline void BlockIndexStatsData::set_has_index_write_count() {
-  _has_bits_[0] |= 0x00000002u;
+    _has_bits_[0] |= 0x00000002u;
 }
 inline void BlockIndexStatsData::clear_has_index_write_count() {
-  _has_bits_[0] &= ~0x00000002u;
+    _has_bits_[0] &= ~0x00000002u;
 }
 inline void BlockIndexStatsData::clear_index_write_count() {
-  index_write_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_index_write_count();
+    index_write_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_index_write_count();
 }
 inline ::google::protobuf::uint64 BlockIndexStatsData::index_write_count() const {
-  return index_write_count_;
+    return index_write_count_;
 }
 inline void BlockIndexStatsData::set_index_write_count(::google::protobuf::uint64 value) {
-  set_has_index_write_count();
-  index_write_count_ = value;
+    set_has_index_write_count();
+    index_write_count_ = value;
 }
 
 // optional uint64 index_real_write_count = 3;
 inline bool BlockIndexStatsData::has_index_real_write_count() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+    return (_has_bits_[0] & 0x00000004u) != 0;
 }
 inline void BlockIndexStatsData::set_has_index_real_write_count() {
-  _has_bits_[0] |= 0x00000004u;
+    _has_bits_[0] |= 0x00000004u;
 }
 inline void BlockIndexStatsData::clear_has_index_real_write_count() {
-  _has_bits_[0] &= ~0x00000004u;
+    _has_bits_[0] &= ~0x00000004u;
 }
 inline void BlockIndexStatsData::clear_index_real_write_count() {
-  index_real_write_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_index_real_write_count();
+    index_real_write_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_index_real_write_count();
 }
 inline ::google::protobuf::uint64 BlockIndexStatsData::index_real_write_count() const {
-  return index_real_write_count_;
+    return index_real_write_count_;
 }
 inline void BlockIndexStatsData::set_index_real_write_count(::google::protobuf::uint64 value) {
-  set_has_index_real_write_count();
-  index_real_write_count_ = value;
+    set_has_index_real_write_count();
+    index_real_write_count_ = value;
 }
 
 // optional uint64 imported_block_count = 4;
 inline bool BlockIndexStatsData::has_imported_block_count() const {
-  return (_has_bits_[0] & 0x00000008u) != 0;
+    return (_has_bits_[0] & 0x00000008u) != 0;
 }
 inline void BlockIndexStatsData::set_has_imported_block_count() {
-  _has_bits_[0] |= 0x00000008u;
+    _has_bits_[0] |= 0x00000008u;
 }
 inline void BlockIndexStatsData::clear_has_imported_block_count() {
-  _has_bits_[0] &= ~0x00000008u;
+    _has_bits_[0] &= ~0x00000008u;
 }
 inline void BlockIndexStatsData::clear_imported_block_count() {
-  imported_block_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_imported_block_count();
+    imported_block_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_imported_block_count();
 }
 inline ::google::protobuf::uint64 BlockIndexStatsData::imported_block_count() const {
-  return imported_block_count_;
+    return imported_block_count_;
 }
 inline void BlockIndexStatsData::set_imported_block_count(::google::protobuf::uint64 value) {
-  set_has_imported_block_count();
-  imported_block_count_ = value;
+    set_has_imported_block_count();
+    imported_block_count_ = value;
 }
 
 // optional uint64 failed_block_write_count = 5;
 inline bool BlockIndexStatsData::has_failed_block_write_count() const {
-  return (_has_bits_[0] & 0x00000010u) != 0;
+    return (_has_bits_[0] & 0x00000010u) != 0;
 }
 inline void BlockIndexStatsData::set_has_failed_block_write_count() {
-  _has_bits_[0] |= 0x00000010u;
+    _has_bits_[0] |= 0x00000010u;
 }
 inline void BlockIndexStatsData::clear_has_failed_block_write_count() {
-  _has_bits_[0] &= ~0x00000010u;
+    _has_bits_[0] &= ~0x00000010u;
 }
 inline void BlockIndexStatsData::clear_failed_block_write_count() {
-  failed_block_write_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_failed_block_write_count();
+    failed_block_write_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_failed_block_write_count();
 }
 inline ::google::protobuf::uint64 BlockIndexStatsData::failed_block_write_count() const {
-  return failed_block_write_count_;
+    return failed_block_write_count_;
 }
 inline void BlockIndexStatsData::set_failed_block_write_count(::google::protobuf::uint64 value) {
-  set_has_failed_block_write_count();
-  failed_block_write_count_ = value;
+    set_has_failed_block_write_count();
+    failed_block_write_count_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -2232,68 +2142,68 @@ inline void BlockIndexStatsData::set_failed_block_write_count(::google::protobuf
 
 // optional uint64 read_count = 1;
 inline bool ChunkStoreStatsData::has_read_count() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
+    return (_has_bits_[0] & 0x00000001u) != 0;
 }
 inline void ChunkStoreStatsData::set_has_read_count() {
-  _has_bits_[0] |= 0x00000001u;
+    _has_bits_[0] |= 0x00000001u;
 }
 inline void ChunkStoreStatsData::clear_has_read_count() {
-  _has_bits_[0] &= ~0x00000001u;
+    _has_bits_[0] &= ~0x00000001u;
 }
 inline void ChunkStoreStatsData::clear_read_count() {
-  read_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_read_count();
+    read_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_read_count();
 }
 inline ::google::protobuf::uint64 ChunkStoreStatsData::read_count() const {
-  return read_count_;
+    return read_count_;
 }
 inline void ChunkStoreStatsData::set_read_count(::google::protobuf::uint64 value) {
-  set_has_read_count();
-  read_count_ = value;
+    set_has_read_count();
+    read_count_ = value;
 }
 
 // optional uint64 write_count = 2;
 inline bool ChunkStoreStatsData::has_write_count() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
+    return (_has_bits_[0] & 0x00000002u) != 0;
 }
 inline void ChunkStoreStatsData::set_has_write_count() {
-  _has_bits_[0] |= 0x00000002u;
+    _has_bits_[0] |= 0x00000002u;
 }
 inline void ChunkStoreStatsData::clear_has_write_count() {
-  _has_bits_[0] &= ~0x00000002u;
+    _has_bits_[0] &= ~0x00000002u;
 }
 inline void ChunkStoreStatsData::clear_write_count() {
-  write_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_write_count();
+    write_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_write_count();
 }
 inline ::google::protobuf::uint64 ChunkStoreStatsData::write_count() const {
-  return write_count_;
+    return write_count_;
 }
 inline void ChunkStoreStatsData::set_write_count(::google::protobuf::uint64 value) {
-  set_has_write_count();
-  write_count_ = value;
+    set_has_write_count();
+    write_count_ = value;
 }
 
 // optional uint64 real_write_count = 3;
 inline bool ChunkStoreStatsData::has_real_write_count() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+    return (_has_bits_[0] & 0x00000004u) != 0;
 }
 inline void ChunkStoreStatsData::set_has_real_write_count() {
-  _has_bits_[0] |= 0x00000004u;
+    _has_bits_[0] |= 0x00000004u;
 }
 inline void ChunkStoreStatsData::clear_has_real_write_count() {
-  _has_bits_[0] &= ~0x00000004u;
+    _has_bits_[0] &= ~0x00000004u;
 }
 inline void ChunkStoreStatsData::clear_real_write_count() {
-  real_write_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_real_write_count();
+    real_write_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_real_write_count();
 }
 inline ::google::protobuf::uint64 ChunkStoreStatsData::real_write_count() const {
-  return real_write_count_;
+    return real_write_count_;
 }
 inline void ChunkStoreStatsData::set_real_write_count(::google::protobuf::uint64 value) {
-  set_has_real_write_count();
-  real_write_count_ = value;
+    set_has_real_write_count();
+    real_write_count_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -2302,68 +2212,68 @@ inline void ChunkStoreStatsData::set_real_write_count(::google::protobuf::uint64
 
 // optional uint64 hit_count = 1;
 inline bool ContainerStorageWriteCacheStatsData::has_hit_count() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
+    return (_has_bits_[0] & 0x00000001u) != 0;
 }
 inline void ContainerStorageWriteCacheStatsData::set_has_hit_count() {
-  _has_bits_[0] |= 0x00000001u;
+    _has_bits_[0] |= 0x00000001u;
 }
 inline void ContainerStorageWriteCacheStatsData::clear_has_hit_count() {
-  _has_bits_[0] &= ~0x00000001u;
+    _has_bits_[0] &= ~0x00000001u;
 }
 inline void ContainerStorageWriteCacheStatsData::clear_hit_count() {
-  hit_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_hit_count();
+    hit_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_hit_count();
 }
 inline ::google::protobuf::uint64 ContainerStorageWriteCacheStatsData::hit_count() const {
-  return hit_count_;
+    return hit_count_;
 }
 inline void ContainerStorageWriteCacheStatsData::set_hit_count(::google::protobuf::uint64 value) {
-  set_has_hit_count();
-  hit_count_ = value;
+    set_has_hit_count();
+    hit_count_ = value;
 }
 
 // optional uint64 miss_count = 2;
 inline bool ContainerStorageWriteCacheStatsData::has_miss_count() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
+    return (_has_bits_[0] & 0x00000002u) != 0;
 }
 inline void ContainerStorageWriteCacheStatsData::set_has_miss_count() {
-  _has_bits_[0] |= 0x00000002u;
+    _has_bits_[0] |= 0x00000002u;
 }
 inline void ContainerStorageWriteCacheStatsData::clear_has_miss_count() {
-  _has_bits_[0] &= ~0x00000002u;
+    _has_bits_[0] &= ~0x00000002u;
 }
 inline void ContainerStorageWriteCacheStatsData::clear_miss_count() {
-  miss_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_miss_count();
+    miss_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_miss_count();
 }
 inline ::google::protobuf::uint64 ContainerStorageWriteCacheStatsData::miss_count() const {
-  return miss_count_;
+    return miss_count_;
 }
 inline void ContainerStorageWriteCacheStatsData::set_miss_count(::google::protobuf::uint64 value) {
-  set_has_miss_count();
-  miss_count_ = value;
+    set_has_miss_count();
+    miss_count_ = value;
 }
 
 // optional uint64 check_count = 3;
 inline bool ContainerStorageWriteCacheStatsData::has_check_count() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+    return (_has_bits_[0] & 0x00000004u) != 0;
 }
 inline void ContainerStorageWriteCacheStatsData::set_has_check_count() {
-  _has_bits_[0] |= 0x00000004u;
+    _has_bits_[0] |= 0x00000004u;
 }
 inline void ContainerStorageWriteCacheStatsData::clear_has_check_count() {
-  _has_bits_[0] &= ~0x00000004u;
+    _has_bits_[0] &= ~0x00000004u;
 }
 inline void ContainerStorageWriteCacheStatsData::clear_check_count() {
-  check_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_check_count();
+    check_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_check_count();
 }
 inline ::google::protobuf::uint64 ContainerStorageWriteCacheStatsData::check_count() const {
-  return check_count_;
+    return check_count_;
 }
 inline void ContainerStorageWriteCacheStatsData::set_check_count(::google::protobuf::uint64 value) {
-  set_has_check_count();
-  check_count_ = value;
+    set_has_check_count();
+    check_count_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -2372,200 +2282,200 @@ inline void ContainerStorageWriteCacheStatsData::set_check_count(::google::proto
 
 // optional uint64 read_count = 1;
 inline bool ContainerStorageStatsData::has_read_count() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
+    return (_has_bits_[0] & 0x00000001u) != 0;
 }
 inline void ContainerStorageStatsData::set_has_read_count() {
-  _has_bits_[0] |= 0x00000001u;
+    _has_bits_[0] |= 0x00000001u;
 }
 inline void ContainerStorageStatsData::clear_has_read_count() {
-  _has_bits_[0] &= ~0x00000001u;
+    _has_bits_[0] &= ~0x00000001u;
 }
 inline void ContainerStorageStatsData::clear_read_count() {
-  read_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_read_count();
+    read_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_read_count();
 }
 inline ::google::protobuf::uint64 ContainerStorageStatsData::read_count() const {
-  return read_count_;
+    return read_count_;
 }
 inline void ContainerStorageStatsData::set_read_count(::google::protobuf::uint64 value) {
-  set_has_read_count();
-  read_count_ = value;
+    set_has_read_count();
+    read_count_ = value;
 }
 
 // optional uint64 write_cache_hit_count = 2;
 inline bool ContainerStorageStatsData::has_write_cache_hit_count() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
+    return (_has_bits_[0] & 0x00000002u) != 0;
 }
 inline void ContainerStorageStatsData::set_has_write_cache_hit_count() {
-  _has_bits_[0] |= 0x00000002u;
+    _has_bits_[0] |= 0x00000002u;
 }
 inline void ContainerStorageStatsData::clear_has_write_cache_hit_count() {
-  _has_bits_[0] &= ~0x00000002u;
+    _has_bits_[0] &= ~0x00000002u;
 }
 inline void ContainerStorageStatsData::clear_write_cache_hit_count() {
-  write_cache_hit_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_write_cache_hit_count();
+    write_cache_hit_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_write_cache_hit_count();
 }
 inline ::google::protobuf::uint64 ContainerStorageStatsData::write_cache_hit_count() const {
-  return write_cache_hit_count_;
+    return write_cache_hit_count_;
 }
 inline void ContainerStorageStatsData::set_write_cache_hit_count(::google::protobuf::uint64 value) {
-  set_has_write_cache_hit_count();
-  write_cache_hit_count_ = value;
+    set_has_write_cache_hit_count();
+    write_cache_hit_count_ = value;
 }
 
 // optional uint64 container_timeout_count = 3;
 inline bool ContainerStorageStatsData::has_container_timeout_count() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+    return (_has_bits_[0] & 0x00000004u) != 0;
 }
 inline void ContainerStorageStatsData::set_has_container_timeout_count() {
-  _has_bits_[0] |= 0x00000004u;
+    _has_bits_[0] |= 0x00000004u;
 }
 inline void ContainerStorageStatsData::clear_has_container_timeout_count() {
-  _has_bits_[0] &= ~0x00000004u;
+    _has_bits_[0] &= ~0x00000004u;
 }
 inline void ContainerStorageStatsData::clear_container_timeout_count() {
-  container_timeout_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_container_timeout_count();
+    container_timeout_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_container_timeout_count();
 }
 inline ::google::protobuf::uint64 ContainerStorageStatsData::container_timeout_count() const {
-  return container_timeout_count_;
+    return container_timeout_count_;
 }
 inline void ContainerStorageStatsData::set_container_timeout_count(::google::protobuf::uint64 value) {
-  set_has_container_timeout_count();
-  container_timeout_count_ = value;
+    set_has_container_timeout_count();
+    container_timeout_count_ = value;
 }
 
 // optional uint64 readed_container_count = 4;
 inline bool ContainerStorageStatsData::has_readed_container_count() const {
-  return (_has_bits_[0] & 0x00000008u) != 0;
+    return (_has_bits_[0] & 0x00000008u) != 0;
 }
 inline void ContainerStorageStatsData::set_has_readed_container_count() {
-  _has_bits_[0] |= 0x00000008u;
+    _has_bits_[0] |= 0x00000008u;
 }
 inline void ContainerStorageStatsData::clear_has_readed_container_count() {
-  _has_bits_[0] &= ~0x00000008u;
+    _has_bits_[0] &= ~0x00000008u;
 }
 inline void ContainerStorageStatsData::clear_readed_container_count() {
-  readed_container_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_readed_container_count();
+    readed_container_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_readed_container_count();
 }
 inline ::google::protobuf::uint64 ContainerStorageStatsData::readed_container_count() const {
-  return readed_container_count_;
+    return readed_container_count_;
 }
 inline void ContainerStorageStatsData::set_readed_container_count(::google::protobuf::uint64 value) {
-  set_has_readed_container_count();
-  readed_container_count_ = value;
+    set_has_readed_container_count();
+    readed_container_count_ = value;
 }
 
 // optional uint64 committed_container_count = 5;
 inline bool ContainerStorageStatsData::has_committed_container_count() const {
-  return (_has_bits_[0] & 0x00000010u) != 0;
+    return (_has_bits_[0] & 0x00000010u) != 0;
 }
 inline void ContainerStorageStatsData::set_has_committed_container_count() {
-  _has_bits_[0] |= 0x00000010u;
+    _has_bits_[0] |= 0x00000010u;
 }
 inline void ContainerStorageStatsData::clear_has_committed_container_count() {
-  _has_bits_[0] &= ~0x00000010u;
+    _has_bits_[0] &= ~0x00000010u;
 }
 inline void ContainerStorageStatsData::clear_committed_container_count() {
-  committed_container_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_committed_container_count();
+    committed_container_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_committed_container_count();
 }
 inline ::google::protobuf::uint64 ContainerStorageStatsData::committed_container_count() const {
-  return committed_container_count_;
+    return committed_container_count_;
 }
 inline void ContainerStorageStatsData::set_committed_container_count(::google::protobuf::uint64 value) {
-  set_has_committed_container_count();
-  committed_container_count_ = value;
+    set_has_committed_container_count();
+    committed_container_count_ = value;
 }
 
 // optional uint64 moved_container_count = 6;
 inline bool ContainerStorageStatsData::has_moved_container_count() const {
-  return (_has_bits_[0] & 0x00000020u) != 0;
+    return (_has_bits_[0] & 0x00000020u) != 0;
 }
 inline void ContainerStorageStatsData::set_has_moved_container_count() {
-  _has_bits_[0] |= 0x00000020u;
+    _has_bits_[0] |= 0x00000020u;
 }
 inline void ContainerStorageStatsData::clear_has_moved_container_count() {
-  _has_bits_[0] &= ~0x00000020u;
+    _has_bits_[0] &= ~0x00000020u;
 }
 inline void ContainerStorageStatsData::clear_moved_container_count() {
-  moved_container_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_moved_container_count();
+    moved_container_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_moved_container_count();
 }
 inline ::google::protobuf::uint64 ContainerStorageStatsData::moved_container_count() const {
-  return moved_container_count_;
+    return moved_container_count_;
 }
 inline void ContainerStorageStatsData::set_moved_container_count(::google::protobuf::uint64 value) {
-  set_has_moved_container_count();
-  moved_container_count_ = value;
+    set_has_moved_container_count();
+    moved_container_count_ = value;
 }
 
 // optional uint64 merged_container_count = 7;
 inline bool ContainerStorageStatsData::has_merged_container_count() const {
-  return (_has_bits_[0] & 0x00000040u) != 0;
+    return (_has_bits_[0] & 0x00000040u) != 0;
 }
 inline void ContainerStorageStatsData::set_has_merged_container_count() {
-  _has_bits_[0] |= 0x00000040u;
+    _has_bits_[0] |= 0x00000040u;
 }
 inline void ContainerStorageStatsData::clear_has_merged_container_count() {
-  _has_bits_[0] &= ~0x00000040u;
+    _has_bits_[0] &= ~0x00000040u;
 }
 inline void ContainerStorageStatsData::clear_merged_container_count() {
-  merged_container_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_merged_container_count();
+    merged_container_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_merged_container_count();
 }
 inline ::google::protobuf::uint64 ContainerStorageStatsData::merged_container_count() const {
-  return merged_container_count_;
+    return merged_container_count_;
 }
 inline void ContainerStorageStatsData::set_merged_container_count(::google::protobuf::uint64 value) {
-  set_has_merged_container_count();
-  merged_container_count_ = value;
+    set_has_merged_container_count();
+    merged_container_count_ = value;
 }
 
 // optional uint64 failed_container_count = 8;
 inline bool ContainerStorageStatsData::has_failed_container_count() const {
-  return (_has_bits_[0] & 0x00000080u) != 0;
+    return (_has_bits_[0] & 0x00000080u) != 0;
 }
 inline void ContainerStorageStatsData::set_has_failed_container_count() {
-  _has_bits_[0] |= 0x00000080u;
+    _has_bits_[0] |= 0x00000080u;
 }
 inline void ContainerStorageStatsData::clear_has_failed_container_count() {
-  _has_bits_[0] &= ~0x00000080u;
+    _has_bits_[0] &= ~0x00000080u;
 }
 inline void ContainerStorageStatsData::clear_failed_container_count() {
-  failed_container_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_failed_container_count();
+    failed_container_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_failed_container_count();
 }
 inline ::google::protobuf::uint64 ContainerStorageStatsData::failed_container_count() const {
-  return failed_container_count_;
+    return failed_container_count_;
 }
 inline void ContainerStorageStatsData::set_failed_container_count(::google::protobuf::uint64 value) {
-  set_has_failed_container_count();
-  failed_container_count_ = value;
+    set_has_failed_container_count();
+    failed_container_count_ = value;
 }
 
 // optional uint64 deleted_container_count = 9;
 inline bool ContainerStorageStatsData::has_deleted_container_count() const {
-  return (_has_bits_[0] & 0x00000100u) != 0;
+    return (_has_bits_[0] & 0x00000100u) != 0;
 }
 inline void ContainerStorageStatsData::set_has_deleted_container_count() {
-  _has_bits_[0] |= 0x00000100u;
+    _has_bits_[0] |= 0x00000100u;
 }
 inline void ContainerStorageStatsData::clear_has_deleted_container_count() {
-  _has_bits_[0] &= ~0x00000100u;
+    _has_bits_[0] &= ~0x00000100u;
 }
 inline void ContainerStorageStatsData::clear_deleted_container_count() {
-  deleted_container_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_deleted_container_count();
+    deleted_container_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_deleted_container_count();
 }
 inline ::google::protobuf::uint64 ContainerStorageStatsData::deleted_container_count() const {
-  return deleted_container_count_;
+    return deleted_container_count_;
 }
 inline void ContainerStorageStatsData::set_deleted_container_count(::google::protobuf::uint64 value) {
-  set_has_deleted_container_count();
-  deleted_container_count_ = value;
+    set_has_deleted_container_count();
+    deleted_container_count_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -2574,90 +2484,90 @@ inline void ContainerStorageStatsData::set_deleted_container_count(::google::pro
 
 // optional uint64 hit_count = 1;
 inline bool ContainerStorageReadCacheStatsData::has_hit_count() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
+    return (_has_bits_[0] & 0x00000001u) != 0;
 }
 inline void ContainerStorageReadCacheStatsData::set_has_hit_count() {
-  _has_bits_[0] |= 0x00000001u;
+    _has_bits_[0] |= 0x00000001u;
 }
 inline void ContainerStorageReadCacheStatsData::clear_has_hit_count() {
-  _has_bits_[0] &= ~0x00000001u;
+    _has_bits_[0] &= ~0x00000001u;
 }
 inline void ContainerStorageReadCacheStatsData::clear_hit_count() {
-  hit_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_hit_count();
+    hit_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_hit_count();
 }
 inline ::google::protobuf::uint64 ContainerStorageReadCacheStatsData::hit_count() const {
-  return hit_count_;
+    return hit_count_;
 }
 inline void ContainerStorageReadCacheStatsData::set_hit_count(::google::protobuf::uint64 value) {
-  set_has_hit_count();
-  hit_count_ = value;
+    set_has_hit_count();
+    hit_count_ = value;
 }
 
 // optional uint64 miss_count = 2;
 inline bool ContainerStorageReadCacheStatsData::has_miss_count() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
+    return (_has_bits_[0] & 0x00000002u) != 0;
 }
 inline void ContainerStorageReadCacheStatsData::set_has_miss_count() {
-  _has_bits_[0] |= 0x00000002u;
+    _has_bits_[0] |= 0x00000002u;
 }
 inline void ContainerStorageReadCacheStatsData::clear_has_miss_count() {
-  _has_bits_[0] &= ~0x00000002u;
+    _has_bits_[0] &= ~0x00000002u;
 }
 inline void ContainerStorageReadCacheStatsData::clear_miss_count() {
-  miss_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_miss_count();
+    miss_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_miss_count();
 }
 inline ::google::protobuf::uint64 ContainerStorageReadCacheStatsData::miss_count() const {
-  return miss_count_;
+    return miss_count_;
 }
 inline void ContainerStorageReadCacheStatsData::set_miss_count(::google::protobuf::uint64 value) {
-  set_has_miss_count();
-  miss_count_ = value;
+    set_has_miss_count();
+    miss_count_ = value;
 }
 
 // optional uint64 check_count = 3;
 inline bool ContainerStorageReadCacheStatsData::has_check_count() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+    return (_has_bits_[0] & 0x00000004u) != 0;
 }
 inline void ContainerStorageReadCacheStatsData::set_has_check_count() {
-  _has_bits_[0] |= 0x00000004u;
+    _has_bits_[0] |= 0x00000004u;
 }
 inline void ContainerStorageReadCacheStatsData::clear_has_check_count() {
-  _has_bits_[0] &= ~0x00000004u;
+    _has_bits_[0] &= ~0x00000004u;
 }
 inline void ContainerStorageReadCacheStatsData::clear_check_count() {
-  check_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_check_count();
+    check_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_check_count();
 }
 inline ::google::protobuf::uint64 ContainerStorageReadCacheStatsData::check_count() const {
-  return check_count_;
+    return check_count_;
 }
 inline void ContainerStorageReadCacheStatsData::set_check_count(::google::protobuf::uint64 value) {
-  set_has_check_count();
-  check_count_ = value;
+    set_has_check_count();
+    check_count_ = value;
 }
 
 // optional uint64 update_count = 4;
 inline bool ContainerStorageReadCacheStatsData::has_update_count() const {
-  return (_has_bits_[0] & 0x00000008u) != 0;
+    return (_has_bits_[0] & 0x00000008u) != 0;
 }
 inline void ContainerStorageReadCacheStatsData::set_has_update_count() {
-  _has_bits_[0] |= 0x00000008u;
+    _has_bits_[0] |= 0x00000008u;
 }
 inline void ContainerStorageReadCacheStatsData::clear_has_update_count() {
-  _has_bits_[0] &= ~0x00000008u;
+    _has_bits_[0] &= ~0x00000008u;
 }
 inline void ContainerStorageReadCacheStatsData::clear_update_count() {
-  update_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_update_count();
+    update_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_update_count();
 }
 inline ::google::protobuf::uint64 ContainerStorageReadCacheStatsData::update_count() const {
-  return update_count_;
+    return update_count_;
 }
 inline void ContainerStorageReadCacheStatsData::set_update_count(::google::protobuf::uint64 value) {
-  set_has_update_count();
-  update_count_ = value;
+    set_has_update_count();
+    update_count_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -2666,68 +2576,68 @@ inline void ContainerStorageReadCacheStatsData::set_update_count(::google::proto
 
 // optional uint64 hit_count = 1;
 inline bool BlockIndexFilterStatsData::has_hit_count() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
+    return (_has_bits_[0] & 0x00000001u) != 0;
 }
 inline void BlockIndexFilterStatsData::set_has_hit_count() {
-  _has_bits_[0] |= 0x00000001u;
+    _has_bits_[0] |= 0x00000001u;
 }
 inline void BlockIndexFilterStatsData::clear_has_hit_count() {
-  _has_bits_[0] &= ~0x00000001u;
+    _has_bits_[0] &= ~0x00000001u;
 }
 inline void BlockIndexFilterStatsData::clear_hit_count() {
-  hit_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_hit_count();
+    hit_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_hit_count();
 }
 inline ::google::protobuf::uint64 BlockIndexFilterStatsData::hit_count() const {
-  return hit_count_;
+    return hit_count_;
 }
 inline void BlockIndexFilterStatsData::set_hit_count(::google::protobuf::uint64 value) {
-  set_has_hit_count();
-  hit_count_ = value;
+    set_has_hit_count();
+    hit_count_ = value;
 }
 
 // optional uint64 miss_count = 2;
 inline bool BlockIndexFilterStatsData::has_miss_count() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
+    return (_has_bits_[0] & 0x00000002u) != 0;
 }
 inline void BlockIndexFilterStatsData::set_has_miss_count() {
-  _has_bits_[0] |= 0x00000002u;
+    _has_bits_[0] |= 0x00000002u;
 }
 inline void BlockIndexFilterStatsData::clear_has_miss_count() {
-  _has_bits_[0] &= ~0x00000002u;
+    _has_bits_[0] &= ~0x00000002u;
 }
 inline void BlockIndexFilterStatsData::clear_miss_count() {
-  miss_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_miss_count();
+    miss_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_miss_count();
 }
 inline ::google::protobuf::uint64 BlockIndexFilterStatsData::miss_count() const {
-  return miss_count_;
+    return miss_count_;
 }
 inline void BlockIndexFilterStatsData::set_miss_count(::google::protobuf::uint64 value) {
-  set_has_miss_count();
-  miss_count_ = value;
+    set_has_miss_count();
+    miss_count_ = value;
 }
 
 // optional uint64 read_count = 3;
 inline bool BlockIndexFilterStatsData::has_read_count() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+    return (_has_bits_[0] & 0x00000004u) != 0;
 }
 inline void BlockIndexFilterStatsData::set_has_read_count() {
-  _has_bits_[0] |= 0x00000004u;
+    _has_bits_[0] |= 0x00000004u;
 }
 inline void BlockIndexFilterStatsData::clear_has_read_count() {
-  _has_bits_[0] &= ~0x00000004u;
+    _has_bits_[0] &= ~0x00000004u;
 }
 inline void BlockIndexFilterStatsData::clear_read_count() {
-  read_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_read_count();
+    read_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_read_count();
 }
 inline ::google::protobuf::uint64 BlockIndexFilterStatsData::read_count() const {
-  return read_count_;
+    return read_count_;
 }
 inline void BlockIndexFilterStatsData::set_read_count(::google::protobuf::uint64 value) {
-  set_has_read_count();
-  read_count_ = value;
+    set_has_read_count();
+    read_count_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -2736,68 +2646,68 @@ inline void BlockIndexFilterStatsData::set_read_count(::google::protobuf::uint64
 
 // optional uint64 fetch_count = 1;
 inline bool BlockChunkCacheStatsData::has_fetch_count() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
+    return (_has_bits_[0] & 0x00000001u) != 0;
 }
 inline void BlockChunkCacheStatsData::set_has_fetch_count() {
-  _has_bits_[0] |= 0x00000001u;
+    _has_bits_[0] |= 0x00000001u;
 }
 inline void BlockChunkCacheStatsData::clear_has_fetch_count() {
-  _has_bits_[0] &= ~0x00000001u;
+    _has_bits_[0] &= ~0x00000001u;
 }
 inline void BlockChunkCacheStatsData::clear_fetch_count() {
-  fetch_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_fetch_count();
+    fetch_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_fetch_count();
 }
 inline ::google::protobuf::uint64 BlockChunkCacheStatsData::fetch_count() const {
-  return fetch_count_;
+    return fetch_count_;
 }
 inline void BlockChunkCacheStatsData::set_fetch_count(::google::protobuf::uint64 value) {
-  set_has_fetch_count();
-  fetch_count_ = value;
+    set_has_fetch_count();
+    fetch_count_ = value;
 }
 
 // optional uint64 hit_count = 2;
 inline bool BlockChunkCacheStatsData::has_hit_count() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
+    return (_has_bits_[0] & 0x00000002u) != 0;
 }
 inline void BlockChunkCacheStatsData::set_has_hit_count() {
-  _has_bits_[0] |= 0x00000002u;
+    _has_bits_[0] |= 0x00000002u;
 }
 inline void BlockChunkCacheStatsData::clear_has_hit_count() {
-  _has_bits_[0] &= ~0x00000002u;
+    _has_bits_[0] &= ~0x00000002u;
 }
 inline void BlockChunkCacheStatsData::clear_hit_count() {
-  hit_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_hit_count();
+    hit_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_hit_count();
 }
 inline ::google::protobuf::uint64 BlockChunkCacheStatsData::hit_count() const {
-  return hit_count_;
+    return hit_count_;
 }
 inline void BlockChunkCacheStatsData::set_hit_count(::google::protobuf::uint64 value) {
-  set_has_hit_count();
-  hit_count_ = value;
+    set_has_hit_count();
+    hit_count_ = value;
 }
 
 // optional uint64 miss_count = 3;
 inline bool BlockChunkCacheStatsData::has_miss_count() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+    return (_has_bits_[0] & 0x00000004u) != 0;
 }
 inline void BlockChunkCacheStatsData::set_has_miss_count() {
-  _has_bits_[0] |= 0x00000004u;
+    _has_bits_[0] |= 0x00000004u;
 }
 inline void BlockChunkCacheStatsData::clear_has_miss_count() {
-  _has_bits_[0] &= ~0x00000004u;
+    _has_bits_[0] &= ~0x00000004u;
 }
 inline void BlockChunkCacheStatsData::clear_miss_count() {
-  miss_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_miss_count();
+    miss_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_miss_count();
 }
 inline ::google::protobuf::uint64 BlockChunkCacheStatsData::miss_count() const {
-  return miss_count_;
+    return miss_count_;
 }
 inline void BlockChunkCacheStatsData::set_miss_count(::google::protobuf::uint64 value) {
-  set_has_miss_count();
-  miss_count_ = value;
+    set_has_miss_count();
+    miss_count_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -2806,90 +2716,90 @@ inline void BlockChunkCacheStatsData::set_miss_count(::google::protobuf::uint64 
 
 // optional uint64 hit_count = 1;
 inline bool BloomFilterStatsData::has_hit_count() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
+    return (_has_bits_[0] & 0x00000001u) != 0;
 }
 inline void BloomFilterStatsData::set_has_hit_count() {
-  _has_bits_[0] |= 0x00000001u;
+    _has_bits_[0] |= 0x00000001u;
 }
 inline void BloomFilterStatsData::clear_has_hit_count() {
-  _has_bits_[0] &= ~0x00000001u;
+    _has_bits_[0] &= ~0x00000001u;
 }
 inline void BloomFilterStatsData::clear_hit_count() {
-  hit_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_hit_count();
+    hit_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_hit_count();
 }
 inline ::google::protobuf::uint64 BloomFilterStatsData::hit_count() const {
-  return hit_count_;
+    return hit_count_;
 }
 inline void BloomFilterStatsData::set_hit_count(::google::protobuf::uint64 value) {
-  set_has_hit_count();
-  hit_count_ = value;
+    set_has_hit_count();
+    hit_count_ = value;
 }
 
 // optional uint64 miss_count = 2;
 inline bool BloomFilterStatsData::has_miss_count() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
+    return (_has_bits_[0] & 0x00000002u) != 0;
 }
 inline void BloomFilterStatsData::set_has_miss_count() {
-  _has_bits_[0] |= 0x00000002u;
+    _has_bits_[0] |= 0x00000002u;
 }
 inline void BloomFilterStatsData::clear_has_miss_count() {
-  _has_bits_[0] &= ~0x00000002u;
+    _has_bits_[0] &= ~0x00000002u;
 }
 inline void BloomFilterStatsData::clear_miss_count() {
-  miss_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_miss_count();
+    miss_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_miss_count();
 }
 inline ::google::protobuf::uint64 BloomFilterStatsData::miss_count() const {
-  return miss_count_;
+    return miss_count_;
 }
 inline void BloomFilterStatsData::set_miss_count(::google::protobuf::uint64 value) {
-  set_has_miss_count();
-  miss_count_ = value;
+    set_has_miss_count();
+    miss_count_ = value;
 }
 
 // optional uint64 read_count = 3;
 inline bool BloomFilterStatsData::has_read_count() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+    return (_has_bits_[0] & 0x00000004u) != 0;
 }
 inline void BloomFilterStatsData::set_has_read_count() {
-  _has_bits_[0] |= 0x00000004u;
+    _has_bits_[0] |= 0x00000004u;
 }
 inline void BloomFilterStatsData::clear_has_read_count() {
-  _has_bits_[0] &= ~0x00000004u;
+    _has_bits_[0] &= ~0x00000004u;
 }
 inline void BloomFilterStatsData::clear_read_count() {
-  read_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_read_count();
+    read_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_read_count();
 }
 inline ::google::protobuf::uint64 BloomFilterStatsData::read_count() const {
-  return read_count_;
+    return read_count_;
 }
 inline void BloomFilterStatsData::set_read_count(::google::protobuf::uint64 value) {
-  set_has_read_count();
-  read_count_ = value;
+    set_has_read_count();
+    read_count_ = value;
 }
 
 // optional uint64 write_count = 4;
 inline bool BloomFilterStatsData::has_write_count() const {
-  return (_has_bits_[0] & 0x00000008u) != 0;
+    return (_has_bits_[0] & 0x00000008u) != 0;
 }
 inline void BloomFilterStatsData::set_has_write_count() {
-  _has_bits_[0] |= 0x00000008u;
+    _has_bits_[0] |= 0x00000008u;
 }
 inline void BloomFilterStatsData::clear_has_write_count() {
-  _has_bits_[0] &= ~0x00000008u;
+    _has_bits_[0] &= ~0x00000008u;
 }
 inline void BloomFilterStatsData::clear_write_count() {
-  write_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_write_count();
+    write_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_write_count();
 }
 inline ::google::protobuf::uint64 BloomFilterStatsData::write_count() const {
-  return write_count_;
+    return write_count_;
 }
 inline void BloomFilterStatsData::set_write_count(::google::protobuf::uint64 value) {
-  set_has_write_count();
-  write_count_ = value;
+    set_has_write_count();
+    write_count_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -2898,182 +2808,226 @@ inline void BloomFilterStatsData::set_write_count(::google::protobuf::uint64 val
 
 // optional uint64 hit_count = 1;
 inline bool ByteCompareFilterStatsData::has_hit_count() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
+    return (_has_bits_[0] & 0x00000001u) != 0;
 }
 inline void ByteCompareFilterStatsData::set_has_hit_count() {
-  _has_bits_[0] |= 0x00000001u;
+    _has_bits_[0] |= 0x00000001u;
 }
 inline void ByteCompareFilterStatsData::clear_has_hit_count() {
-  _has_bits_[0] &= ~0x00000001u;
+    _has_bits_[0] &= ~0x00000001u;
 }
 inline void ByteCompareFilterStatsData::clear_hit_count() {
-  hit_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_hit_count();
+    hit_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_hit_count();
 }
 inline ::google::protobuf::uint64 ByteCompareFilterStatsData::hit_count() const {
-  return hit_count_;
+    return hit_count_;
 }
 inline void ByteCompareFilterStatsData::set_hit_count(::google::protobuf::uint64 value) {
-  set_has_hit_count();
-  hit_count_ = value;
+    set_has_hit_count();
+    hit_count_ = value;
 }
 
 // optional uint64 miss_count = 2;
 inline bool ByteCompareFilterStatsData::has_miss_count() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
+    return (_has_bits_[0] & 0x00000002u) != 0;
 }
 inline void ByteCompareFilterStatsData::set_has_miss_count() {
-  _has_bits_[0] |= 0x00000002u;
+    _has_bits_[0] |= 0x00000002u;
 }
 inline void ByteCompareFilterStatsData::clear_has_miss_count() {
-  _has_bits_[0] &= ~0x00000002u;
+    _has_bits_[0] &= ~0x00000002u;
 }
 inline void ByteCompareFilterStatsData::clear_miss_count() {
-  miss_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_miss_count();
+    miss_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_miss_count();
 }
 inline ::google::protobuf::uint64 ByteCompareFilterStatsData::miss_count() const {
-  return miss_count_;
+    return miss_count_;
 }
 inline void ByteCompareFilterStatsData::set_miss_count(::google::protobuf::uint64 value) {
-  set_has_miss_count();
-  miss_count_ = value;
+    set_has_miss_count();
+    miss_count_ = value;
 }
 
 // optional uint64 read_count = 3;
 inline bool ByteCompareFilterStatsData::has_read_count() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+    return (_has_bits_[0] & 0x00000004u) != 0;
 }
 inline void ByteCompareFilterStatsData::set_has_read_count() {
-  _has_bits_[0] |= 0x00000004u;
+    _has_bits_[0] |= 0x00000004u;
 }
 inline void ByteCompareFilterStatsData::clear_has_read_count() {
-  _has_bits_[0] &= ~0x00000004u;
+    _has_bits_[0] &= ~0x00000004u;
 }
 inline void ByteCompareFilterStatsData::clear_read_count() {
-  read_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_read_count();
+    read_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_read_count();
 }
 inline ::google::protobuf::uint64 ByteCompareFilterStatsData::read_count() const {
-  return read_count_;
+    return read_count_;
 }
 inline void ByteCompareFilterStatsData::set_read_count(::google::protobuf::uint64 value) {
-  set_has_read_count();
-  read_count_ = value;
+    set_has_read_count();
+    read_count_ = value;
 }
 
 // -------------------------------------------------------------------
 
 // ChunkIndexFilterStatsData
 
-// optional uint64 hit_count = 1;
-inline bool ChunkIndexFilterStatsData::has_hit_count() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
+// optional uint64 strong_hit_count = 1;
+inline bool ChunkIndexFilterStatsData::has_strong_hit_count() const {
+    return (_has_bits_[0] & 0x00000001u) != 0;
 }
-inline void ChunkIndexFilterStatsData::set_has_hit_count() {
-  _has_bits_[0] |= 0x00000001u;
+inline void ChunkIndexFilterStatsData::set_has_strong_hit_count() {
+    _has_bits_[0] |= 0x00000001u;
 }
-inline void ChunkIndexFilterStatsData::clear_has_hit_count() {
-  _has_bits_[0] &= ~0x00000001u;
+inline void ChunkIndexFilterStatsData::clear_has_strong_hit_count() {
+    _has_bits_[0] &= ~0x00000001u;
 }
-inline void ChunkIndexFilterStatsData::clear_hit_count() {
-  hit_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_hit_count();
+inline void ChunkIndexFilterStatsData::clear_strong_hit_count() {
+    strong_hit_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_strong_hit_count();
 }
-inline ::google::protobuf::uint64 ChunkIndexFilterStatsData::hit_count() const {
-  return hit_count_;
+inline ::google::protobuf::uint64 ChunkIndexFilterStatsData::strong_hit_count() const {
+    return strong_hit_count_;
 }
-inline void ChunkIndexFilterStatsData::set_hit_count(::google::protobuf::uint64 value) {
-  set_has_hit_count();
-  hit_count_ = value;
+inline void ChunkIndexFilterStatsData::set_strong_hit_count(::google::protobuf::uint64 value) {
+    set_has_strong_hit_count();
+    strong_hit_count_ = value;
+}
+
+// optional uint64 weak_hit_count = 8;
+inline bool ChunkIndexFilterStatsData::has_weak_hit_count() const {
+    return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void ChunkIndexFilterStatsData::set_has_weak_hit_count() {
+    _has_bits_[0] |= 0x00000002u;
+}
+inline void ChunkIndexFilterStatsData::clear_has_weak_hit_count() {
+    _has_bits_[0] &= ~0x00000002u;
+}
+inline void ChunkIndexFilterStatsData::clear_weak_hit_count() {
+    weak_hit_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_weak_hit_count();
+}
+inline ::google::protobuf::uint64 ChunkIndexFilterStatsData::weak_hit_count() const {
+    return weak_hit_count_;
+}
+inline void ChunkIndexFilterStatsData::set_weak_hit_count(::google::protobuf::uint64 value) {
+    set_has_weak_hit_count();
+    weak_hit_count_ = value;
 }
 
 // optional uint64 miss_count = 2;
 inline bool ChunkIndexFilterStatsData::has_miss_count() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
+    return (_has_bits_[0] & 0x00000004u) != 0;
 }
 inline void ChunkIndexFilterStatsData::set_has_miss_count() {
-  _has_bits_[0] |= 0x00000002u;
+    _has_bits_[0] |= 0x00000004u;
 }
 inline void ChunkIndexFilterStatsData::clear_has_miss_count() {
-  _has_bits_[0] &= ~0x00000002u;
+    _has_bits_[0] &= ~0x00000004u;
 }
 inline void ChunkIndexFilterStatsData::clear_miss_count() {
-  miss_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_miss_count();
+    miss_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_miss_count();
 }
 inline ::google::protobuf::uint64 ChunkIndexFilterStatsData::miss_count() const {
-  return miss_count_;
+    return miss_count_;
 }
 inline void ChunkIndexFilterStatsData::set_miss_count(::google::protobuf::uint64 value) {
-  set_has_miss_count();
-  miss_count_ = value;
+    set_has_miss_count();
+    miss_count_ = value;
 }
 
 // optional uint64 read_count = 3;
 inline bool ChunkIndexFilterStatsData::has_read_count() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+    return (_has_bits_[0] & 0x00000008u) != 0;
 }
 inline void ChunkIndexFilterStatsData::set_has_read_count() {
-  _has_bits_[0] |= 0x00000004u;
+    _has_bits_[0] |= 0x00000008u;
 }
 inline void ChunkIndexFilterStatsData::clear_has_read_count() {
-  _has_bits_[0] &= ~0x00000004u;
+    _has_bits_[0] &= ~0x00000008u;
 }
 inline void ChunkIndexFilterStatsData::clear_read_count() {
-  read_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_read_count();
+    read_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_read_count();
 }
 inline ::google::protobuf::uint64 ChunkIndexFilterStatsData::read_count() const {
-  return read_count_;
+    return read_count_;
 }
 inline void ChunkIndexFilterStatsData::set_read_count(::google::protobuf::uint64 value) {
-  set_has_read_count();
-  read_count_ = value;
+    set_has_read_count();
+    read_count_ = value;
 }
 
 // optional uint64 write_count = 4;
 inline bool ChunkIndexFilterStatsData::has_write_count() const {
-  return (_has_bits_[0] & 0x00000008u) != 0;
+    return (_has_bits_[0] & 0x00000010u) != 0;
 }
 inline void ChunkIndexFilterStatsData::set_has_write_count() {
-  _has_bits_[0] |= 0x00000008u;
+    _has_bits_[0] |= 0x00000010u;
 }
 inline void ChunkIndexFilterStatsData::clear_has_write_count() {
-  _has_bits_[0] &= ~0x00000008u;
+    _has_bits_[0] &= ~0x00000010u;
 }
 inline void ChunkIndexFilterStatsData::clear_write_count() {
-  write_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_write_count();
+    write_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_write_count();
 }
 inline ::google::protobuf::uint64 ChunkIndexFilterStatsData::write_count() const {
-  return write_count_;
+    return write_count_;
 }
 inline void ChunkIndexFilterStatsData::set_write_count(::google::protobuf::uint64 value) {
-  set_has_write_count();
-  write_count_ = value;
+    set_has_write_count();
+    write_count_ = value;
 }
 
 // optional uint64 failure_count = 6;
 inline bool ChunkIndexFilterStatsData::has_failure_count() const {
-  return (_has_bits_[0] & 0x00000010u) != 0;
+    return (_has_bits_[0] & 0x00000020u) != 0;
 }
 inline void ChunkIndexFilterStatsData::set_has_failure_count() {
-  _has_bits_[0] |= 0x00000010u;
+    _has_bits_[0] |= 0x00000020u;
 }
 inline void ChunkIndexFilterStatsData::clear_has_failure_count() {
-  _has_bits_[0] &= ~0x00000010u;
+    _has_bits_[0] &= ~0x00000020u;
 }
 inline void ChunkIndexFilterStatsData::clear_failure_count() {
-  failure_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_failure_count();
+    failure_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_failure_count();
 }
 inline ::google::protobuf::uint64 ChunkIndexFilterStatsData::failure_count() const {
-  return failure_count_;
+    return failure_count_;
 }
 inline void ChunkIndexFilterStatsData::set_failure_count(::google::protobuf::uint64 value) {
-  set_has_failure_count();
-  failure_count_ = value;
+    set_has_failure_count();
+    failure_count_ = value;
+}
+
+// optional uint64 anchor_count = 7;
+inline bool ChunkIndexFilterStatsData::has_anchor_count() const {
+    return (_has_bits_[0] & 0x00000040u) != 0;
+}
+inline void ChunkIndexFilterStatsData::set_has_anchor_count() {
+    _has_bits_[0] |= 0x00000040u;
+}
+inline void ChunkIndexFilterStatsData::clear_has_anchor_count() {
+    _has_bits_[0] &= ~0x00000040u;
+}
+inline void ChunkIndexFilterStatsData::clear_anchor_count() {
+    anchor_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_anchor_count();
+}
+inline ::google::protobuf::uint64 ChunkIndexFilterStatsData::anchor_count() const {
+    return anchor_count_;
+}
+inline void ChunkIndexFilterStatsData::set_anchor_count(::google::protobuf::uint64 value) {
+    set_has_anchor_count();
+    anchor_count_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -3082,226 +3036,68 @@ inline void ChunkIndexFilterStatsData::set_failure_count(::google::protobuf::uin
 
 // optional uint64 existing_hit_count = 1;
 inline bool ZeroChunkFilterStatsData::has_existing_hit_count() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
+    return (_has_bits_[0] & 0x00000001u) != 0;
 }
 inline void ZeroChunkFilterStatsData::set_has_existing_hit_count() {
-  _has_bits_[0] |= 0x00000001u;
+    _has_bits_[0] |= 0x00000001u;
 }
 inline void ZeroChunkFilterStatsData::clear_has_existing_hit_count() {
-  _has_bits_[0] &= ~0x00000001u;
+    _has_bits_[0] &= ~0x00000001u;
 }
 inline void ZeroChunkFilterStatsData::clear_existing_hit_count() {
-  existing_hit_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_existing_hit_count();
+    existing_hit_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_existing_hit_count();
 }
 inline ::google::protobuf::uint64 ZeroChunkFilterStatsData::existing_hit_count() const {
-  return existing_hit_count_;
+    return existing_hit_count_;
 }
 inline void ZeroChunkFilterStatsData::set_existing_hit_count(::google::protobuf::uint64 value) {
-  set_has_existing_hit_count();
-  existing_hit_count_ = value;
+    set_has_existing_hit_count();
+    existing_hit_count_ = value;
 }
 
 // optional uint64 weak_hit_count = 2;
 inline bool ZeroChunkFilterStatsData::has_weak_hit_count() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
+    return (_has_bits_[0] & 0x00000002u) != 0;
 }
 inline void ZeroChunkFilterStatsData::set_has_weak_hit_count() {
-  _has_bits_[0] |= 0x00000002u;
+    _has_bits_[0] |= 0x00000002u;
 }
 inline void ZeroChunkFilterStatsData::clear_has_weak_hit_count() {
-  _has_bits_[0] &= ~0x00000002u;
+    _has_bits_[0] &= ~0x00000002u;
 }
 inline void ZeroChunkFilterStatsData::clear_weak_hit_count() {
-  weak_hit_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_weak_hit_count();
+    weak_hit_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_weak_hit_count();
 }
 inline ::google::protobuf::uint64 ZeroChunkFilterStatsData::weak_hit_count() const {
-  return weak_hit_count_;
+    return weak_hit_count_;
 }
 inline void ZeroChunkFilterStatsData::set_weak_hit_count(::google::protobuf::uint64 value) {
-  set_has_weak_hit_count();
-  weak_hit_count_ = value;
+    set_has_weak_hit_count();
+    weak_hit_count_ = value;
 }
 
 // optional uint64 read_count = 3;
 inline bool ZeroChunkFilterStatsData::has_read_count() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+    return (_has_bits_[0] & 0x00000004u) != 0;
 }
 inline void ZeroChunkFilterStatsData::set_has_read_count() {
-  _has_bits_[0] |= 0x00000004u;
+    _has_bits_[0] |= 0x00000004u;
 }
 inline void ZeroChunkFilterStatsData::clear_has_read_count() {
-  _has_bits_[0] &= ~0x00000004u;
+    _has_bits_[0] &= ~0x00000004u;
 }
 inline void ZeroChunkFilterStatsData::clear_read_count() {
-  read_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_read_count();
+    read_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_read_count();
 }
 inline ::google::protobuf::uint64 ZeroChunkFilterStatsData::read_count() const {
-  return read_count_;
+    return read_count_;
 }
 inline void ZeroChunkFilterStatsData::set_read_count(::google::protobuf::uint64 value) {
-  set_has_read_count();
-  read_count_ = value;
-}
-
-// -------------------------------------------------------------------
-
-// SparseChunkIndexFilterStatsData
-
-// optional uint64 strong_hit_count = 1;
-inline bool SparseChunkIndexFilterStatsData::has_strong_hit_count() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
-}
-inline void SparseChunkIndexFilterStatsData::set_has_strong_hit_count() {
-  _has_bits_[0] |= 0x00000001u;
-}
-inline void SparseChunkIndexFilterStatsData::clear_has_strong_hit_count() {
-  _has_bits_[0] &= ~0x00000001u;
-}
-inline void SparseChunkIndexFilterStatsData::clear_strong_hit_count() {
-  strong_hit_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_strong_hit_count();
-}
-inline ::google::protobuf::uint64 SparseChunkIndexFilterStatsData::strong_hit_count() const {
-  return strong_hit_count_;
-}
-inline void SparseChunkIndexFilterStatsData::set_strong_hit_count(::google::protobuf::uint64 value) {
-  set_has_strong_hit_count();
-  strong_hit_count_ = value;
-}
-
-// optional uint64 miss_count = 2;
-inline bool SparseChunkIndexFilterStatsData::has_miss_count() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
-}
-inline void SparseChunkIndexFilterStatsData::set_has_miss_count() {
-  _has_bits_[0] |= 0x00000002u;
-}
-inline void SparseChunkIndexFilterStatsData::clear_has_miss_count() {
-  _has_bits_[0] &= ~0x00000002u;
-}
-inline void SparseChunkIndexFilterStatsData::clear_miss_count() {
-  miss_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_miss_count();
-}
-inline ::google::protobuf::uint64 SparseChunkIndexFilterStatsData::miss_count() const {
-  return miss_count_;
-}
-inline void SparseChunkIndexFilterStatsData::set_miss_count(::google::protobuf::uint64 value) {
-  set_has_miss_count();
-  miss_count_ = value;
-}
-
-// optional uint64 read_count = 3;
-inline bool SparseChunkIndexFilterStatsData::has_read_count() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
-}
-inline void SparseChunkIndexFilterStatsData::set_has_read_count() {
-  _has_bits_[0] |= 0x00000004u;
-}
-inline void SparseChunkIndexFilterStatsData::clear_has_read_count() {
-  _has_bits_[0] &= ~0x00000004u;
-}
-inline void SparseChunkIndexFilterStatsData::clear_read_count() {
-  read_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_read_count();
-}
-inline ::google::protobuf::uint64 SparseChunkIndexFilterStatsData::read_count() const {
-  return read_count_;
-}
-inline void SparseChunkIndexFilterStatsData::set_read_count(::google::protobuf::uint64 value) {
-  set_has_read_count();
-  read_count_ = value;
-}
-
-// optional uint64 write_count = 4;
-inline bool SparseChunkIndexFilterStatsData::has_write_count() const {
-  return (_has_bits_[0] & 0x00000008u) != 0;
-}
-inline void SparseChunkIndexFilterStatsData::set_has_write_count() {
-  _has_bits_[0] |= 0x00000008u;
-}
-inline void SparseChunkIndexFilterStatsData::clear_has_write_count() {
-  _has_bits_[0] &= ~0x00000008u;
-}
-inline void SparseChunkIndexFilterStatsData::clear_write_count() {
-  write_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_write_count();
-}
-inline ::google::protobuf::uint64 SparseChunkIndexFilterStatsData::write_count() const {
-  return write_count_;
-}
-inline void SparseChunkIndexFilterStatsData::set_write_count(::google::protobuf::uint64 value) {
-  set_has_write_count();
-  write_count_ = value;
-}
-
-// optional uint64 failure_count = 6;
-inline bool SparseChunkIndexFilterStatsData::has_failure_count() const {
-  return (_has_bits_[0] & 0x00000010u) != 0;
-}
-inline void SparseChunkIndexFilterStatsData::set_has_failure_count() {
-  _has_bits_[0] |= 0x00000010u;
-}
-inline void SparseChunkIndexFilterStatsData::clear_has_failure_count() {
-  _has_bits_[0] &= ~0x00000010u;
-}
-inline void SparseChunkIndexFilterStatsData::clear_failure_count() {
-  failure_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_failure_count();
-}
-inline ::google::protobuf::uint64 SparseChunkIndexFilterStatsData::failure_count() const {
-  return failure_count_;
-}
-inline void SparseChunkIndexFilterStatsData::set_failure_count(::google::protobuf::uint64 value) {
-  set_has_failure_count();
-  failure_count_ = value;
-}
-
-// optional uint64 anchor_count = 7;
-inline bool SparseChunkIndexFilterStatsData::has_anchor_count() const {
-  return (_has_bits_[0] & 0x00000020u) != 0;
-}
-inline void SparseChunkIndexFilterStatsData::set_has_anchor_count() {
-  _has_bits_[0] |= 0x00000020u;
-}
-inline void SparseChunkIndexFilterStatsData::clear_has_anchor_count() {
-  _has_bits_[0] &= ~0x00000020u;
-}
-inline void SparseChunkIndexFilterStatsData::clear_anchor_count() {
-  anchor_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_anchor_count();
-}
-inline ::google::protobuf::uint64 SparseChunkIndexFilterStatsData::anchor_count() const {
-  return anchor_count_;
-}
-inline void SparseChunkIndexFilterStatsData::set_anchor_count(::google::protobuf::uint64 value) {
-  set_has_anchor_count();
-  anchor_count_ = value;
-}
-
-// optional uint64 weak_hit_count = 8;
-inline bool SparseChunkIndexFilterStatsData::has_weak_hit_count() const {
-  return (_has_bits_[0] & 0x00000040u) != 0;
-}
-inline void SparseChunkIndexFilterStatsData::set_has_weak_hit_count() {
-  _has_bits_[0] |= 0x00000040u;
-}
-inline void SparseChunkIndexFilterStatsData::clear_has_weak_hit_count() {
-  _has_bits_[0] &= ~0x00000040u;
-}
-inline void SparseChunkIndexFilterStatsData::clear_weak_hit_count() {
-  weak_hit_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_weak_hit_count();
-}
-inline ::google::protobuf::uint64 SparseChunkIndexFilterStatsData::weak_hit_count() const {
-  return weak_hit_count_;
-}
-inline void SparseChunkIndexFilterStatsData::set_weak_hit_count(::google::protobuf::uint64 value) {
-  set_has_weak_hit_count();
-  weak_hit_count_ = value;
+    set_has_read_count();
+    read_count_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -3310,112 +3106,112 @@ inline void SparseChunkIndexFilterStatsData::set_weak_hit_count(::google::protob
 
 // optional uint64 processed_block_count = 1;
 inline bool GarbageCollectorStatsData::has_processed_block_count() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
+    return (_has_bits_[0] & 0x00000001u) != 0;
 }
 inline void GarbageCollectorStatsData::set_has_processed_block_count() {
-  _has_bits_[0] |= 0x00000001u;
+    _has_bits_[0] |= 0x00000001u;
 }
 inline void GarbageCollectorStatsData::clear_has_processed_block_count() {
-  _has_bits_[0] &= ~0x00000001u;
+    _has_bits_[0] &= ~0x00000001u;
 }
 inline void GarbageCollectorStatsData::clear_processed_block_count() {
-  processed_block_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_processed_block_count();
+    processed_block_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_processed_block_count();
 }
 inline ::google::protobuf::uint64 GarbageCollectorStatsData::processed_block_count() const {
-  return processed_block_count_;
+    return processed_block_count_;
 }
 inline void GarbageCollectorStatsData::set_processed_block_count(::google::protobuf::uint64 value) {
-  set_has_processed_block_count();
-  processed_block_count_ = value;
+    set_has_processed_block_count();
+    processed_block_count_ = value;
 }
 
 // optional uint64 processed_gc_candidate_count = 2;
 inline bool GarbageCollectorStatsData::has_processed_gc_candidate_count() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
+    return (_has_bits_[0] & 0x00000002u) != 0;
 }
 inline void GarbageCollectorStatsData::set_has_processed_gc_candidate_count() {
-  _has_bits_[0] |= 0x00000002u;
+    _has_bits_[0] |= 0x00000002u;
 }
 inline void GarbageCollectorStatsData::clear_has_processed_gc_candidate_count() {
-  _has_bits_[0] &= ~0x00000002u;
+    _has_bits_[0] &= ~0x00000002u;
 }
 inline void GarbageCollectorStatsData::clear_processed_gc_candidate_count() {
-  processed_gc_candidate_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_processed_gc_candidate_count();
+    processed_gc_candidate_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_processed_gc_candidate_count();
 }
 inline ::google::protobuf::uint64 GarbageCollectorStatsData::processed_gc_candidate_count() const {
-  return processed_gc_candidate_count_;
+    return processed_gc_candidate_count_;
 }
 inline void GarbageCollectorStatsData::set_processed_gc_candidate_count(::google::protobuf::uint64 value) {
-  set_has_processed_gc_candidate_count();
-  processed_gc_candidate_count_ = value;
+    set_has_processed_gc_candidate_count();
+    processed_gc_candidate_count_ = value;
 }
 
 // optional uint64 skipped_chunk_count = 3;
 inline bool GarbageCollectorStatsData::has_skipped_chunk_count() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+    return (_has_bits_[0] & 0x00000004u) != 0;
 }
 inline void GarbageCollectorStatsData::set_has_skipped_chunk_count() {
-  _has_bits_[0] |= 0x00000004u;
+    _has_bits_[0] |= 0x00000004u;
 }
 inline void GarbageCollectorStatsData::clear_has_skipped_chunk_count() {
-  _has_bits_[0] &= ~0x00000004u;
+    _has_bits_[0] &= ~0x00000004u;
 }
 inline void GarbageCollectorStatsData::clear_skipped_chunk_count() {
-  skipped_chunk_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_skipped_chunk_count();
+    skipped_chunk_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_skipped_chunk_count();
 }
 inline ::google::protobuf::uint64 GarbageCollectorStatsData::skipped_chunk_count() const {
-  return skipped_chunk_count_;
+    return skipped_chunk_count_;
 }
 inline void GarbageCollectorStatsData::set_skipped_chunk_count(::google::protobuf::uint64 value) {
-  set_has_skipped_chunk_count();
-  skipped_chunk_count_ = value;
+    set_has_skipped_chunk_count();
+    skipped_chunk_count_ = value;
 }
 
 // optional uint64 already_processed_chunk_count = 4;
 inline bool GarbageCollectorStatsData::has_already_processed_chunk_count() const {
-  return (_has_bits_[0] & 0x00000008u) != 0;
+    return (_has_bits_[0] & 0x00000008u) != 0;
 }
 inline void GarbageCollectorStatsData::set_has_already_processed_chunk_count() {
-  _has_bits_[0] |= 0x00000008u;
+    _has_bits_[0] |= 0x00000008u;
 }
 inline void GarbageCollectorStatsData::clear_has_already_processed_chunk_count() {
-  _has_bits_[0] &= ~0x00000008u;
+    _has_bits_[0] &= ~0x00000008u;
 }
 inline void GarbageCollectorStatsData::clear_already_processed_chunk_count() {
-  already_processed_chunk_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_already_processed_chunk_count();
+    already_processed_chunk_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_already_processed_chunk_count();
 }
 inline ::google::protobuf::uint64 GarbageCollectorStatsData::already_processed_chunk_count() const {
-  return already_processed_chunk_count_;
+    return already_processed_chunk_count_;
 }
 inline void GarbageCollectorStatsData::set_already_processed_chunk_count(::google::protobuf::uint64 value) {
-  set_has_already_processed_chunk_count();
-  already_processed_chunk_count_ = value;
+    set_has_already_processed_chunk_count();
+    already_processed_chunk_count_ = value;
 }
 
 // optional uint64 processed_chunk_count = 5;
 inline bool GarbageCollectorStatsData::has_processed_chunk_count() const {
-  return (_has_bits_[0] & 0x00000010u) != 0;
+    return (_has_bits_[0] & 0x00000010u) != 0;
 }
 inline void GarbageCollectorStatsData::set_has_processed_chunk_count() {
-  _has_bits_[0] |= 0x00000010u;
+    _has_bits_[0] |= 0x00000010u;
 }
 inline void GarbageCollectorStatsData::clear_has_processed_chunk_count() {
-  _has_bits_[0] &= ~0x00000010u;
+    _has_bits_[0] &= ~0x00000010u;
 }
 inline void GarbageCollectorStatsData::clear_processed_chunk_count() {
-  processed_chunk_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_processed_chunk_count();
+    processed_chunk_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_processed_chunk_count();
 }
 inline ::google::protobuf::uint64 GarbageCollectorStatsData::processed_chunk_count() const {
-  return processed_chunk_count_;
+    return processed_chunk_count_;
 }
 inline void GarbageCollectorStatsData::set_processed_chunk_count(::google::protobuf::uint64 value) {
-  set_has_processed_chunk_count();
-  processed_chunk_count_ = value;
+    set_has_processed_chunk_count();
+    processed_chunk_count_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -3424,68 +3220,68 @@ inline void GarbageCollectorStatsData::set_processed_chunk_count(::google::proto
 
 // optional uint64 chunk_count = 1;
 inline bool RabinChunkerStatsData::has_chunk_count() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
+    return (_has_bits_[0] & 0x00000001u) != 0;
 }
 inline void RabinChunkerStatsData::set_has_chunk_count() {
-  _has_bits_[0] |= 0x00000001u;
+    _has_bits_[0] |= 0x00000001u;
 }
 inline void RabinChunkerStatsData::clear_has_chunk_count() {
-  _has_bits_[0] &= ~0x00000001u;
+    _has_bits_[0] &= ~0x00000001u;
 }
 inline void RabinChunkerStatsData::clear_chunk_count() {
-  chunk_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_chunk_count();
+    chunk_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_chunk_count();
 }
 inline ::google::protobuf::uint64 RabinChunkerStatsData::chunk_count() const {
-  return chunk_count_;
+    return chunk_count_;
 }
 inline void RabinChunkerStatsData::set_chunk_count(::google::protobuf::uint64 value) {
-  set_has_chunk_count();
-  chunk_count_ = value;
+    set_has_chunk_count();
+    chunk_count_ = value;
 }
 
 // optional uint64 size_forced_chunk_count = 2;
 inline bool RabinChunkerStatsData::has_size_forced_chunk_count() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
+    return (_has_bits_[0] & 0x00000002u) != 0;
 }
 inline void RabinChunkerStatsData::set_has_size_forced_chunk_count() {
-  _has_bits_[0] |= 0x00000002u;
+    _has_bits_[0] |= 0x00000002u;
 }
 inline void RabinChunkerStatsData::clear_has_size_forced_chunk_count() {
-  _has_bits_[0] &= ~0x00000002u;
+    _has_bits_[0] &= ~0x00000002u;
 }
 inline void RabinChunkerStatsData::clear_size_forced_chunk_count() {
-  size_forced_chunk_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_size_forced_chunk_count();
+    size_forced_chunk_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_size_forced_chunk_count();
 }
 inline ::google::protobuf::uint64 RabinChunkerStatsData::size_forced_chunk_count() const {
-  return size_forced_chunk_count_;
+    return size_forced_chunk_count_;
 }
 inline void RabinChunkerStatsData::set_size_forced_chunk_count(::google::protobuf::uint64 value) {
-  set_has_size_forced_chunk_count();
-  size_forced_chunk_count_ = value;
+    set_has_size_forced_chunk_count();
+    size_forced_chunk_count_ = value;
 }
 
 // optional uint64 close_forced_chunk_count = 3;
 inline bool RabinChunkerStatsData::has_close_forced_chunk_count() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+    return (_has_bits_[0] & 0x00000004u) != 0;
 }
 inline void RabinChunkerStatsData::set_has_close_forced_chunk_count() {
-  _has_bits_[0] |= 0x00000004u;
+    _has_bits_[0] |= 0x00000004u;
 }
 inline void RabinChunkerStatsData::clear_has_close_forced_chunk_count() {
-  _has_bits_[0] &= ~0x00000004u;
+    _has_bits_[0] &= ~0x00000004u;
 }
 inline void RabinChunkerStatsData::clear_close_forced_chunk_count() {
-  close_forced_chunk_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_close_forced_chunk_count();
+    close_forced_chunk_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_close_forced_chunk_count();
 }
 inline ::google::protobuf::uint64 RabinChunkerStatsData::close_forced_chunk_count() const {
-  return close_forced_chunk_count_;
+    return close_forced_chunk_count_;
 }
 inline void RabinChunkerStatsData::set_close_forced_chunk_count(::google::protobuf::uint64 value) {
-  set_has_close_forced_chunk_count();
-  close_forced_chunk_count_ = value;
+    set_has_close_forced_chunk_count();
+    close_forced_chunk_count_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -3494,90 +3290,90 @@ inline void RabinChunkerStatsData::set_close_forced_chunk_count(::google::protob
 
 // optional uint64 read_count = 1;
 inline bool ContentStorageStatsData::has_read_count() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
+    return (_has_bits_[0] & 0x00000001u) != 0;
 }
 inline void ContentStorageStatsData::set_has_read_count() {
-  _has_bits_[0] |= 0x00000001u;
+    _has_bits_[0] |= 0x00000001u;
 }
 inline void ContentStorageStatsData::clear_has_read_count() {
-  _has_bits_[0] &= ~0x00000001u;
+    _has_bits_[0] &= ~0x00000001u;
 }
 inline void ContentStorageStatsData::clear_read_count() {
-  read_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_read_count();
+    read_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_read_count();
 }
 inline ::google::protobuf::uint64 ContentStorageStatsData::read_count() const {
-  return read_count_;
+    return read_count_;
 }
 inline void ContentStorageStatsData::set_read_count(::google::protobuf::uint64 value) {
-  set_has_read_count();
-  read_count_ = value;
+    set_has_read_count();
+    read_count_ = value;
 }
 
 // optional uint64 write_count = 2;
 inline bool ContentStorageStatsData::has_write_count() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
+    return (_has_bits_[0] & 0x00000002u) != 0;
 }
 inline void ContentStorageStatsData::set_has_write_count() {
-  _has_bits_[0] |= 0x00000002u;
+    _has_bits_[0] |= 0x00000002u;
 }
 inline void ContentStorageStatsData::clear_has_write_count() {
-  _has_bits_[0] &= ~0x00000002u;
+    _has_bits_[0] &= ~0x00000002u;
 }
 inline void ContentStorageStatsData::clear_write_count() {
-  write_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_write_count();
+    write_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_write_count();
 }
 inline ::google::protobuf::uint64 ContentStorageStatsData::write_count() const {
-  return write_count_;
+    return write_count_;
 }
 inline void ContentStorageStatsData::set_write_count(::google::protobuf::uint64 value) {
-  set_has_write_count();
-  write_count_ = value;
+    set_has_write_count();
+    write_count_ = value;
 }
 
 // optional uint64 read_size = 3;
 inline bool ContentStorageStatsData::has_read_size() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
+    return (_has_bits_[0] & 0x00000004u) != 0;
 }
 inline void ContentStorageStatsData::set_has_read_size() {
-  _has_bits_[0] |= 0x00000004u;
+    _has_bits_[0] |= 0x00000004u;
 }
 inline void ContentStorageStatsData::clear_has_read_size() {
-  _has_bits_[0] &= ~0x00000004u;
+    _has_bits_[0] &= ~0x00000004u;
 }
 inline void ContentStorageStatsData::clear_read_size() {
-  read_size_ = GOOGLE_ULONGLONG(0);
-  clear_has_read_size();
+    read_size_ = GOOGLE_ULONGLONG(0);
+    clear_has_read_size();
 }
 inline ::google::protobuf::uint64 ContentStorageStatsData::read_size() const {
-  return read_size_;
+    return read_size_;
 }
 inline void ContentStorageStatsData::set_read_size(::google::protobuf::uint64 value) {
-  set_has_read_size();
-  read_size_ = value;
+    set_has_read_size();
+    read_size_ = value;
 }
 
 // optional uint64 write_size = 4;
 inline bool ContentStorageStatsData::has_write_size() const {
-  return (_has_bits_[0] & 0x00000008u) != 0;
+    return (_has_bits_[0] & 0x00000008u) != 0;
 }
 inline void ContentStorageStatsData::set_has_write_size() {
-  _has_bits_[0] |= 0x00000008u;
+    _has_bits_[0] |= 0x00000008u;
 }
 inline void ContentStorageStatsData::clear_has_write_size() {
-  _has_bits_[0] &= ~0x00000008u;
+    _has_bits_[0] &= ~0x00000008u;
 }
 inline void ContentStorageStatsData::clear_write_size() {
-  write_size_ = GOOGLE_ULONGLONG(0);
-  clear_has_write_size();
+    write_size_ = GOOGLE_ULONGLONG(0);
+    clear_has_write_size();
 }
 inline ::google::protobuf::uint64 ContentStorageStatsData::write_size() const {
-  return write_size_;
+    return write_size_;
 }
 inline void ContentStorageStatsData::set_write_size(::google::protobuf::uint64 value) {
-  set_has_write_size();
-  write_size_ = value;
+    set_has_write_size();
+    write_size_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -3586,46 +3382,46 @@ inline void ContentStorageStatsData::set_write_size(::google::protobuf::uint64 v
 
 // optional int32 type = 1;
 inline bool LogStatsData_LogTypeCounter::has_type() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
+    return (_has_bits_[0] & 0x00000001u) != 0;
 }
 inline void LogStatsData_LogTypeCounter::set_has_type() {
-  _has_bits_[0] |= 0x00000001u;
+    _has_bits_[0] |= 0x00000001u;
 }
 inline void LogStatsData_LogTypeCounter::clear_has_type() {
-  _has_bits_[0] &= ~0x00000001u;
+    _has_bits_[0] &= ~0x00000001u;
 }
 inline void LogStatsData_LogTypeCounter::clear_type() {
-  type_ = 0;
-  clear_has_type();
+    type_ = 0;
+    clear_has_type();
 }
 inline ::google::protobuf::int32 LogStatsData_LogTypeCounter::type() const {
-  return type_;
+    return type_;
 }
 inline void LogStatsData_LogTypeCounter::set_type(::google::protobuf::int32 value) {
-  set_has_type();
-  type_ = value;
+    set_has_type();
+    type_ = value;
 }
 
 // optional uint64 count = 2;
 inline bool LogStatsData_LogTypeCounter::has_count() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
+    return (_has_bits_[0] & 0x00000002u) != 0;
 }
 inline void LogStatsData_LogTypeCounter::set_has_count() {
-  _has_bits_[0] |= 0x00000002u;
+    _has_bits_[0] |= 0x00000002u;
 }
 inline void LogStatsData_LogTypeCounter::clear_has_count() {
-  _has_bits_[0] &= ~0x00000002u;
+    _has_bits_[0] &= ~0x00000002u;
 }
 inline void LogStatsData_LogTypeCounter::clear_count() {
-  count_ = GOOGLE_ULONGLONG(0);
-  clear_has_count();
+    count_ = GOOGLE_ULONGLONG(0);
+    clear_has_count();
 }
 inline ::google::protobuf::uint64 LogStatsData_LogTypeCounter::count() const {
-  return count_;
+    return count_;
 }
 inline void LogStatsData_LogTypeCounter::set_count(::google::protobuf::uint64 value) {
-  set_has_count();
-  count_ = value;
+    set_has_count();
+    count_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -3634,80 +3430,78 @@ inline void LogStatsData_LogTypeCounter::set_count(::google::protobuf::uint64 va
 
 // optional uint64 event_count = 1;
 inline bool LogStatsData::has_event_count() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
+    return (_has_bits_[0] & 0x00000001u) != 0;
 }
 inline void LogStatsData::set_has_event_count() {
-  _has_bits_[0] |= 0x00000001u;
+    _has_bits_[0] |= 0x00000001u;
 }
 inline void LogStatsData::clear_has_event_count() {
-  _has_bits_[0] &= ~0x00000001u;
+    _has_bits_[0] &= ~0x00000001u;
 }
 inline void LogStatsData::clear_event_count() {
-  event_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_event_count();
+    event_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_event_count();
 }
 inline ::google::protobuf::uint64 LogStatsData::event_count() const {
-  return event_count_;
+    return event_count_;
 }
 inline void LogStatsData::set_event_count(::google::protobuf::uint64 value) {
-  set_has_event_count();
-  event_count_ = value;
+    set_has_event_count();
+    event_count_ = value;
 }
 
 // optional uint64 replayed_event_count = 2;
 inline bool LogStatsData::has_replayed_event_count() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
+    return (_has_bits_[0] & 0x00000002u) != 0;
 }
 inline void LogStatsData::set_has_replayed_event_count() {
-  _has_bits_[0] |= 0x00000002u;
+    _has_bits_[0] |= 0x00000002u;
 }
 inline void LogStatsData::clear_has_replayed_event_count() {
-  _has_bits_[0] &= ~0x00000002u;
+    _has_bits_[0] &= ~0x00000002u;
 }
 inline void LogStatsData::clear_replayed_event_count() {
-  replayed_event_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_replayed_event_count();
+    replayed_event_count_ = GOOGLE_ULONGLONG(0);
+    clear_has_replayed_event_count();
 }
 inline ::google::protobuf::uint64 LogStatsData::replayed_event_count() const {
-  return replayed_event_count_;
+    return replayed_event_count_;
 }
 inline void LogStatsData::set_replayed_event_count(::google::protobuf::uint64 value) {
-  set_has_replayed_event_count();
-  replayed_event_count_ = value;
+    set_has_replayed_event_count();
+    replayed_event_count_ = value;
 }
 
 // repeated .LogStatsData.LogTypeCounter logtype_count = 3;
 inline int LogStatsData::logtype_count_size() const {
-  return logtype_count_.size();
+    return logtype_count_.size();
 }
 inline void LogStatsData::clear_logtype_count() {
-  logtype_count_.Clear();
+    logtype_count_.Clear();
 }
 inline const ::LogStatsData_LogTypeCounter& LogStatsData::logtype_count(int index) const {
-  return logtype_count_.Get(index);
+    return logtype_count_.Get(index);
 }
 inline ::LogStatsData_LogTypeCounter* LogStatsData::mutable_logtype_count(int index) {
-  return logtype_count_.Mutable(index);
+    return logtype_count_.Mutable(index);
 }
 inline ::LogStatsData_LogTypeCounter* LogStatsData::add_logtype_count() {
-  return logtype_count_.Add();
+    return logtype_count_.Add();
 }
 inline const ::google::protobuf::RepeatedPtrField< ::LogStatsData_LogTypeCounter >&
 LogStatsData::logtype_count() const {
-  return logtype_count_;
+    return logtype_count_;
 }
 inline ::google::protobuf::RepeatedPtrField< ::LogStatsData_LogTypeCounter >*
 LogStatsData::mutable_logtype_count() {
-  return &logtype_count_;
+    return &logtype_count_;
 }
-
 
 // @@protoc_insertion_point(namespace_scope)
 
 #ifndef SWIG
 namespace google {
 namespace protobuf {
-
 
 }  // namespace google
 }  // namespace protobuf

@@ -46,165 +46,165 @@ namespace filter {
  *
  * \ingroup filterchain
  */
-class ChunkIndexFilter: public Filter {
-    private:
-        DISALLOW_COPY_AND_ASSIGN(ChunkIndexFilter);
+class ChunkIndexFilter : public Filter {
+private:
+    DISALLOW_COPY_AND_ASSIGN(ChunkIndexFilter);
 
-        static const size_t kDefaultChunkLockCount = 512;
+    static const size_t kDefaultChunkLockCount = 512;
 
-        /**
-         * Type for statistics about the chunk index filter
-         */
-        class Statistics {
-            public:
-                Statistics();
+    /**
+     * Type for statistics about the chunk index filter
+     */
+    class Statistics {
+public:
+        Statistics();
 
-                tbb::atomic<uint64_t> reads;
-                tbb::atomic<uint64_t> writes;
-                tbb::atomic<uint64_t> hits;
-                tbb::atomic<uint64_t> miss;
-                tbb::atomic<uint64_t> failures;
-
-                /**
-                 * Profiling information about the filter.
-                 */
-                dedupv1::base::Profile time_;
-
-                /**
-                 * Profiling information (filter latency in ms)
-                 */
-                dedupv1::base::SimpleSlidingAverage average_latency_;
-
-                tbb::atomic<uint64_t> lock_free;
-                tbb::atomic<uint64_t> lock_busy;
-        };
+        tbb::atomic<uint64_t> reads_;
+        tbb::atomic<uint64_t> writes_;
+        tbb::atomic<uint64_t> strong_hits_;
+        tbb::atomic<uint64_t> weak_hits_;
+        tbb::atomic<uint64_t> miss_;
+        tbb::atomic<uint64_t> failures_;
+        tbb::atomic<uint64_t> anchor_count_;
 
         /**
-         * Reference to the chunk index
+         * Profiling information about the filter.
          */
-        dedupv1::chunkindex::ChunkIndex* chunk_index_;
+        dedupv1::base::Profile time_;
 
         /**
-         * structure to holds statistics about the filter
+         * Profiling information (filter latency in ms)
          */
-        Statistics stats_;
+        dedupv1::base::SimpleSlidingAverage average_latency_;
+    };
 
-        /**
-         * Releases the lock on the fingerprint of the chunk
-         */
-        bool ReleaseChunkLock(const dedupv1::chunkindex::ChunkMapping& mapping);
+    /**
+     * Reference to the chunk index
+     */
+    dedupv1::chunkindex::ChunkIndex* chunk_index_;
 
-        /**
-         * Acquire the lock on the fingerprint of the chunk.
-         *
-         * May block if the chunk is used. A aquired lock must be released later.
-         */
-        bool AcquireChunkLock(const dedupv1::chunkindex::ChunkMapping& mapping);
+    /**
+     * structure to holds statistics about the filter
+     */
+    Statistics stats_;
 
-    public:
-        /**
-         * Constructor
-         * @return
-         */
-        ChunkIndexFilter();
+    /**
+     * Releases the lock on the fingerprint of the chunk
+     */
+    bool ReleaseChunkLock(const dedupv1::chunkindex::ChunkMapping& mapping);
 
-        /**
-         * Destructor
-         * @return
-         */
-        virtual ~ChunkIndexFilter();
+    /**
+     * Acquire the lock on the fingerprint of the chunk.
+     *
+     * May block if the chunk is used. A aquired lock must be released later.
+     */
+    bool AcquireChunkLock(const dedupv1::chunkindex::ChunkMapping& mapping);
 
-        /**
-         * Starts the chunk index filter
-         *
-         * @param system
-         * @return true iff ok, otherwise an error has occurred
-         */
-        virtual bool Start(DedupSystem* system);
+    dedupv1::base::Option<bool> IsAnchor(const dedupv1::chunkindex::ChunkMapping& mapping);
+public:
+    /**
+     * Constructor
+     * @return
+     */
+    ChunkIndexFilter();
 
-        /**
-         * Checks the chunk index for the chunk mapping.
-         * If we find an entry in the chunk index with the same fingerprint,
-         * STRONG_MAYBE is returned. Otherwise NOT_EXISTING is returned.
-         *
-         * If an auxiliary index is configured, the auxiliary index is checked
-         * first.
-         *
-         * @param session
-         * @param block_mapping
-         * @param mapping
-         * @param ec Error context that can be filled if case of special errors
-         * @return
-         */
-        virtual enum filter_result Check(dedupv1::Session* session,
-                const dedupv1::blockindex::BlockMapping* block_mapping,
-                dedupv1::chunkindex::ChunkMapping* chunk_mapping,
-                dedupv1::base::ErrorContext* ec);
+    /**
+     * Destructor
+     * @return
+     */
+    virtual ~ChunkIndexFilter();
 
-        /**
-         * Updates the chunk index for the newly found chunk.
-         * If the chunk is already committed in the storage system,
-         * the chunk is written to the main index otherwise the chunk
-         * is only added to the in-memory auxiliary index.
-         *
-         * @param session
-         * @param mapping
-         * @param ec Error context that can be filled if case of special errors
-         * @return true iff ok, otherwise an error has occurred
-         */
-        virtual bool Update(dedupv1::Session* session,
-                const dedupv1::blockindex::BlockMapping* block_mapping,
-                dedupv1::chunkindex::ChunkMapping* chunk_mapping,
-                dedupv1::base::ErrorContext* ec);
+    /**
+     * Starts the chunk index filter
+     *
+     * @param system
+     * @return true iff ok, otherwise an error has occurred
+     */
+    virtual bool Start(DedupSystem* system);
 
-        /**
-         * Calls when the processing of the started filtering should be aborted.
-         *
-         * A filtering is started, when the Check method was called for this
-         * chunk mapping. The chunk index filter is releasing the chunk lock
-         * @return true iff ok, otherwise an error has occurred
-         */
-        virtual bool Abort(dedupv1::Session* session,
-                const dedupv1::blockindex::BlockMapping* block_mapping,
-                dedupv1::chunkindex::ChunkMapping* chunk_mapping,
-                dedupv1::base::ErrorContext* ec);
+    /**
+     * Checks the chunk index for the chunk mapping.
+     * If we find an entry in the chunk index with the same fingerprint,
+     * STRONG_MAYBE is returned. Otherwise NOT_EXISTING is returned.
+     *
+     * If an auxiliary index is configured, the auxiliary index is checked
+     * first.
+     *
+     * @param session
+     * @param block_mapping
+     * @param mapping
+     * @param ec Error context that can be filled if case of special errors
+     * @return
+     */
+    virtual enum filter_result Check(dedupv1::Session* session,
+                                     const dedupv1::blockindex::BlockMapping* block_mapping,
+                                     dedupv1::chunkindex::ChunkMapping* chunk_mapping,
+                                     dedupv1::base::ErrorContext* ec);
 
-        /**
-         * @return true iff ok, otherwise an error has occurred
-         */
-        virtual bool PersistStatistics(std::string prefix, dedupv1::PersistStatistics* ps);
+    /**
+     * Updates the chunk index for the newly found chunk.
+     * If the chunk is already committed in the storage system,
+     * the chunk is written to the main index otherwise the chunk
+     * is only added to the in-memory auxiliary index.
+     *
+     * @param session
+     * @param mapping
+     * @param ec Error context that can be filled if case of special errors
+     * @return true iff ok, otherwise an error has occurred
+     */
+    virtual bool Update(dedupv1::Session* session,
+                        const dedupv1::blockindex::BlockMapping* block_mapping,
+                        dedupv1::chunkindex::ChunkMapping* chunk_mapping,
+                        dedupv1::base::ErrorContext* ec);
 
-        /**
-         * @return true iff ok, otherwise an error has occurred
-         */
-        virtual bool RestoreStatistics(std::string prefix, dedupv1::PersistStatistics* ps);
+    /**
+     * Calls when the processing of the started filtering should be aborted.
+     *
+     * A filtering is started, when the Check method was called for this
+     * chunk mapping. The chunk index filter is releasing the chunk lock
+     * @return true iff ok, otherwise an error has occurred
+     */
+    virtual bool Abort(dedupv1::Session* session,
+                       const dedupv1::blockindex::BlockMapping* block_mapping,
+                       dedupv1::chunkindex::ChunkMapping* chunk_mapping,
+                       dedupv1::base::ErrorContext* ec);
 
-        /**
-         * Prints statistics about the chunk index filter.
-         * @return
-         */
-        virtual std::string PrintStatistics();
+    /**
+     * @return true iff ok, otherwise an error has occurred
+     */
+    virtual bool PersistStatistics(std::string prefix, dedupv1::PersistStatistics* ps);
 
-        /**
-         * Prints profile information about the chunk index filter.
-         * @return
-         */
-        virtual std::string PrintProfile();
+    /**
+     * @return true iff ok, otherwise an error has occurred
+     */
+    virtual bool RestoreStatistics(std::string prefix, dedupv1::PersistStatistics* ps);
 
-        /**
-         * Print lock information about the chunk index filter
-         */
-        virtual std::string PrintLockStatistics();
+    /**
+     * Prints statistics about the chunk index filter.
+     * @return
+     */
+    virtual std::string PrintStatistics();
 
-        /**
-         * Create a new chunk index filter object
-         */
-        static Filter* CreateFilter();
+    /**
+     * Prints profile information about the chunk index filter.
+     * @return
+     */
+    virtual std::string PrintProfile();
 
-        /**
-         * Registers the chunk-index-filter
-         */
-        static void RegisterFilter();
+    /**
+     * Print lock information about the chunk index filter
+     */
+    virtual std::string PrintLockStatistics();
+
+    /**
+     * Create a new chunk index filter object
+     */
+    static Filter* CreateFilter();
+
+    /**
+     * Registers the chunk-index-filter
+     */
+    static void RegisterFilter();
 };
 
 }
