@@ -360,12 +360,11 @@ void protobuf_AssignDesc_dedupv1_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(ContainerSuperblockData));
   ContainerLogfileData_descriptor_ = file->message_type(11);
-  static const int ContainerLogfileData_offsets_[5] = {
+  static const int ContainerLogfileData_offsets_[4] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ContainerLogfileData, last_given_container_id_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ContainerLogfileData, container_size_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ContainerLogfileData, size_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ContainerLogfileData, file_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ContainerLogfileData, contains_superblock_),
   };
   ContainerLogfileData_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -1178,120 +1177,119 @@ void protobuf_AddDesc_dedupv1_2eproto() {
     "it\022\014\n\004size\030\001 \002(\007\"F\n\021ContainerFileData\022\020\n"
     "\010filename\030\001 \001(\t\022\021\n\tfile_size\030\002 \001(\004\022\014\n\004uu"
     "id\030\003 \001(\t\"\'\n\027ContainerSuperblockData\022\014\n\004u"
-    "uid\030\001 \001(\t\"\234\001\n\024ContainerLogfileData\022\037\n\027la"
-    "st_given_container_id\030\001 \001(\004\022\026\n\016container"
-    "_size\030\002 \001(\r\022\014\n\004size\030\003 \001(\r\022 \n\004file\030\004 \003(\0132"
-    "\022.ContainerFileData\022\033\n\023contains_superblo"
-    "ck\030\005 \001(\010\"V\n\024SystemStartEventData\022\016\n\006crea"
-    "te\030\001 \001(\010\022\r\n\005dirty\030\002 \001(\010\022\016\n\006forced\030\003 \001(\010\022"
-    "\017\n\007crashed\030\004 \001(\010\"g\n\024ReplayStartEventData"
-    "\022\023\n\013replay_type\030\001 \001(\005\022\021\n\treplay_id\030\003 \001(\004"
-    "\022\016\n\006log_id\030\004 \001(\004\022\027\n\017full_log_replay\030\005 \001("
-    "\010\"^\n\023ReplayStopEventData\022\023\n\013replay_type\030"
-    "\001 \001(\005\022\017\n\007success\030\002 \001(\010\022\021\n\treplay_id\030\003 \001("
-    "\004\022\016\n\006log_id\030\004 \001(\004\"\315\007\n\014LogEventData\022\022\n\nev"
-    "ent_type\030a \001(\005\0229\n\026container_opened_event"
-    "\030\001 \001(\0132\031.ContainerOpenedEventData\022\?\n\031con"
-    "tainer_committed_event\030\002 \001(\0132\034.Container"
-    "CommittedEventData\0229\n\026container_merged_e"
-    "vent\030\003 \001(\0132\031.ContainerMergedEventData\022;\n"
-    "\027container_deleted_event\030\004 \001(\0132\032.Contain"
-    "erDeletedEventData\0226\n\025container_moved_ev"
-    "ent\030\005 \001(\0132\027.ContainerMoveEventData\022F\n\035co"
-    "ntainer_commit_failed_event\030\006 \001(\0132\037.Cont"
-    "ainerCommitFailedEventData\0227\n\025volume_att"
-    "ached_event\030\007 \001(\0132\030.VolumeAttachedEventD"
-    "ata\0227\n\025volume_detached_event\030\010 \001(\0132\030.Vol"
-    "umeDetachedEventData\022B\n\033block_mapping_wr"
-    "itten_event\030\t \001(\0132\035.BlockMappingWrittenE"
-    "ventData\022K\n block_mapping_write_failed_e"
-    "vent\030\n \001(\0132!.BlockMappingWriteFailedEven"
-    "tData\022B\n\033block_mapping_deleted_event\030\013 \001"
-    "(\0132\035.BlockMappingDeletedEventData\0223\n\023oph"
-    "ran_chunks_event\030\014 \001(\0132\026.OphranChunksEve"
-    "ntData\0221\n\022replay_start_event\030\r \001(\0132\025.Rep"
-    "layStartEventData\022/\n\021replay_stop_event\030\016"
-    " \001(\0132\024.ReplayStopEventData\0221\n\022system_sta"
-    "rt_event\030\017 \001(\0132\025.SystemStartEventData\022\"\n"
-    "\014message_data\030b \001(\0132\014.MessageData\"~\n\014Log"
-    "EntryData\022\016\n\006log_id\030\007 \001(\003\022\r\n\005value\030\003 \001(\014"
-    "\022\025\n\rpartial_index\030\005 \001(\r\022\025\n\rpartial_count"
-    "\030\006 \001(\r\022!\n\031last_fully_written_log_id\030\010 \001("
-    "\003\"_\n\030ContainerOpenedEventData\022\024\n\014contain"
-    "er_id\030\001 \002(\004\022-\n\007address\030\002 \001(\0132\034.Container"
-    "StorageAddressData\"\220\001\n\033ContainerCommitte"
-    "dEventData\022\024\n\014container_id\030\001 \002(\004\022-\n\007addr"
-    "ess\030\004 \001(\0132\034.ContainerStorageAddressData\022"
-    "\022\n\nitem_count\030\005 \001(\r\022\030\n\020active_data_size\030"
-    "\006 \001(\r\"\242\003\n\030ContainerMergedEventData\022\020\n\010fi"
-    "rst_id\030\001 \002(\004\022\021\n\tsecond_id\030\002 \002(\004\022\036\n\022first"
-    "_secondary_id\030\003 \003(\004B\002\020\001\022\037\n\023second_second"
-    "ary_id\030\004 \003(\004B\002\020\001\0223\n\rfirst_address\030\r \001(\0132"
-    "\034.ContainerStorageAddressData\0224\n\016second_"
-    "address\030\016 \001(\0132\034.ContainerStorageAddressD"
-    "ata\0221\n\013new_address\030\017 \001(\0132\034.ContainerStor"
-    "ageAddressData\022\026\n\016new_primary_id\030\022 \001(\004\022\034"
-    "\n\020new_secondary_id\030\013 \003(\004B\002\020\001\022\026\n\nunused_i"
-    "ds\030\014 \003(\004B\002\020\001\022\026\n\016new_item_count\030\020 \001(\r\022\034\n\024"
-    "new_active_data_size\030\021 \001(\r\"\231\001\n\031Container"
-    "DeletedEventData\022\024\n\014container_id\030\001 \002(\004\022\""
-    "\n\026secondary_container_id\030\002 \003(\004B\002\020\001\022-\n\007ad"
-    "dress\030\005 \001(\0132\034.ContainerStorageAddressDat"
-    "a\022\023\n\013file_offset\030\004 \001(\004\"\370\001\n\026ContainerMove"
-    "EventData\022\024\n\014container_id\030\001 \002(\004\0221\n\013old_a"
-    "ddress\030\006 \001(\0132\034.ContainerStorageAddressDa"
-    "ta\0221\n\013new_address\030\007 \001(\0132\034.ContainerStora"
-    "geAddressData\022\030\n\020active_data_size\030\010 \001(\004\022"
-    "\034\n\024old_active_data_size\030\t \001(\004\022\022\n\nitem_co"
-    "unt\030\n \001(\r\022\026\n\016old_item_count\030\013 \001(\r\"H\n\036Con"
-    "tainerCommitFailedEventData\022\024\n\014container"
-    "_id\030\001 \002(\004\022\020\n\010item_key\030\002 \003(\014\",\n\027VolumeAtt"
-    "achedEventData\022\021\n\tvolume_id\030\001 \002(\r\",\n\027Vol"
-    "umeDetachedEventData\022\021\n\tvolume_id\030\001 \002(\r\""
-    "K\n\034BlockMappingWrittenEventData\022+\n\014mappi"
-    "ng_pair\030\004 \001(\0132\025.BlockMappingPairData\"k\n "
-    "BlockMappingWriteFailedEventData\022+\n\014mapp"
-    "ing_pair\030\004 \001(\0132\025.BlockMappingPairData\022\032\n"
-    "\022write_event_log_id\030\003 \001(\003\"Q\n\034BlockMappin"
-    "gDeletedEventData\0221\n\026original_block_mapp"
-    "ing\030\001 \001(\0132\021.BlockMappingData\")\n\025OphranCh"
-    "unksEventData\022\020\n\010chunk_fp\030\001 \003(\014\"I\n\025Block"
-    "IndexLogfileData\0220\n\021container_tracker\030\002 "
-    "\001(\0132\025.ContainerTrackerData\"I\n\025ChunkIndex"
-    "LogfileData\0220\n\021container_tracker\030\002 \001(\0132\025"
-    ".ContainerTrackerData\"j\n\026BloomFilterLogf"
-    "ileData\022\023\n\013filter_size\030\001 \001(\004\022\t\n\001k\030\002 \001(\r\022"
-    "0\n\021container_tracker\030\004 \001(\0132\025.ContainerTr"
-    "ackerData\"\234\001\n\036GarbageCollectionCandidate"
-    "Data\022\017\n\007address\030\001 \001(\004\0221\n\004item\030\002 \003(\0132#.Ga"
-    "rbageCollectionCandidateItemData\022\022\n\nproc"
-    "essing\030\003 \001(\010\022\"\n\032unchanged_processing_cou"
-    "nt\030\004 \001(\r\"\212\001\n\"GarbageCollectionCandidateI"
-    "temData\022\n\n\002fp\030\001 \001(\014\0226\n\004type\030\002 \001(\0162(.Garb"
-    "ageCollectionCandidateItemData.Type\" \n\004T"
-    "ype\022\014\n\010STANDARD\020\000\022\n\n\006FAILED\020\001\"G\n\031Garbage"
-    "CollectionInfoData\022*\n\"replayed_block_fai"
-    "led_event_log_id\030\001 \003(\003\"j\n\"ContainerGreed"
-    "yGCCandidateItemData\022\017\n\007address\030\001 \001(\004\022\030\n"
-    "\020active_data_size\030\002 \001(\r\022\031\n\021active_item_c"
-    "ount\030\003 \001(\r\"S\n\036ContainerGreedyGCCandidate"
-    "Data\0221\n\004item\030\001 \003(\0132#.ContainerGreedyGCCa"
-    "ndidateItemData\"j\n\033ContainerStorageAddre"
-    "ssData\022\022\n\nprimary_id\030\003 \001(\004\022\022\n\nfile_index"
-    "\030\001 \001(\r\022\023\n\013file_offset\030\002 \001(\004\022\016\n\006log_id\030\004 "
-    "\001(\004\"=\n\027BitmapAllocatorItemData\022\022\n\nfree_c"
-    "ount\030\001 \001(\r\022\016\n\006bitmap\030\002 \001(\014\"S\n\024ContainerT"
-    "rackerData\022\030\n\014container_id\030\001 \003(\004B\002\020\001\022!\n\031"
-    "highest_seen_container_id\030\002 \001(\004\"$\n\017LogRe"
-    "playIDData\022\021\n\treplay_id\030\001 \001(\003\"\036\n\014LogLogI"
-    "DData\022\016\n\006log_id\030\001 \001(\003\"9\n\014LogStateData\022\020\n"
-    "\010limit_id\030\001 \001(\003\022\027\n\017log_entry_width\030\002 \001(\003"
-    "\"\036\n\013MessageData\022\017\n\007message\030\001 \001(\t\"\026\n\024Bloc"
-    "kWriteFailedData*\226\001\n\017CompressionMode\022\022\n\016"
-    "COMPRESSION_NO\020\000\022\027\n\023COMPRESSION_DEFLATE\020"
-    "\001\022\024\n\020COMPRESSION_GZIP\020\002\022\023\n\017COMPRESSION_B"
-    "Z2\020\003\022\026\n\022COMPRESSION_SNAPPY\020\004\022\023\n\017COMPRESS"
-    "ION_LZ4\020\005", 5689);
+    "uid\030\001 \001(\t\"\177\n\024ContainerLogfileData\022\037\n\027las"
+    "t_given_container_id\030\001 \001(\004\022\026\n\016container_"
+    "size\030\002 \001(\r\022\014\n\004size\030\003 \001(\r\022 \n\004file\030\004 \003(\0132\022"
+    ".ContainerFileData\"V\n\024SystemStartEventDa"
+    "ta\022\016\n\006create\030\001 \001(\010\022\r\n\005dirty\030\002 \001(\010\022\016\n\006for"
+    "ced\030\003 \001(\010\022\017\n\007crashed\030\004 \001(\010\"g\n\024ReplayStar"
+    "tEventData\022\023\n\013replay_type\030\001 \001(\005\022\021\n\trepla"
+    "y_id\030\003 \001(\004\022\016\n\006log_id\030\004 \001(\004\022\027\n\017full_log_r"
+    "eplay\030\005 \001(\010\"^\n\023ReplayStopEventData\022\023\n\013re"
+    "play_type\030\001 \001(\005\022\017\n\007success\030\002 \001(\010\022\021\n\trepl"
+    "ay_id\030\003 \001(\004\022\016\n\006log_id\030\004 \001(\004\"\315\007\n\014LogEvent"
+    "Data\022\022\n\nevent_type\030a \001(\005\0229\n\026container_op"
+    "ened_event\030\001 \001(\0132\031.ContainerOpenedEventD"
+    "ata\022\?\n\031container_committed_event\030\002 \001(\0132\034"
+    ".ContainerCommittedEventData\0229\n\026containe"
+    "r_merged_event\030\003 \001(\0132\031.ContainerMergedEv"
+    "entData\022;\n\027container_deleted_event\030\004 \001(\013"
+    "2\032.ContainerDeletedEventData\0226\n\025containe"
+    "r_moved_event\030\005 \001(\0132\027.ContainerMoveEvent"
+    "Data\022F\n\035container_commit_failed_event\030\006 "
+    "\001(\0132\037.ContainerCommitFailedEventData\0227\n\025"
+    "volume_attached_event\030\007 \001(\0132\030.VolumeAtta"
+    "chedEventData\0227\n\025volume_detached_event\030\010"
+    " \001(\0132\030.VolumeDetachedEventData\022B\n\033block_"
+    "mapping_written_event\030\t \001(\0132\035.BlockMappi"
+    "ngWrittenEventData\022K\n block_mapping_writ"
+    "e_failed_event\030\n \001(\0132!.BlockMappingWrite"
+    "FailedEventData\022B\n\033block_mapping_deleted"
+    "_event\030\013 \001(\0132\035.BlockMappingDeletedEventD"
+    "ata\0223\n\023ophran_chunks_event\030\014 \001(\0132\026.Ophra"
+    "nChunksEventData\0221\n\022replay_start_event\030\r"
+    " \001(\0132\025.ReplayStartEventData\022/\n\021replay_st"
+    "op_event\030\016 \001(\0132\024.ReplayStopEventData\0221\n\022"
+    "system_start_event\030\017 \001(\0132\025.SystemStartEv"
+    "entData\022\"\n\014message_data\030b \001(\0132\014.MessageD"
+    "ata\"~\n\014LogEntryData\022\016\n\006log_id\030\007 \001(\003\022\r\n\005v"
+    "alue\030\003 \001(\014\022\025\n\rpartial_index\030\005 \001(\r\022\025\n\rpar"
+    "tial_count\030\006 \001(\r\022!\n\031last_fully_written_l"
+    "og_id\030\010 \001(\003\"_\n\030ContainerOpenedEventData\022"
+    "\024\n\014container_id\030\001 \002(\004\022-\n\007address\030\002 \001(\0132\034"
+    ".ContainerStorageAddressData\"\220\001\n\033Contain"
+    "erCommittedEventData\022\024\n\014container_id\030\001 \002"
+    "(\004\022-\n\007address\030\004 \001(\0132\034.ContainerStorageAd"
+    "dressData\022\022\n\nitem_count\030\005 \001(\r\022\030\n\020active_"
+    "data_size\030\006 \001(\r\"\242\003\n\030ContainerMergedEvent"
+    "Data\022\020\n\010first_id\030\001 \002(\004\022\021\n\tsecond_id\030\002 \002("
+    "\004\022\036\n\022first_secondary_id\030\003 \003(\004B\002\020\001\022\037\n\023sec"
+    "ond_secondary_id\030\004 \003(\004B\002\020\001\0223\n\rfirst_addr"
+    "ess\030\r \001(\0132\034.ContainerStorageAddressData\022"
+    "4\n\016second_address\030\016 \001(\0132\034.ContainerStora"
+    "geAddressData\0221\n\013new_address\030\017 \001(\0132\034.Con"
+    "tainerStorageAddressData\022\026\n\016new_primary_"
+    "id\030\022 \001(\004\022\034\n\020new_secondary_id\030\013 \003(\004B\002\020\001\022\026"
+    "\n\nunused_ids\030\014 \003(\004B\002\020\001\022\026\n\016new_item_count"
+    "\030\020 \001(\r\022\034\n\024new_active_data_size\030\021 \001(\r\"\231\001\n"
+    "\031ContainerDeletedEventData\022\024\n\014container_"
+    "id\030\001 \002(\004\022\"\n\026secondary_container_id\030\002 \003(\004"
+    "B\002\020\001\022-\n\007address\030\005 \001(\0132\034.ContainerStorage"
+    "AddressData\022\023\n\013file_offset\030\004 \001(\004\"\370\001\n\026Con"
+    "tainerMoveEventData\022\024\n\014container_id\030\001 \002("
+    "\004\0221\n\013old_address\030\006 \001(\0132\034.ContainerStorag"
+    "eAddressData\0221\n\013new_address\030\007 \001(\0132\034.Cont"
+    "ainerStorageAddressData\022\030\n\020active_data_s"
+    "ize\030\010 \001(\004\022\034\n\024old_active_data_size\030\t \001(\004\022"
+    "\022\n\nitem_count\030\n \001(\r\022\026\n\016old_item_count\030\013 "
+    "\001(\r\"H\n\036ContainerCommitFailedEventData\022\024\n"
+    "\014container_id\030\001 \002(\004\022\020\n\010item_key\030\002 \003(\014\",\n"
+    "\027VolumeAttachedEventData\022\021\n\tvolume_id\030\001 "
+    "\002(\r\",\n\027VolumeDetachedEventData\022\021\n\tvolume"
+    "_id\030\001 \002(\r\"K\n\034BlockMappingWrittenEventDat"
+    "a\022+\n\014mapping_pair\030\004 \001(\0132\025.BlockMappingPa"
+    "irData\"k\n BlockMappingWriteFailedEventDa"
+    "ta\022+\n\014mapping_pair\030\004 \001(\0132\025.BlockMappingP"
+    "airData\022\032\n\022write_event_log_id\030\003 \001(\003\"Q\n\034B"
+    "lockMappingDeletedEventData\0221\n\026original_"
+    "block_mapping\030\001 \001(\0132\021.BlockMappingData\")"
+    "\n\025OphranChunksEventData\022\020\n\010chunk_fp\030\001 \003("
+    "\014\"I\n\025BlockIndexLogfileData\0220\n\021container_"
+    "tracker\030\002 \001(\0132\025.ContainerTrackerData\"I\n\025"
+    "ChunkIndexLogfileData\0220\n\021container_track"
+    "er\030\002 \001(\0132\025.ContainerTrackerData\"j\n\026Bloom"
+    "FilterLogfileData\022\023\n\013filter_size\030\001 \001(\004\022\t"
+    "\n\001k\030\002 \001(\r\0220\n\021container_tracker\030\004 \001(\0132\025.C"
+    "ontainerTrackerData\"\234\001\n\036GarbageCollectio"
+    "nCandidateData\022\017\n\007address\030\001 \001(\004\0221\n\004item\030"
+    "\002 \003(\0132#.GarbageCollectionCandidateItemDa"
+    "ta\022\022\n\nprocessing\030\003 \001(\010\022\"\n\032unchanged_proc"
+    "essing_count\030\004 \001(\r\"\212\001\n\"GarbageCollection"
+    "CandidateItemData\022\n\n\002fp\030\001 \001(\014\0226\n\004type\030\002 "
+    "\001(\0162(.GarbageCollectionCandidateItemData"
+    ".Type\" \n\004Type\022\014\n\010STANDARD\020\000\022\n\n\006FAILED\020\001\""
+    "G\n\031GarbageCollectionInfoData\022*\n\"replayed"
+    "_block_failed_event_log_id\030\001 \003(\003\"j\n\"Cont"
+    "ainerGreedyGCCandidateItemData\022\017\n\007addres"
+    "s\030\001 \001(\004\022\030\n\020active_data_size\030\002 \001(\r\022\031\n\021act"
+    "ive_item_count\030\003 \001(\r\"S\n\036ContainerGreedyG"
+    "CCandidateData\0221\n\004item\030\001 \003(\0132#.Container"
+    "GreedyGCCandidateItemData\"j\n\033ContainerSt"
+    "orageAddressData\022\022\n\nprimary_id\030\003 \001(\004\022\022\n\n"
+    "file_index\030\001 \001(\r\022\023\n\013file_offset\030\002 \001(\004\022\016\n"
+    "\006log_id\030\004 \001(\004\"=\n\027BitmapAllocatorItemData"
+    "\022\022\n\nfree_count\030\001 \001(\r\022\016\n\006bitmap\030\002 \001(\014\"S\n\024"
+    "ContainerTrackerData\022\030\n\014container_id\030\001 \003"
+    "(\004B\002\020\001\022!\n\031highest_seen_container_id\030\002 \001("
+    "\004\"$\n\017LogReplayIDData\022\021\n\treplay_id\030\001 \001(\003\""
+    "\036\n\014LogLogIDData\022\016\n\006log_id\030\001 \001(\003\"9\n\014LogSt"
+    "ateData\022\020\n\010limit_id\030\001 \001(\003\022\027\n\017log_entry_w"
+    "idth\030\002 \001(\003\"\036\n\013MessageData\022\017\n\007message\030\001 \001"
+    "(\t\"\026\n\024BlockWriteFailedData*\226\001\n\017Compressi"
+    "onMode\022\022\n\016COMPRESSION_NO\020\000\022\027\n\023COMPRESSIO"
+    "N_DEFLATE\020\001\022\024\n\020COMPRESSION_GZIP\020\002\022\023\n\017COM"
+    "PRESSION_BZ2\020\003\022\026\n\022COMPRESSION_SNAPPY\020\004\022\023"
+    "\n\017COMPRESSION_LZ4\020\005", 5659);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "dedupv1.proto", &protobuf_RegisterTypes);
   BlockMappingData::default_instance_ = new BlockMappingData();
@@ -4961,7 +4959,6 @@ const int ContainerLogfileData::kLastGivenContainerIdFieldNumber;
 const int ContainerLogfileData::kContainerSizeFieldNumber;
 const int ContainerLogfileData::kSizeFieldNumber;
 const int ContainerLogfileData::kFileFieldNumber;
-const int ContainerLogfileData::kContainsSuperblockFieldNumber;
 #endif  // !_MSC_VER
 
 ContainerLogfileData::ContainerLogfileData()
@@ -4983,7 +4980,6 @@ void ContainerLogfileData::SharedCtor() {
   last_given_container_id_ = GOOGLE_ULONGLONG(0);
   container_size_ = 0u;
   size_ = 0u;
-  contains_superblock_ = false;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -5022,7 +5018,6 @@ void ContainerLogfileData::Clear() {
     last_given_container_id_ = GOOGLE_ULONGLONG(0);
     container_size_ = 0u;
     size_ = 0u;
-    contains_superblock_ = false;
   }
   file_.Clear();
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
@@ -5093,22 +5088,6 @@ bool ContainerLogfileData::MergePartialFromCodedStream(
           goto handle_uninterpreted;
         }
         if (input->ExpectTag(34)) goto parse_file;
-        if (input->ExpectTag(40)) goto parse_contains_superblock;
-        break;
-      }
-
-      // optional bool contains_superblock = 5;
-      case 5: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
-         parse_contains_superblock:
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
-                 input, &contains_superblock_)));
-          set_has_contains_superblock();
-        } else {
-          goto handle_uninterpreted;
-        }
         if (input->ExpectAtEnd()) return true;
         break;
       }
@@ -5152,11 +5131,6 @@ void ContainerLogfileData::SerializeWithCachedSizes(
       4, this->file(i), output);
   }
 
-  // optional bool contains_superblock = 5;
-  if (has_contains_superblock()) {
-    ::google::protobuf::internal::WireFormatLite::WriteBool(5, this->contains_superblock(), output);
-  }
-
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -5185,11 +5159,6 @@ void ContainerLogfileData::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::
       WriteMessageNoVirtualToArray(
         4, this->file(i), target);
-  }
-
-  // optional bool contains_superblock = 5;
-  if (has_contains_superblock()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(5, this->contains_superblock(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -5222,11 +5191,6 @@ int ContainerLogfileData::ByteSize() const {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::UInt32Size(
           this->size());
-    }
-
-    // optional bool contains_superblock = 5;
-    if (has_contains_superblock()) {
-      total_size += 1 + 1;
     }
 
   }
@@ -5274,9 +5238,6 @@ void ContainerLogfileData::MergeFrom(const ContainerLogfileData& from) {
     if (from.has_size()) {
       set_size(from.size());
     }
-    if (from.has_contains_superblock()) {
-      set_contains_superblock(from.contains_superblock());
-    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -5304,7 +5265,6 @@ void ContainerLogfileData::Swap(ContainerLogfileData* other) {
     std::swap(container_size_, other->container_size_);
     std::swap(size_, other->size_);
     file_.Swap(&other->file_);
-    std::swap(contains_superblock_, other->contains_superblock_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
