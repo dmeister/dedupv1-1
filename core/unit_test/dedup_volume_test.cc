@@ -76,12 +76,10 @@ protected:
         EXPECT_CALL(system, filter_chain()).WillRepeatedly(Return(&filter_chain));
         EXPECT_CALL(filter_chain, GetFilterByName(_)).WillRepeatedly(Return(&filter));
         EXPECT_CALL(filter_chain, GetFilterByName("chunk-index-filter")).WillRepeatedly(Return(&filter));
-        EXPECT_CALL(content_storage, CreateSession(_, _)).WillRepeatedly(Return(session));
     }
 
     virtual void TearDown() {
         if (volume) {
-            ASSERT_TRUE(volume->Close());
             delete volume;
             volume = NULL;
         }

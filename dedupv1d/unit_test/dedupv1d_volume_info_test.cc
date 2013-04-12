@@ -112,7 +112,6 @@ protected:
         EXPECT_CALL(dedup_system, content_storage()).WillRepeatedly(Return(&content_storage));
         EXPECT_CALL(dedup_system, filter_chain()).WillRepeatedly(Return(&filter_chain));
         EXPECT_CALL(filter_chain, GetFilterByName(_)).WillRepeatedly(Return(&filter));
-        EXPECT_CALL(content_storage, CreateSession(_, _)).WillRepeatedly(Return(&session));
 
         base_volume_info = new DedupVolumeInfo();
         ASSERT_TRUE(base_volume_info);
@@ -138,23 +137,23 @@ protected:
 
     virtual void TearDown() {
         if (volume_info) {
-            ASSERT_TRUE(volume_info->Close());
+            delete volume_info;
             volume_info = NULL;
         }
         if (target_info) {
-            ASSERT_TRUE(target_info->Close());
+            delete target_info;
             target_info = NULL;
         }
         if (group_info) {
-            ASSERT_TRUE(group_info->Close());
+            delete group_info;
             group_info = NULL;
         }
         if (base_volume_info) {
-            ASSERT_TRUE(base_volume_info->Close());
+            delete base_volume_info;
             base_volume_info = NULL;
         }
         if (user_info) {
-            ASSERT_TRUE(user_info->Close());
+            delete user_info;
             user_info = NULL;
         }
     }
@@ -190,17 +189,17 @@ protected:
     }
 
     void Restart() {
-        ASSERT_TRUE(volume_info->Close());
+        delete volume_info;
 
-        base_volume_info->Close();
+        delete base_volume_info;
         base_volume_info = new DedupVolumeInfo();
         ASSERT_TRUE(base_volume_info);
         ASSERT_TRUE(base_volume_info->Start(&dedup_system));
         EXPECT_CALL(dedup_system, volume_info()).WillOnce(Return(base_volume_info));
 
-        ASSERT_TRUE(group_info->Close());
-        ASSERT_TRUE(target_info->Close());
-        ASSERT_TRUE(user_info->Close());
+        delete group_info;
+        delete target_info;
+        delete user_info;
         // restart
 
         dedupv1::StartContext start_context(dedupv1::StartContext::NON_CREATE);
@@ -1449,7 +1448,7 @@ TEST_F(Dedupv1dVolumeInfoTest, TargetMismatch) {
     EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
 
     // close the default target info, we need here a special config
-    ASSERT_TRUE(target_info->Close());
+    delete target_info;
     target_info = NULL;
     unlink("work/dedupv1_target_info");
     unlink("work/dedupv1_target_info.wal");
@@ -1487,9 +1486,9 @@ TEST_F(Dedupv1dVolumeInfoTest, TargetMismatch) {
     options.push_back( make_pair("logical-size", "1G"));
     ASSERT_TRUE(volume_info->AttachVolume(options));
 
-    ASSERT_TRUE(volume_info->Close());
+    delete volume_info;
     volume_info = NULL;
-    ASSERT_TRUE(target_info->Close());
+    delete target_info;
     target_info = NULL;
 
     target_info = new Dedupv1dTargetInfo();

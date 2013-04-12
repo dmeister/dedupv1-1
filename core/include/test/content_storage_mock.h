@@ -27,8 +27,6 @@
 
 class MockContentStorage : public dedupv1::ContentStorage {
     public:
-    MOCK_METHOD2(CreateSession, dedupv1::Session*(dedupv1::Chunker* chunker,
-            const std::set<std::string>* enabled_filter_names));
 };
 
 #endif /* CONTENT_STORAGE_MOCK_H_ */

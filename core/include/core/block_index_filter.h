@@ -117,8 +117,6 @@ class BlockIndexFilter: public Filter {
 
         bool Start(DedupSystem* system);
 
-        bool Close();
-
         bool SetOption(const std::string& option_name, const std::string& option);
 
         /**

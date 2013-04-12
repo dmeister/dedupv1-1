@@ -313,17 +313,17 @@ class GarbageCollector: public dedupv1::log::LogConsumer,
 
         bool ProcessFailedBlockMapping(
             const dedupv1::blockindex::BlockMappingPair& mapping_pair,
-            dedupv1::base::Option<int64_t> write_event_committed, 
+            dedupv1::base::Option<int64_t> write_event_committed,
             const dedupv1::log::LogReplayContext& context);
 
         bool ProcessFailedBlockMappingDirect(
             const dedupv1::blockindex::BlockMappingPair& mapping_pair,
-            dedupv1::base::Option<int64_t> write_event_committed, 
+            dedupv1::base::Option<int64_t> write_event_committed,
             const dedupv1::log::LogReplayContext& context);
 
         bool ProcessFailedBlockMappingDirtyStart(
             const dedupv1::blockindex::BlockMappingPair& mapping_pair,
-            dedupv1::base::Option<int64_t> write_event_committed, 
+            dedupv1::base::Option<int64_t> write_event_committed,
             const dedupv1::log::LogReplayContext& context);
 
         bool ProcessBlockMappingDirect(
@@ -361,7 +361,7 @@ class GarbageCollector: public dedupv1::log::LogConsumer,
 
         bool ProcessBlockMappingParallel(
             const std::map<bytestring, std::pair<int, uint64_t> >& diff,
-            bool invert_failed_write, 
+            bool invert_failed_write,
             const dedupv1::log::LogReplayContext& context);
 
         bool DumpMetaInfo();
@@ -414,12 +414,6 @@ class GarbageCollector: public dedupv1::log::LogConsumer,
          * @return true iff ok, otherwise an error has occurred
          */
         bool SetOption(const std::string& option_name, const std::string& option);
-
-        /**
-         * Closes the gc and frees all its resources
-         * @return true iff ok, otherwise an error has occurred
-         */
-        bool Close();
 
         /**
          * Log event listener method. The gc listens to all events that chance a block mapping.

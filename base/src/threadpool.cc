@@ -139,9 +139,7 @@ bool Threadpool::RunTask(const TaskData& task_data, priority prio) {
         if (!task_data.future()->Set(retval)) {
             WARNING("Failed to set future value: " << task_data.future());
         }
-        if (!task_data.future()->Close()) {
-            WARNING("Failed to close future: " << task_data.future());
-        }
+        delete task_data.future();
     }
 
     TRACE("Executed task: task id " << task_data.task_id() <<
@@ -236,12 +234,10 @@ bool Threadpool::Stop() {
                     if (!future->Abort()) {
                         WARNING("Failed to about a task future");
                     }
-                    if (!future->Close()) {
-                        WARNING("Failed to close a task future");
-                    }
+                    delete future;
                 }
                 if (r) {
-                    r->Close();
+                    delete r;
                 }
             }
         }
@@ -390,7 +386,7 @@ bool Threadpool::DoSubmit(Runnable<bool>* r, priority prio, overflow_strategy ov
         } else {
             stats_.waiting_task_count_[prio]--;
             if (future) {
-                future->Close();
+                delete future;
             }
             if (overflow_method == CALLER_RUNS) {
                 stats_.caller_runs_count_[prio]++;
@@ -421,7 +417,7 @@ Future<bool>* Threadpool::Submit(Runnable<bool>* r, priority prio, overflow_stra
 
     bool result = DoSubmit(r, prio, overflow_method, future);
     if (!result) {
-        future->Close();
+        delete future;
         return NULL;
     }
     return future;

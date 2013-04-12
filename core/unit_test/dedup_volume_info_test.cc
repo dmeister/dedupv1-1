@@ -65,7 +65,6 @@ protected:
 
         EXPECT_CALL(dedup_system, content_storage()).WillRepeatedly(Return(&content_storage));
         EXPECT_CALL(dedup_system, log()).WillRepeatedly(Return(&log));
-        EXPECT_CALL(content_storage, CreateSession(_, _)).WillRepeatedly(Return(&session));
 
         for (int i = 0; i < 4; i++) {
             ASSERT_TRUE(volumes[i].SetOption("id", ToString(i + 4)));
@@ -76,11 +75,8 @@ protected:
 
     virtual void TearDown() {
         if (volume_info) {
-            ASSERT_TRUE(volume_info->Close());
+            delete volume_info;
             volume_info = NULL;
-        }
-        for (int i = 0; i < 4; i++) {
-            ASSERT_TRUE(volumes[i].Close());
         }
     }
 };

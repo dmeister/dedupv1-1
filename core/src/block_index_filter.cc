@@ -67,9 +67,6 @@ BlockIndexFilter::Statistics::Statistics() : average_latency_(256) {
     this->reads_ = 0;
 }
 
-BlockIndexFilter::~BlockIndexFilter() {
-}
-
 void BlockIndexFilter::RegisterFilter() {
     Filter::Factory().Register("block-index-filter", &BlockIndexFilter::CreateFilter);
 }
@@ -89,12 +86,11 @@ bool BlockIndexFilter::Start(DedupSystem* system) {
     return true;
 }
 
-bool BlockIndexFilter::Close() {
+BlockIndexFilter::~BlockIndexFilter() {
     if (block_chunk_cache_) {
-        block_chunk_cache_->Close();
+        delete block_chunk_cache_;
         block_chunk_cache_ = NULL;
     }
-    return Filter::Close();
 }
 
 bool BlockIndexFilter::SetOption(const string& option_name, const string& option) {
@@ -134,8 +130,8 @@ Filter::filter_result BlockIndexFilter::Check(Session* session,
         for (i = block_mapping->items().begin(); i != block_mapping->items().end(); i++) {
 
             /*
-             * Check for each block mapping item if the chunk mappings (new) 
-             * fingerprint is known. If this is the case it is a strong indication 
+             * Check for each block mapping item if the chunk mappings (new)
+             * fingerprint is known. If this is the case it is a strong indication
              * that the fingerprint chunk is known.
              */
             if (raw_compare(i->fingerprint(), i->fingerprint_size(),
@@ -225,7 +221,7 @@ string BlockIndexFilter::PrintStatistics() {
     stringstream sstr;
     sstr << "{";
     if (block_chunk_cache_) {
-        sstr << "\"block chunk cache\": " << 
+        sstr << "\"block chunk cache\": " <<
           block_chunk_cache_->PrintStatistics() << "," << std::endl;
     } else {
         sstr << "\"block chunk cache\": null," << std::endl;
@@ -241,7 +237,7 @@ string BlockIndexFilter::PrintProfile() {
     stringstream sstr;
     sstr << "{";
     sstr << "\"used time\": " << this->stats_.time_.GetSum() << "," << std::endl;
-    sstr << "\"average latency\": " << this->stats_.average_latency_.GetAverage() << 
+    sstr << "\"average latency\": " << this->stats_.average_latency_.GetAverage() <<
       std::endl;
     sstr << "}";
     return sstr.str();

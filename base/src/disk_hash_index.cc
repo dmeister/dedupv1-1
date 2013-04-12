@@ -137,9 +137,6 @@ DiskHashIndex::Statistics::Statistics() {
     write_cache_persisted_page_count_ = 0;
 }
 
-DiskHashIndex::~DiskHashIndex() {
-}
-
 bool DiskHashIndex::SetOption(const string& option_name, const string& option) {
     CHECK(this->state_ == INITED, "Index already started");
 
@@ -413,7 +410,7 @@ bool DiskHashIndex::Start(const StartContext& start_context) {
             }
 
             CHECK(tmp_file->Fallocate(0, file_size), "Error allocating index file " << this->filename_[i]);
-            tmp_file->Close();
+            delete tmp_file;
             tmp_file = NULL;
 
             // Now reopen (used to avoid O_SYNC while format)
@@ -938,18 +935,18 @@ enum lookup_result DiskHashIndex::ChangePinningState(const void* key, size_t key
             &this->statistics_.lock_busy_), LOOKUP_ERROR, "Lock failed: page lock " << cache_index);
 
     lookup_result write_back_check_result = IsWriteBackPageDirty(bucket_id);
-    CHECK_RETURN(write_back_check_result != LOOKUP_ERROR, LOOKUP_ERROR, 
+    CHECK_RETURN(write_back_check_result != LOOKUP_ERROR, LOOKUP_ERROR,
         "Failed to check write back cache: "
         << "key " << ToHexString(key, key_size));
     if (write_back_check_result == LOOKUP_NOT_FOUND) {
         // not dirty
-        TRACE("Change Pinning State not possible: " << 
+        TRACE("Change Pinning State not possible: " <<
             "key " << ToHexString(key, key_size) << " is not dirty.");
         return LOOKUP_NOT_FOUND;
     }
 
     lookup_result write_back_result = ReadFromWriteBackCache(cache_line, &cache_page);
-    CHECK_RETURN(write_back_result == LOOKUP_FOUND, LOOKUP_ERROR, 
+    CHECK_RETURN(write_back_result == LOOKUP_FOUND, LOOKUP_ERROR,
         "Failed to check write back cache: "
         << "key " << ToHexString(key, key_size));
 
@@ -971,8 +968,8 @@ enum lookup_result DiskHashIndex::ChangePinningState(const void* key, size_t key
     return lr;
 }
 
-put_result DiskHashIndex::EnsurePersistent(const void* key, 
-    size_t key_size, 
+put_result DiskHashIndex::EnsurePersistent(const void* key,
+    size_t key_size,
     bool* pinned) {
     CHECK_RETURN(this->state_ == STARTED, PUT_ERROR, "Index not started");
     CHECK_RETURN(key_size <= this->max_key_size_, PUT_ERROR, "Key size > Max key size");
@@ -1000,11 +997,11 @@ put_result DiskHashIndex::EnsurePersistent(const void* key,
     DiskHashCachePage cache_page(bucket_id, page_size_, max_key_size_, max_value_size_);
     ScopedReadWriteLock scoped_lock(this->page_locks_.Get(cache_index));
     CHECK_RETURN(scoped_lock.AcquireWriteLockWithStatistics(&this->statistics_.lock_free_,
-            &this->statistics_.lock_busy_), PUT_ERROR, 
+            &this->statistics_.lock_busy_), PUT_ERROR,
         "Lock failed: page lock " << cache_index);
 
     lookup_result write_back_check_result = IsWriteBackPageDirty(bucket_id);
-    CHECK_RETURN(write_back_check_result != LOOKUP_ERROR, PUT_ERROR, 
+    CHECK_RETURN(write_back_check_result != LOOKUP_ERROR, PUT_ERROR,
         "Failed to check write back cache: "
         << "key " << ToHexString(key, key_size));
     if (write_back_check_result == LOOKUP_NOT_FOUND) {
@@ -1014,7 +1011,7 @@ put_result DiskHashIndex::EnsurePersistent(const void* key,
     }
 
     lookup_result write_back_result = ReadFromWriteBackCache(cache_line, &cache_page);
-    CHECK_RETURN(write_back_result == LOOKUP_FOUND, PUT_ERROR, 
+    CHECK_RETURN(write_back_result == LOOKUP_FOUND, PUT_ERROR,
         "Failed to check write back cache: "
         << "key " << ToHexString(key, key_size));
 
@@ -1022,11 +1019,11 @@ put_result DiskHashIndex::EnsurePersistent(const void* key,
     bool is_pinned = false;
     lookup_result search_result = cache_page.Search(
         key, key_size, NULL, &is_dirty, &is_pinned);
-    CHECK_RETURN(search_result != LOOKUP_ERROR, PUT_ERROR, 
+    CHECK_RETURN(search_result != LOOKUP_ERROR, PUT_ERROR,
         "Failed to search cache page: " << cache_page.DebugString());
     if (search_result == LOOKUP_NOT_FOUND) {
         // we don't have a dirty version of the item
-        TRACE("Cache item is not in dirty cache page: " << 
+        TRACE("Cache item is not in dirty cache page: " <<
             cache_page.DebugString() <<
             ", key " << ToHexString(key, key_size));
         return PUT_KEEP;
@@ -1047,7 +1044,7 @@ put_result DiskHashIndex::EnsurePersistent(const void* key,
     }
 
     ProfileTimer page_timer(this->statistics_.update_time_page_read_);
-    CHECK_RETURN(page.Read(file), PUT_ERROR, 
+    CHECK_RETURN(page.Read(file), PUT_ERROR,
         "Hash index page read failed: " << page.DebugString());
     page_timer.stop();
 
@@ -1060,17 +1057,17 @@ put_result DiskHashIndex::EnsurePersistent(const void* key,
     CHECK_RETURN(page.MergeWithCache(&cache_page,
             &pinned_item_count,
             &merged_item_count,
-            &merged_new_item_count), PUT_ERROR, 
+            &merged_new_item_count), PUT_ERROR,
         "Failed to merge with cache: " << page.DebugString());
 
     dirty_item_count_ -= merged_new_item_count;
 
-    CHECK_RETURN(transaction.Start(file_index, page), PUT_ERROR, 
+    CHECK_RETURN(transaction.Start(file_index, page), PUT_ERROR,
         "Failed to start transaction: " <<
         "key " << ToHexString(key, key_size) <<
         ", page item count " << page.item_count());
 
-    CHECK_RETURN(page.Write(file), PUT_ERROR, 
+    CHECK_RETURN(page.Write(file), PUT_ERROR,
         "Hash index page write failed: " <<
         "key " << ToHexString(key, key_size));
     CHECK_RETURN(transaction.Commit(), PUT_ERROR, "Commit failed");
@@ -1199,7 +1196,7 @@ delete_result DiskHashIndex::Delete(const void* key, size_t key_size) {
                 CHECK_RETURN(page.MergeWithCache(&cache_page,
                         &pinned_item_count,
                         &merged_item_count,
-                        &merged_new_item_count), DELETE_ERROR, 
+                        &merged_new_item_count), DELETE_ERROR,
                     "Failed to merge with cache: " << page.DebugString());
 
                 dirty_item_count_ -= merged_new_item_count;
@@ -1207,9 +1204,9 @@ delete_result DiskHashIndex::Delete(const void* key, size_t key_size) {
         }
 
         result = page.Delete(key, key_size);
-        CHECK_RETURN(result != DELETE_ERROR, DELETE_ERROR, 
+        CHECK_RETURN(result != DELETE_ERROR, DELETE_ERROR,
             "Hash index page delete failed");
-        CHECK_RETURN(transaction.Start(file_index, page), DELETE_ERROR, 
+        CHECK_RETURN(transaction.Start(file_index, page), DELETE_ERROR,
             "Failed to start transaction");
 
         CHECK_RETURN(page.Write(file), DELETE_ERROR, "Hash index page write failed");
@@ -1988,7 +1985,7 @@ uint64_t DiskHashIndex::GetTotalItemCount() {
     return this->total_item_count_ + (this->overflow_area_ ? this->overflow_area_->GetItemCount() : 0);
 }
 
-bool DiskHashIndex::Close() {
+DiskHashIndex::~DiskHashIndex() {
     DEBUG("Closing disk-based hash index");
 
     // we do not dump the data during closing as all data that is allowed to change
@@ -1999,30 +1996,22 @@ bool DiskHashIndex::Close() {
             if (!this->file_[i]->Sync()) {
                 WARNING("Failed to sync transaction file: " << this->file_[i]->path());
             }
-            if (!this->file_[i]->Close()) {
-                WARNING("Failed to close file " << this->filename_[i]);
-            }
+            delete file_[i];
             this->file_[i] = NULL;
         }
     }
     this->file_.clear();
 
     if (this->info_file_) {
-        if (!this->info_file_->Close()) {
-            WARNING("Cannot close chunk index log file");
-        }
+        delete info_file_;
         this->info_file_ = NULL;
     }
     if (this->overflow_area_) {
-        if (!this->overflow_area_->Close()) {
-            WARNING("Failed to close overflow area");
-        }
+        delete overflow_area_;
         this->overflow_area_ = NULL;
     }
     if (write_back_cache_) {
-        if (!write_back_cache_->Close()) {
-            WARNING("Failed to close write back cache");
-        }
+        delete write_back_cache_;
         write_back_cache_ = NULL;
     }
     for (int i = 0; i < cache_lines_.size(); i++) {
@@ -2034,15 +2023,9 @@ bool DiskHashIndex::Close() {
     }
     cache_lines_.clear();
     if (this->trans_system_) {
-        if (!this->trans_system_->Close()) {
-            WARNING("Failed to close transaction system");
-
-        }
-        delete this->trans_system_;
+        delete trans_system_;
         this->trans_system_ = NULL;
     }
-    delete this;
-    return true;
 }
 
 IndexIterator* DiskHashIndex::CreateIterator() {
@@ -2059,7 +2042,7 @@ lookup_result DiskHashPage::Search(const void* key, size_t key_size, Message* me
     DCHECK_RETURN(index_, LOOKUP_ERROR, "Index not set");
     DCHECK_RETURN(data_buffer_, LOOKUP_ERROR, "Data buffer not set");
 
-    TRACE("Search bucket: bucket " << bucket_id_ << 
+    TRACE("Search bucket: bucket " << bucket_id_ <<
         ", key " << ToHexString(key, key_size) <<
         ", items " << this->item_count_ << (this->overflow_ ? ", overflow mode " : ""));
 

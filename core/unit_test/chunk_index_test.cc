@@ -105,7 +105,7 @@ protected:
     virtual void TearDown() {
         if (system) {
             ASSERT_TRUE(system->Stop(StopContext::FastStopContext()));
-            ASSERT_TRUE(system->Close());
+            delete system;
             system = NULL;
         }
     }
@@ -202,7 +202,7 @@ TEST_P(ChunkIndexTest, UpdateAfterClose) {
 
     // Close and Restart
     ASSERT_TRUE(system->Stop(StopContext::FastStopContext()));
-    ASSERT_TRUE(system->Close());
+    delete system;
 
     system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, true);
     ASSERT_TRUE(system);
@@ -221,7 +221,7 @@ TEST_P(ChunkIndexTest, UpdateAfterSlowShutdown) {
 
     // Close and Restart
     ASSERT_TRUE(system->Stop(dedupv1::StopContext::WritebackStopContext()));
-    ASSERT_TRUE(system->Close());
+    delete system;
 
     system =  DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, true, false /* dirty */);
     ASSERT_TRUE(system);
@@ -274,7 +274,7 @@ TEST_P(ChunkIndexTest, LogReplayAfterMerge) {
     INFO("Stop");
     // Close and Restart
     ASSERT_TRUE(system->Stop(dedupv1::StopContext::FastStopContext()));
-    ASSERT_TRUE(system->Close());
+    delete system;
     system = NULL;
 
     INFO("Start");

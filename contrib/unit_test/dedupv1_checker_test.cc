@@ -72,7 +72,7 @@ protected:
 
     virtual void TearDown() {
         if (system) {
-            ASSERT_TRUE(system->Close());
+            delete system;
         }
     }
 };
@@ -105,7 +105,7 @@ TEST_P(Dedupv1CheckerTest, CheckWithUnreplayedLog)
     fclose(file);
     ASSERT_TRUE(system->Shutdown(dedupv1::StopContext::FastStopContext()));
     ASSERT_TRUE(system->Stop());
-    ASSERT_TRUE(system->Close());
+    delete system;
     system = NULL;
 
     Dedupv1Checker checker(false, true);
@@ -115,7 +115,7 @@ TEST_P(Dedupv1CheckerTest, CheckWithUnreplayedLog)
     uint64_t number_of_chunks = checker.dedupv1d()->dedup_system()->chunk_index()->GetPersistentCount();
     ASSERT_EQ(checker.get_all_pass_processed_chunks(), number_of_chunks);
     ASSERT_EQ(checker.get_all_pass_skipped_chunks(), number_of_chunks * (checker.passes() - 1));
-    EXPECT_TRUE(checker.Close());
+    EXPECT_TRUE(checker.Stop());
 }
 
 TEST_P(Dedupv1CheckerTest, Check)
@@ -140,14 +140,14 @@ TEST_P(Dedupv1CheckerTest, Check)
     fclose(file);
     ASSERT_TRUE(system->Shutdown(dedupv1::StopContext::FastStopContext()));
     ASSERT_TRUE(system->Stop());
-    ASSERT_TRUE(system->Close());
+    delete system;
     system = NULL;
 
     // replay
     dedupv1::contrib::replay::Dedupv1Replayer replayer;
     ASSERT_TRUE(replayer.Initialize("data/dedupv1_test.conf"));
     ASSERT_TRUE(replayer.Replay());
-    ASSERT_TRUE(replayer.Close());
+    ASSERT_TRUE(replayer.Stop());
 
     Dedupv1Checker checker(false, false);
     checker.set_passes(passes);
@@ -157,7 +157,7 @@ TEST_P(Dedupv1CheckerTest, Check)
     ASSERT_EQ(checker.get_all_pass_processed_chunks(), number_of_chunks);
     ASSERT_EQ(checker.get_all_pass_skipped_chunks(), number_of_chunks * (checker.passes() - 1));
     ASSERT_EQ(0, checker.reported_errors());
-    EXPECT_TRUE(checker.Close());
+    EXPECT_TRUE(checker.Stop());
 }
 
 TEST_P(Dedupv1CheckerTest, CheckWithChunkDataAddressError)
@@ -183,14 +183,14 @@ TEST_P(Dedupv1CheckerTest, CheckWithChunkDataAddressError)
     fclose(file);
     ASSERT_TRUE(system->Shutdown(dedupv1::StopContext()));
     ASSERT_TRUE(system->Stop());
-    ASSERT_TRUE(system->Close());
+    delete system;
     system = NULL;
 
     // replay
     dedupv1::contrib::replay::Dedupv1Replayer replayer;
     ASSERT_TRUE(replayer.Initialize("data/dedupv1_test.conf"));
     ASSERT_TRUE(replayer.Replay());
-    ASSERT_TRUE(replayer.Close());
+    ASSERT_TRUE(replayer.Stop());
 
     // open to introduce an error
     system = new Dedupv1d();
@@ -215,14 +215,14 @@ TEST_P(Dedupv1CheckerTest, CheckWithChunkDataAddressError)
         chunk_index->persistent_index();
     ASSERT_EQ(persitent_chunk_index->Put(fp, fp_size, chunk_data), dedupv1::base::PUT_OK);
 
-    ASSERT_TRUE(system->Close());
+    delete system;
     system = NULL;
 
     // replay 2
     dedupv1::contrib::replay::Dedupv1Replayer replayer2;
     ASSERT_TRUE(replayer2.Initialize("data/dedupv1_test.conf"));
     ASSERT_TRUE(replayer2.Replay());
-    ASSERT_TRUE(replayer2.Close());
+    ASSERT_TRUE(replayer2.Stop());
 
     // check
     Dedupv1Checker checker(false, false);
@@ -233,7 +233,7 @@ TEST_P(Dedupv1CheckerTest, CheckWithChunkDataAddressError)
     ASSERT_EQ(checker.get_all_pass_processed_chunks(), number_of_chunks);
     ASSERT_EQ(checker.get_all_pass_skipped_chunks(), number_of_chunks * (checker.passes() - 1));
     ASSERT_GT(checker.reported_errors(), 0);
-    EXPECT_TRUE(checker.Close());
+    EXPECT_TRUE(checker.Stop());
 }
 
 /**
@@ -268,7 +268,7 @@ TEST_P(Dedupv1CheckerTest, CheckWithNoGCCandidateError)
     fclose(file);
     ASSERT_TRUE(system->Shutdown(dedupv1::StopContext()));
     ASSERT_TRUE(system->Stop());
-    ASSERT_TRUE(system->Close());
+    delete system;
     system = NULL;
 
     // replay
@@ -276,7 +276,7 @@ TEST_P(Dedupv1CheckerTest, CheckWithNoGCCandidateError)
     ASSERT_TRUE(replayer.PauseGC());
     ASSERT_TRUE(replayer.Initialize("data/dedupv1_test.conf"));
     ASSERT_TRUE(replayer.Replay());
-    ASSERT_TRUE(replayer.Close());
+    ASSERT_TRUE(replayer.Stop());
 
     // open to introduce an error
     system = new Dedupv1d();
@@ -294,7 +294,7 @@ TEST_P(Dedupv1CheckerTest, CheckWithNoGCCandidateError)
     ASSERT_EQ(dedupv1::base::LOOKUP_FOUND, i->Next(key, &key_size, NULL));
     delete i;
     candidate_info->Delete(key, key_size);
-    ASSERT_TRUE(system->Close());
+    delete system;
     system = NULL;
 
     // replay 2
@@ -302,7 +302,7 @@ TEST_P(Dedupv1CheckerTest, CheckWithNoGCCandidateError)
     ASSERT_TRUE(replayer2.PauseGC());
     ASSERT_TRUE(replayer2.Initialize("data/dedupv1_test.conf"));
     ASSERT_TRUE(replayer2.Replay());
-    ASSERT_TRUE(replayer2.Close());
+    ASSERT_TRUE(replayer2.Stop());
 
     // check
     Dedupv1Checker checker(false, false);
@@ -313,7 +313,7 @@ TEST_P(Dedupv1CheckerTest, CheckWithNoGCCandidateError)
     ASSERT_EQ(checker.get_all_pass_processed_chunks(), number_of_chunks);
     ASSERT_EQ(checker.get_all_pass_skipped_chunks(), number_of_chunks * (checker.passes() - 1));
     ASSERT_GT(checker.reported_errors(), 0);
-    EXPECT_TRUE(checker.Close());
+    EXPECT_TRUE(checker.Stop());
 }
 
 /**
@@ -342,14 +342,14 @@ TEST_P(Dedupv1CheckerTest, RepairWithChunkDataAddressError)
     fclose(file);
     ASSERT_TRUE(system->Shutdown(dedupv1::StopContext()));
     ASSERT_TRUE(system->Stop());
-    ASSERT_TRUE(system->Close());
+    delete system;
     system = NULL;
 
     // replay
     dedupv1::contrib::replay::Dedupv1Replayer replayer;
     ASSERT_TRUE(replayer.Initialize("data/dedupv1_test.conf"));
     ASSERT_TRUE(replayer.Replay());
-    ASSERT_TRUE(replayer.Close());
+    ASSERT_TRUE(replayer.Stop());
 
     // open to introduce an error
     system = new Dedupv1d();
@@ -374,14 +374,14 @@ TEST_P(Dedupv1CheckerTest, RepairWithChunkDataAddressError)
         chunk_index->persistent_index();
     ASSERT_EQ(dedupv1::base::PUT_OK, persitent_chunk_index->Put(fp, fp_size, chunk_data));
 
-    ASSERT_TRUE(system->Close());
+    delete system;
     system = NULL;
 
     // replay 2
     dedupv1::contrib::replay::Dedupv1Replayer replayer2;
     ASSERT_TRUE(replayer2.Initialize("data/dedupv1_test.conf"));
     ASSERT_TRUE(replayer2.Replay());
-    ASSERT_TRUE(replayer2.Close());
+    ASSERT_TRUE(replayer2.Stop());
 
     // repair
     Dedupv1Checker checker(false, true);
@@ -393,7 +393,7 @@ TEST_P(Dedupv1CheckerTest, RepairWithChunkDataAddressError)
     ASSERT_EQ(checker.get_all_pass_skipped_chunks(), number_of_chunks * (checker.passes() - 1));
     ASSERT_GT(checker.fixed_errors(), 0);
     ASSERT_EQ(checker.fixed_errors(), checker.reported_errors());
-    EXPECT_TRUE(checker.Close());
+    EXPECT_TRUE(checker.Stop());
 }
 
 /**
@@ -428,14 +428,14 @@ TEST_P(Dedupv1CheckerTest, RepairWithUsageCountError)
     fclose(file);
     ASSERT_TRUE(system->Shutdown(dedupv1::StopContext()));
     ASSERT_TRUE(system->Stop());
-    ASSERT_TRUE(system->Close());
+    delete system;
     system = NULL;
 
     // replay
     dedupv1::contrib::replay::Dedupv1Replayer replayer;
     ASSERT_TRUE(replayer.Initialize("data/dedupv1_test.conf"));
     ASSERT_TRUE(replayer.Replay());
-    ASSERT_TRUE(replayer.Close());
+    ASSERT_TRUE(replayer.Stop());
 
     // open to introduce an error
     system = new Dedupv1d();
@@ -473,14 +473,14 @@ TEST_P(Dedupv1CheckerTest, RepairWithUsageCountError)
     ASSERT_EQ(dedupv1::base::PUT_OK,
         persitent_chunk_index->Put(fp_extrem_high, fp_size, chunk_data_extrem_high));
 
-    ASSERT_TRUE(system->Close());
+    delete system;
     system = NULL;
 
     // replay 2
     dedupv1::contrib::replay::Dedupv1Replayer replayer2;
     ASSERT_TRUE(replayer2.Initialize("data/dedupv1_test.conf"));
     ASSERT_TRUE(replayer2.Replay());
-    ASSERT_TRUE(replayer2.Close());
+    ASSERT_TRUE(replayer2.Stop());
 
     // repair
     Dedupv1Checker checker(false, true);
@@ -492,7 +492,7 @@ TEST_P(Dedupv1CheckerTest, RepairWithUsageCountError)
     ASSERT_EQ(checker.get_all_pass_skipped_chunks(), number_of_chunks * (checker.passes() - 1));
     ASSERT_GT(checker.fixed_errors(), 0);
     ASSERT_EQ(checker.fixed_errors(), checker.reported_errors());
-    EXPECT_TRUE(checker.Close());
+    EXPECT_TRUE(checker.Stop());
 
 }
 
@@ -527,7 +527,7 @@ TEST_P(Dedupv1CheckerTest, RepairWithNoGCCandidateError)
     fclose(file);
     ASSERT_TRUE(system->Shutdown(dedupv1::StopContext()));
     ASSERT_TRUE(system->Stop());
-    ASSERT_TRUE(system->Close());
+    delete system;
     system = NULL;
 
     INFO("Stopped dedupv1d");
@@ -539,7 +539,7 @@ TEST_P(Dedupv1CheckerTest, RepairWithNoGCCandidateError)
     // Here I pause the gc to avoid that the item is processed before the error is injected.
     ASSERT_TRUE(replayer.PauseGC());
     ASSERT_TRUE(replayer.Replay());
-    ASSERT_TRUE(replayer.Close());
+    ASSERT_TRUE(replayer.Stop());
 
     INFO("Replay finished");
 
@@ -572,7 +572,7 @@ TEST_P(Dedupv1CheckerTest, RepairWithNoGCCandidateError)
         dedupv1::base::delete_result dr = candidate_info->Delete(key, key_size);
         EXPECT_EQ(dedupv1::base::DELETE_OK, dr);
     }
-    ASSERT_TRUE(system->Close());
+    delete system;
     system = NULL;
 
     INFO("Error injected");
@@ -593,7 +593,7 @@ TEST_P(Dedupv1CheckerTest, RepairWithNoGCCandidateError)
     EXPECT_EQ(checker.get_all_pass_skipped_chunks(), number_of_chunks * (checker.passes() - 1));
     EXPECT_GT(checker.fixed_errors(), 0);
     EXPECT_EQ(checker.fixed_errors(), checker.reported_errors());
-    EXPECT_TRUE(checker.Close());
+    EXPECT_TRUE(checker.Stop());
 }
 
 INSTANTIATE_TEST_CASE_P(Dedupv1Checker,

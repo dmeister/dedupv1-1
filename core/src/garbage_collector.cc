@@ -136,9 +136,6 @@ GarbageCollector::GarbageCollector() :
 #endif
 }
 
-GarbageCollector::~GarbageCollector() {
-}
-
 bool GarbageCollector::Pause() {
     paused_ = true;
     if (this->state_ == CANDIDATE_PROCESSING) {
@@ -230,11 +227,11 @@ bool GarbageCollector::ReadMetaInfo() {
     return true;
 }
 
-bool GarbageCollector::Close() {
-    DEBUG("Closing gc");
-
+GarbageCollector::~GarbageCollector() {
     if (this->state_ == RUNNING || this->state_ == CANDIDATE_PROCESSING || this->state_ == STOPPING) {
-        CHECK(this->Stop(dedupv1::StopContext::FastStopContext()), "Cannot stop gc");
+        if(!Stop(dedupv1::StopContext::FastStopContext())) {
+          WARNING("Cannot stop gc");
+      }
     }
 
     if (this->idle_detector_ && idle_detector_->IsRegistered("gc").value()) {
@@ -244,9 +241,8 @@ bool GarbageCollector::Close() {
         }
     }
 
-    DEBUG("Closing index");
     if (candidate_info_) {
-        CHECK(candidate_info_->Close(), "Cannot close candidate info");
+        delete candidate_info_;
         candidate_info_ = NULL;
     }
 
@@ -259,8 +255,6 @@ bool GarbageCollector::Close() {
         }
         this->log_ = NULL;
     }
-    delete this;
-    return true;
 }
 
 bool GarbageCollector::SetOption(const std::string& option_name, const std::string& option) {
@@ -1033,10 +1027,6 @@ public:
         delete this;
         return b;
     }
-
-    void Close() {
-        delete this;
-    }
 };
 
 namespace {
@@ -1161,7 +1151,7 @@ bool GarbageCollector::ProcessBlockMappingParallel(const map<bytestring, pair<in
     for (list<Future<bool>*>::iterator j = futures.begin(); j != futures.end(); ++j) {
         Future<bool>* future = *j;
         if (!future->Wait()) {
-            future->Close();
+            delete future;
             ERROR("Failed to wait for gc diff task execution");
             failed = true;
         } else if (future->is_abort()) {
@@ -1174,7 +1164,7 @@ bool GarbageCollector::ProcessBlockMappingParallel(const map<bytestring, pair<in
                 failed = true;
             }
         }
-        future->Close();
+        delete future;
     }
     futures.clear();
     TRACE("Waiting finished");
@@ -1486,10 +1476,6 @@ public:
         delete this;
         return b;
     }
-
-    void Close() {
-        delete this;
-    }
 };
 
 bool GarbageCollector::ProcessDiffDirtyStart(ChunkMapping* mapping,
@@ -1761,7 +1747,7 @@ bool GarbageCollector::ProcessBlockMappingDirtyStart(const BlockMappingPair& map
     for (list<Future<bool>*>::iterator j = futures.begin(); j != futures.end(); ++j) {
         Future<bool>* future = *j;
         if (!future->Wait()) {
-            future->Close();
+            delete future;
             WARNING("Failed to wait for gc diff task execution");
             failed = true;
         } else if (future->is_abort()) {
@@ -1774,7 +1760,7 @@ bool GarbageCollector::ProcessBlockMappingDirtyStart(const BlockMappingPair& map
                 failed = true;
             }
         }
-        future->Close();
+        delete future;
     }
     futures.clear();
     return !failed;
@@ -2049,9 +2035,7 @@ void GarbageCollector::ClearData() {
     Stop(dedupv1::StopContext::WritebackStopContext());
 
     if (this->candidate_info_) {
-        if (!this->candidate_info_->Close()) {
-            WARNING("Failed to close gc candidate info");
-        }
+        delete candidate_info_;
         this->candidate_info_ = NULL;
     }
 }

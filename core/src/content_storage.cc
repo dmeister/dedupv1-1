@@ -123,9 +123,6 @@ ContentStorage::ContentStorage() {
     reported_full_storage_before_ = false;
 }
 
-ContentStorage::~ContentStorage() {
-}
-
 ContentStorage::Statistics::Statistics() :
     average_write_block_latency_(256), average_processing_time_(256), average_filter_chain_time_(256),
     average_chunking_latency_(256), average_fingerprint_latency_(256), average_chunk_store_latency_(256),
@@ -172,21 +169,14 @@ bool ContentStorage::Start(dedupv1::base::Threadpool* tp,
     return true;
 }
 
-bool ContentStorage::Close() {
+ContentStorage::~ContentStorage() {
     DEBUG("Close content storage");
     this->fingerprinter_name_.clear();
 
-    bool failed = false;
     if (default_chunker_) {
-        if (!default_chunker_->Close()) {
-            ERROR("Failed to close default chunker");
-            failed = true;
-        }
+        delete default_chunker_;
         default_chunker_ = NULL;
     }
-
-    delete this;
-    return !failed;
 }
 
 Option<list<Filter*> > ContentStorage::GetFilterList(const std::set<std::string>& enabled_filter_names) {

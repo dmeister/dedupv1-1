@@ -197,8 +197,7 @@ protected:
     }
 
     void Restart() {
-        storage->Close();
-
+        delete storage;
         storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create("container-storage"));
         ASSERT_TRUE(storage);
         SetDefaultStorageOptions(storage);
@@ -232,15 +231,15 @@ protected:
 
     virtual void TearDown() {
         if (storage) {
-            ASSERT_TRUE(storage->Close());
+            delete storage;
             storage = NULL;
         }
         if (crashed_storage) {
-            crashed_storage->Close();
+            delete crashed_storage;
             crashed_storage = NULL;
         }
         if (log) {
-            ASSERT_TRUE(log->Close());
+            delete log;
             log = NULL;
         }
 
@@ -250,7 +249,6 @@ protected:
         }
 
         if (idle_detector) {
-            ASSERT_TRUE(idle_detector->Close());
             delete idle_detector;
             idle_detector = NULL;
         }
@@ -273,7 +271,7 @@ TEST_P(ContainerStorageTest, Run) {
 TEST_P(ContainerStorageTest, SimpleReopen) {
     ASSERT_TRUE(storage->Start(StartContext(), &system));
     ASSERT_TRUE(storage->Run());
-    ASSERT_TRUE(storage->Close());
+    delete storage;
     storage = NULL;
 
     storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create(
@@ -358,7 +356,7 @@ TEST_P(ContainerStorageTest, CrashedDuringBGLogReplay) {
     }
     DEBUG("Crashing");
     storage->ClearData();
-    storage->Close();
+    delete storage;
     storage = NULL;
 
     storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create("container-storage"));
@@ -385,7 +383,7 @@ TEST_P(ContainerStorageTest, CrashedDuringCrashLogReplay) {
 
     DEBUG("Crashing");
     storage->ClearData();
-    storage->Close();
+    delete storage;
     storage = NULL;
 
     storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create("container-storage"));
@@ -401,7 +399,7 @@ TEST_P(ContainerStorageTest, CrashedDuringCrashLogReplay) {
 
     DEBUG("Crashing");
     storage->ClearData();
-    storage->Close();
+    delete storage;
     storage = NULL;
 
     storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create("container-storage"));
@@ -477,7 +475,7 @@ TEST_P(ContainerStorageTest, DeleteAfterClose) {
     ASSERT_TRUE(storage->Run());
 
     WriteTestData(storage);
-    storage->Close();
+    delete storage;
     storage = NULL;
 
     storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create(
@@ -600,7 +598,7 @@ TEST_P(ContainerStorageTest, Extend) {
 
     DEBUG(storage->PrintStatistics());
 
-    ASSERT_TRUE(storage->Close());
+    delete storage;
     storage = NULL;
 
     storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create("container-storage"));
@@ -637,7 +635,7 @@ TEST_P(ContainerStorageTest, RestartMissingFile) {
 
     DEBUG(storage->PrintStatistics());
 
-    ASSERT_TRUE(storage->Close());
+    delete storage;
     storage = NULL;
 
     storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create("container-storage"));
@@ -663,7 +661,7 @@ TEST_P(ContainerStorageTest, RestartWrongFileOrder) {
 
     DEBUG(storage->PrintStatistics());
 
-    ASSERT_TRUE(storage->Close());
+    delete storage;
     storage = NULL;
 
     storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create("container-storage"));
@@ -687,7 +685,7 @@ TEST_P(ContainerStorageTest, RestartChangeContainerSize) {
 
     container_helper->WriteDefaultData(storage, NULL, 0, TEST_DATA_COUNT / 2);
 
-    ASSERT_TRUE(storage->Close());
+    delete storage;
     storage = NULL;
 
     storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create("container-storage"));
@@ -711,7 +709,7 @@ TEST_P(ContainerStorageTest, ExtendWithoutForce) {
 
     DEBUG(storage->PrintStatistics());
 
-    ASSERT_TRUE(storage->Close());
+    delete storage;
     storage = NULL;
 
     storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create("container-storage"));
@@ -738,7 +736,7 @@ TEST_P(ContainerStorageTest, DoubleExtend) {
 
     DEBUG(storage->PrintStatistics());
 
-    ASSERT_TRUE(storage->Close());
+    delete storage;
     storage = NULL;
 
     storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create("container-storage"));
@@ -756,7 +754,7 @@ TEST_P(ContainerStorageTest, DoubleExtend) {
     ASSERT_TRUE(log->PerformDirtyReplay());
     ASSERT_TRUE(storage->Run());
 
-    ASSERT_TRUE(storage->Close());
+    delete storage;
 
     storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create("container-storage"));
     ASSERT_TRUE(storage);
@@ -792,7 +790,7 @@ TEST_P(ContainerStorageTest, ExtendWithExplicitSize) {
 
     DEBUG(storage->PrintStatistics());
 
-    ASSERT_TRUE(storage->Close());
+    delete storage;
     storage = NULL;
 
     storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create("container-storage"));
@@ -828,7 +826,7 @@ TEST_P(ContainerStorageTest, ExtendWithIllegalExplicitSize) {
 
     container_helper->WriteDefaultData(storage, NULL, 0, TEST_DATA_COUNT / 2);
 
-    ASSERT_TRUE(storage->Close());
+    delete storage;
     storage = NULL;
 
     storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create("container-storage"));
@@ -855,7 +853,7 @@ TEST_P(ContainerStorageTest, ExtendWithoutChangingSize) {
 
     container_helper->WriteDefaultData(storage, NULL, 0, TEST_DATA_COUNT / 2);
 
-    ASSERT_TRUE(storage->Close());
+    delete storage;
     storage = NULL;
 
     storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create("container-storage"));
@@ -899,7 +897,7 @@ TEST_P(ContainerStorageTest, ChangeExplcitSizeOfExistingFile) {
     ASSERT_TRUE(storage->Run());
 
     container_helper->WriteDefaultData(storage, NULL, 0, TEST_DATA_COUNT / 2);
-    ASSERT_TRUE(storage->Close());
+    delete storage;
     storage = NULL;
 
     storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create("container-storage"));
@@ -922,7 +920,7 @@ TEST_P(ContainerStorageTest, ChangeExplcitSizeOfExistingFileWithForce) {
     ASSERT_TRUE(storage->Run());
 
     container_helper->WriteDefaultData(storage, NULL, 0, TEST_DATA_COUNT / 2);
-    ASSERT_TRUE(storage->Close());
+    delete storage;
     storage = NULL;
 
     storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create("container-storage"));
@@ -1153,7 +1151,7 @@ TEST_P(ContainerStorageTest, NextContainerIDAfterClose) {
     uint64_t container_id = storage->GetLastGivenContainerId();
     ASSERT_GT(container_id, static_cast<uint64_t>(2));
 
-    ASSERT_TRUE(storage->Close());
+    delete storage;
     storage = NULL;
 
     storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create("container-storage"));
@@ -1175,7 +1173,7 @@ TEST_P(ContainerStorageTest, NextContainerIDAfterCrash) {
 
     uint64_t container_id = storage->GetLastGivenContainerId();
 
-    storage->Close();
+    delete storage;
     storage = NULL;
 
     storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create(
@@ -1210,7 +1208,7 @@ TEST_P(ContainerStorageTest, CommitOnStorageClose) {
     WriteTestData(storage);
     ReadTestData(storage);
 
-    ASSERT_TRUE(storage->Close());
+    delete storage;
 
     storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create(
                                                   "container-storage"));
@@ -1479,7 +1477,7 @@ TEST_P(ContainerStorageTest, WriteReadRead) {
     WriteTestData(storage);
     ReadTestData(storage);
 
-    storage->Close();
+    delete storage;
     storage = NULL;
 
     storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create(

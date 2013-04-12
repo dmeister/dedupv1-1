@@ -114,10 +114,9 @@ bool Session::Clear() {
     return true;
 }
 
-bool Session::Close() {
+Session::~Session() {
     if (chunker_session_) {
-        CHECK(chunker_session_->Close(),
-            "Failed to close session");
+        delete chunker_session_;
         chunker_session_ = NULL;
     }
 
@@ -138,8 +137,6 @@ bool Session::Close() {
         this->buffer_ = NULL;
     }
     this->buffer_size_ = 0;
-    delete this;
-    return true;
 }
 
 OpenRequest* Session::GetRequest(unsigned int index) {
