@@ -23,28 +23,36 @@
 
 #include <gmock/gmock.h>
 #include <core/storage.h>
+#include <base/option.h>
 
 /**
  * Mock for a storage instance.
  */
 class MockStorage : public dedupv1::chunkstore::Storage {
-    public:
-        MOCK_METHOD2(SetOption, bool(const std::string& option_name, const std::string& option));
+public:
+    MOCK_METHOD2(SetOption, bool(const std::string & option_name, const std::string & option));
 
-        MOCK_METHOD2(Start, bool(const dedupv1::StartContext& start_context, dedupv1::DedupSystem* system));
-        MOCK_METHOD0(Stop, bool());
+    MOCK_METHOD2(Start, bool(const dedupv1::StartContext & start_context, dedupv1::DedupSystem * system));
+    MOCK_METHOD0(Stop, bool());
 
-        MOCK_METHOD1(IsCommittedWait, dedupv1::chunkstore::storage_commit_state(uint64_t address));
-        MOCK_METHOD1(IsCommitted, dedupv1::chunkstore::storage_commit_state(uint64_t address));
-        MOCK_METHOD6(WriteNew, bool(const void* key, size_t key_size, const void* data,
-                size_t data_size, uint64_t* address, dedupv1::base::ErrorContext* ec));
-        MOCK_METHOD6(Read, bool(uint64_t address, const void* key, size_t key_size,
-                void* data, size_t* data_size, dedupv1::base::ErrorContext* ec));
-        MOCK_METHOD4(DeleteChunk, bool(uint64_t address, const void* key, size_t key_size, dedupv1::base::ErrorContext* ec));
-        MOCK_METHOD3(DeleteChunks, bool(uint64_t address, const std::list<bytestring>& list, dedupv1::base::ErrorContext* ec));
-        MOCK_METHOD1(Flush, bool(dedupv1::base::ErrorContext* ec));
+    MOCK_METHOD1(IsCommittedWait, dedupv1::chunkstore::storage_commit_state(uint64_t address));
+    MOCK_METHOD1(IsCommitted, dedupv1::chunkstore::storage_commit_state(uint64_t address));
+    MOCK_METHOD6(WriteNew, bool(const void* key, size_t key_size, const void* data,
+                                size_t data_size, uint64_t * address, dedupv1::base::ErrorContext * ec));
 
-        MOCK_METHOD0(GetActiveStorageDataSize, uint64_t());
+    MOCK_METHOD7(Read, dedupv1::base::Option<uint32_t>(uint64_t address,
+            const void* key,
+            size_t key_size,
+            void* data,
+            uint32_t offset,
+            uint32_t data_size,
+            dedupv1::base::ErrorContext * ec));
+
+    MOCK_METHOD4(DeleteChunk, bool(uint64_t address, const void* key, size_t key_size, dedupv1::base::ErrorContext * ec));
+    MOCK_METHOD3(DeleteChunks, bool(uint64_t address, const std::list<bytestring>&list, dedupv1::base::ErrorContext * ec));
+    MOCK_METHOD1(Flush, bool(dedupv1::base::ErrorContext * ec));
+
+    MOCK_METHOD0(GetActiveStorageDataSize, uint64_t());
 };
 
 #endif /* STORAGE_MOCK_H_ */
