@@ -126,15 +126,8 @@ TEST_F(DedupVolumeTest, StartWithinMainteinanceMode) {
     ASSERT_TRUE(volume->Start(&system, true));
 
     ASSERT_FALSE(volume->chunker());
-    ASSERT_FALSE(volume->session_management());
-
     ASSERT_TRUE(volume->ChangeMaintenanceMode(false));
-
-    ASSERT_TRUE(volume->session_management());
-
     ASSERT_TRUE(volume->ChangeMaintenanceMode(true));
-
-    ASSERT_FALSE(volume->session_management());
 }
 
 TEST_F(DedupVolumeTest, StartWithFilterConfig) {
