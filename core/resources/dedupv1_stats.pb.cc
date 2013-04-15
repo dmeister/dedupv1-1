@@ -74,9 +74,8 @@ void protobuf_AssignDesc_dedupv1_5fstats_2eproto() {
       "dedupv1_stats.proto");
   GOOGLE_CHECK(file != NULL);
   ChunkIndexStatsData_descriptor_ = file->message_type(0);
-  static const int ChunkIndexStatsData_offsets_[2] = {
+  static const int ChunkIndexStatsData_offsets_[1] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ChunkIndexStatsData, imported_container_count_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ChunkIndexStatsData, index_full_failure_count_),
   };
   ChunkIndexStatsData_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -428,55 +427,54 @@ void protobuf_AddDesc_dedupv1_5fstats_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\023dedupv1_stats.proto\"Y\n\023ChunkIndexStats"
-    "Data\022 \n\030imported_container_count\030\001 \001(\004\022 "
-    "\n\030index_full_failure_count\030\002 \001(\004\"\252\001\n\023Blo"
-    "ckIndexStatsData\022\030\n\020index_read_count\030\001 \001"
-    "(\004\022\031\n\021index_write_count\030\002 \001(\004\022\036\n\026index_r"
-    "eal_write_count\030\003 \001(\004\022\034\n\024imported_block_"
-    "count\030\004 \001(\004\022 \n\030failed_block_write_count\030"
-    "\005 \001(\004\"X\n\023ChunkStoreStatsData\022\022\n\nread_cou"
-    "nt\030\001 \001(\004\022\023\n\013write_count\030\002 \001(\004\022\030\n\020real_wr"
-    "ite_count\030\003 \001(\004\"a\n#ContainerStorageWrite"
-    "CacheStatsData\022\021\n\thit_count\030\001 \001(\004\022\022\n\nmis"
-    "s_count\030\002 \001(\004\022\023\n\013check_count\030\003 \001(\004\"\262\002\n\031C"
-    "ontainerStorageStatsData\022\022\n\nread_count\030\001"
-    " \001(\004\022\035\n\025write_cache_hit_count\030\002 \001(\004\022\037\n\027c"
-    "ontainer_timeout_count\030\003 \001(\004\022\036\n\026readed_c"
-    "ontainer_count\030\004 \001(\004\022!\n\031committed_contai"
-    "ner_count\030\005 \001(\004\022\035\n\025moved_container_count"
-    "\030\006 \001(\004\022\036\n\026merged_container_count\030\007 \001(\004\022\036"
-    "\n\026failed_container_count\030\010 \001(\004\022\037\n\027delete"
-    "d_container_count\030\t \001(\004\"v\n\"ContainerStor"
-    "ageReadCacheStatsData\022\021\n\thit_count\030\001 \001(\004"
-    "\022\022\n\nmiss_count\030\002 \001(\004\022\023\n\013check_count\030\003 \001("
-    "\004\022\024\n\014update_count\030\004 \001(\004\"V\n\031BlockIndexFil"
-    "terStatsData\022\021\n\thit_count\030\001 \001(\004\022\022\n\nmiss_"
-    "count\030\002 \001(\004\022\022\n\nread_count\030\003 \001(\004\"f\n\024Bloom"
-    "FilterStatsData\022\021\n\thit_count\030\001 \001(\004\022\022\n\nmi"
-    "ss_count\030\002 \001(\004\022\022\n\nread_count\030\003 \001(\004\022\023\n\013wr"
-    "ite_count\030\004 \001(\004\"W\n\032ByteCompareFilterStat"
-    "sData\022\021\n\thit_count\030\001 \001(\004\022\022\n\nmiss_count\030\002"
-    " \001(\004\022\022\n\nread_count\030\003 \001(\004\"\236\001\n\031ChunkIndexF"
-    "ilterStatsData\022\021\n\thit_count\030\001 \001(\004\022\022\n\nmis"
-    "s_count\030\002 \001(\004\022\022\n\nread_count\030\003 \001(\004\022\023\n\013wri"
-    "te_count\030\004 \001(\004\022\025\n\rfailure_count\030\006 \001(\004\022\032\n"
-    "\022empty_fp_hit_count\030\005 \001(\004\"\303\001\n\031GarbageCol"
-    "lectorStatsData\022\035\n\025processed_block_count"
-    "\030\001 \001(\004\022$\n\034processed_gc_candidate_count\030\002"
-    " \001(\004\022\033\n\023skipped_chunk_count\030\003 \001(\004\022%\n\035alr"
-    "eady_processed_chunk_count\030\004 \001(\004\022\035\n\025proc"
-    "essed_chunk_count\030\005 \001(\004\"o\n\025RabinChunkerS"
-    "tatsData\022\023\n\013chunk_count\030\001 \001(\004\022\037\n\027size_fo"
-    "rced_chunk_count\030\002 \001(\004\022 \n\030close_forced_c"
-    "hunk_count\030\003 \001(\004\"i\n\027ContentStorageStatsD"
-    "ata\022\022\n\nread_count\030\001 \001(\004\022\023\n\013write_count\030\002"
-    " \001(\004\022\021\n\tread_size\030\003 \001(\004\022\022\n\nwrite_size\030\004 "
-    "\001(\004\"\245\001\n\014LogStatsData\022\023\n\013event_count\030\001 \001("
-    "\004\022\034\n\024replayed_event_count\030\002 \001(\004\0223\n\rlogty"
-    "pe_count\030\003 \003(\0132\034.LogStatsData.LogTypeCou"
-    "nter\032-\n\016LogTypeCounter\022\014\n\004type\030\001 \001(\005\022\r\n\005"
-    "count\030\002 \001(\004", 1931);
+    "\n\023dedupv1_stats.proto\"7\n\023ChunkIndexStats"
+    "Data\022 \n\030imported_container_count\030\001 \001(\004\"\252"
+    "\001\n\023BlockIndexStatsData\022\030\n\020index_read_cou"
+    "nt\030\001 \001(\004\022\031\n\021index_write_count\030\002 \001(\004\022\036\n\026i"
+    "ndex_real_write_count\030\003 \001(\004\022\034\n\024imported_"
+    "block_count\030\004 \001(\004\022 \n\030failed_block_write_"
+    "count\030\005 \001(\004\"X\n\023ChunkStoreStatsData\022\022\n\nre"
+    "ad_count\030\001 \001(\004\022\023\n\013write_count\030\002 \001(\004\022\030\n\020r"
+    "eal_write_count\030\003 \001(\004\"a\n#ContainerStorag"
+    "eWriteCacheStatsData\022\021\n\thit_count\030\001 \001(\004\022"
+    "\022\n\nmiss_count\030\002 \001(\004\022\023\n\013check_count\030\003 \001(\004"
+    "\"\262\002\n\031ContainerStorageStatsData\022\022\n\nread_c"
+    "ount\030\001 \001(\004\022\035\n\025write_cache_hit_count\030\002 \001("
+    "\004\022\037\n\027container_timeout_count\030\003 \001(\004\022\036\n\026re"
+    "aded_container_count\030\004 \001(\004\022!\n\031committed_"
+    "container_count\030\005 \001(\004\022\035\n\025moved_container"
+    "_count\030\006 \001(\004\022\036\n\026merged_container_count\030\007"
+    " \001(\004\022\036\n\026failed_container_count\030\010 \001(\004\022\037\n\027"
+    "deleted_container_count\030\t \001(\004\"v\n\"Contain"
+    "erStorageReadCacheStatsData\022\021\n\thit_count"
+    "\030\001 \001(\004\022\022\n\nmiss_count\030\002 \001(\004\022\023\n\013check_coun"
+    "t\030\003 \001(\004\022\024\n\014update_count\030\004 \001(\004\"V\n\031BlockIn"
+    "dexFilterStatsData\022\021\n\thit_count\030\001 \001(\004\022\022\n"
+    "\nmiss_count\030\002 \001(\004\022\022\n\nread_count\030\003 \001(\004\"f\n"
+    "\024BloomFilterStatsData\022\021\n\thit_count\030\001 \001(\004"
+    "\022\022\n\nmiss_count\030\002 \001(\004\022\022\n\nread_count\030\003 \001(\004"
+    "\022\023\n\013write_count\030\004 \001(\004\"W\n\032ByteCompareFilt"
+    "erStatsData\022\021\n\thit_count\030\001 \001(\004\022\022\n\nmiss_c"
+    "ount\030\002 \001(\004\022\022\n\nread_count\030\003 \001(\004\"\236\001\n\031Chunk"
+    "IndexFilterStatsData\022\021\n\thit_count\030\001 \001(\004\022"
+    "\022\n\nmiss_count\030\002 \001(\004\022\022\n\nread_count\030\003 \001(\004\022"
+    "\023\n\013write_count\030\004 \001(\004\022\025\n\rfailure_count\030\006 "
+    "\001(\004\022\032\n\022empty_fp_hit_count\030\005 \001(\004\"\303\001\n\031Garb"
+    "ageCollectorStatsData\022\035\n\025processed_block"
+    "_count\030\001 \001(\004\022$\n\034processed_gc_candidate_c"
+    "ount\030\002 \001(\004\022\033\n\023skipped_chunk_count\030\003 \001(\004\022"
+    "%\n\035already_processed_chunk_count\030\004 \001(\004\022\035"
+    "\n\025processed_chunk_count\030\005 \001(\004\"o\n\025RabinCh"
+    "unkerStatsData\022\023\n\013chunk_count\030\001 \001(\004\022\037\n\027s"
+    "ize_forced_chunk_count\030\002 \001(\004\022 \n\030close_fo"
+    "rced_chunk_count\030\003 \001(\004\"i\n\027ContentStorage"
+    "StatsData\022\022\n\nread_count\030\001 \001(\004\022\023\n\013write_c"
+    "ount\030\002 \001(\004\022\021\n\tread_size\030\003 \001(\004\022\022\n\nwrite_s"
+    "ize\030\004 \001(\004\"\245\001\n\014LogStatsData\022\023\n\013event_coun"
+    "t\030\001 \001(\004\022\034\n\024replayed_event_count\030\002 \001(\004\0223\n"
+    "\rlogtype_count\030\003 \003(\0132\034.LogStatsData.LogT"
+    "ypeCounter\032-\n\016LogTypeCounter\022\014\n\004type\030\001 \001"
+    "(\005\022\r\n\005count\030\002 \001(\004", 1897);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "dedupv1_stats.proto", &protobuf_RegisterTypes);
   ChunkIndexStatsData::default_instance_ = new ChunkIndexStatsData();
@@ -523,7 +521,6 @@ struct StaticDescriptorInitializer_dedupv1_5fstats_2eproto {
 
 #ifndef _MSC_VER
 const int ChunkIndexStatsData::kImportedContainerCountFieldNumber;
-const int ChunkIndexStatsData::kIndexFullFailureCountFieldNumber;
 #endif  // !_MSC_VER
 
 ChunkIndexStatsData::ChunkIndexStatsData()
@@ -543,7 +540,6 @@ ChunkIndexStatsData::ChunkIndexStatsData(const ChunkIndexStatsData& from)
 void ChunkIndexStatsData::SharedCtor() {
   _cached_size_ = 0;
   imported_container_count_ = GOOGLE_ULONGLONG(0);
-  index_full_failure_count_ = GOOGLE_ULONGLONG(0);
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -580,7 +576,6 @@ ChunkIndexStatsData* ChunkIndexStatsData::New() const {
 void ChunkIndexStatsData::Clear() {
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     imported_container_count_ = GOOGLE_ULONGLONG(0);
-    index_full_failure_count_ = GOOGLE_ULONGLONG(0);
   }
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
@@ -600,22 +595,6 @@ bool ChunkIndexStatsData::MergePartialFromCodedStream(
                    ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
                  input, &imported_container_count_)));
           set_has_imported_container_count();
-        } else {
-          goto handle_uninterpreted;
-        }
-        if (input->ExpectTag(16)) goto parse_index_full_failure_count;
-        break;
-      }
-
-      // optional uint64 index_full_failure_count = 2;
-      case 2: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
-         parse_index_full_failure_count:
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
-                 input, &index_full_failure_count_)));
-          set_has_index_full_failure_count();
         } else {
           goto handle_uninterpreted;
         }
@@ -646,11 +625,6 @@ void ChunkIndexStatsData::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteUInt64(1, this->imported_container_count(), output);
   }
 
-  // optional uint64 index_full_failure_count = 2;
-  if (has_index_full_failure_count()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt64(2, this->index_full_failure_count(), output);
-  }
-
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -662,11 +636,6 @@ void ChunkIndexStatsData::SerializeWithCachedSizes(
   // optional uint64 imported_container_count = 1;
   if (has_imported_container_count()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(1, this->imported_container_count(), target);
-  }
-
-  // optional uint64 index_full_failure_count = 2;
-  if (has_index_full_failure_count()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(2, this->index_full_failure_count(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -685,13 +654,6 @@ int ChunkIndexStatsData::ByteSize() const {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::UInt64Size(
           this->imported_container_count());
-    }
-
-    // optional uint64 index_full_failure_count = 2;
-    if (has_index_full_failure_count()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::UInt64Size(
-          this->index_full_failure_count());
     }
 
   }
@@ -724,9 +686,6 @@ void ChunkIndexStatsData::MergeFrom(const ChunkIndexStatsData& from) {
     if (from.has_imported_container_count()) {
       set_imported_container_count(from.imported_container_count());
     }
-    if (from.has_index_full_failure_count()) {
-      set_index_full_failure_count(from.index_full_failure_count());
-    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
@@ -751,7 +710,6 @@ bool ChunkIndexStatsData::IsInitialized() const {
 void ChunkIndexStatsData::Swap(ChunkIndexStatsData* other) {
   if (other != this) {
     std::swap(imported_container_count_, other->imported_container_count_);
-    std::swap(index_full_failure_count_, other->index_full_failure_count_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

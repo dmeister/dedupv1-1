@@ -176,6 +176,9 @@ bool TCFixedIndex::Start(const StartContext& start_context) {
     this->state_ = TC_FIXED_INDEX_STATE_STARTED;
     return true;
 }
+uint64_t TCFixedIndex::GetMaxItemCount() {
+      return this->GetLimitId();
+}
 
 bool TCFixedIndex::GetDB(int64_t id, TCFDB** db, int64_t* db_id) {
     CHECK(db_id, "db id not set");

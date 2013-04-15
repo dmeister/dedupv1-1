@@ -157,8 +157,6 @@ class TCBTreeIndex : public PersistentIndex {
                 TC_BTREE_INDEX_STATE_STARTED
         };
 
-        static const double kDefaultEstimatedMaxItemsPerBucket = 16;
-
         /**
          * Vector of Tokyo Cabinet b-tree data bases
          */
@@ -374,8 +372,6 @@ class TCBTreeIndex : public PersistentIndex {
         virtual std::string PrintTrace();
 
         virtual uint64_t GetItemCount();
-
-        virtual uint64_t GetEstimatedMaxItemCount();
 
         virtual uint64_t GetPersistentSize();
 

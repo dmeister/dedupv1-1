@@ -236,10 +236,6 @@ bool PersistentIndex::IsWriteBackCacheEnabled() {
     return false;
 }
 
-uint64_t PersistentIndex::GetEstimatedMaxCacheItemCount() {
-    return 0;
-}
-
 bool PersistentIndex::TryPersistDirtyItem(
     uint32_t max_batch_size,
     uint64_t* resume_handle,
@@ -264,10 +260,6 @@ uint64_t PersistentIndex::GetTotalItemCount() {
 
 bool Index::HasCapability(enum index_capability cap) {
     return (capabilities_ & cap) == cap;
-}
-
-uint64_t IDBasedIndex::GetEstimatedMaxItemCount() {
-    return this->GetLimitId();
 }
 
 IDBasedIndex::IDBasedIndex(int capabilities) : PersistentIndex(capabilities) {

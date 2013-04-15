@@ -199,8 +199,6 @@
 
     virtual uint64_t GetItemCount();
 
-    virtual uint64_t GetEstimatedMaxItemCount();
-
     virtual uint64_t GetPersistentSize();
 
     /**

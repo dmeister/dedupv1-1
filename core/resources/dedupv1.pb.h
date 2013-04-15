@@ -202,17 +202,17 @@ class BlockMappingData : public ::google::protobuf::Message {
   inline ::google::protobuf::uint32 version_counter() const;
   inline void set_version_counter(::google::protobuf::uint32 value);
 
-  // optional uint64 event_log_id = 6;
+  // optional uint64 event_log_id = 4;
   inline bool has_event_log_id() const;
   inline void clear_event_log_id();
-  static const int kEventLogIdFieldNumber = 6;
+  static const int kEventLogIdFieldNumber = 4;
   inline ::google::protobuf::uint64 event_log_id() const;
   inline void set_event_log_id(::google::protobuf::uint64 value);
 
-  // optional bytes checksum = 7;
+  // optional bytes checksum = 5;
   inline bool has_checksum() const;
   inline void clear_checksum();
-  static const int kChecksumFieldNumber = 7;
+  static const int kChecksumFieldNumber = 5;
   inline const ::std::string& checksum() const;
   inline void set_checksum(const ::std::string& value);
   inline void set_checksum(const char* value);
@@ -803,17 +803,17 @@ class ContainerData : public ::google::protobuf::Message {
   inline ::google::protobuf::RepeatedPtrField< ::ContainerItemData >*
       mutable_items();
 
-  // optional uint32 commit_time = 5;
+  // optional uint32 commit_time = 4;
   inline bool has_commit_time() const;
   inline void clear_commit_time();
-  static const int kCommitTimeFieldNumber = 5;
+  static const int kCommitTimeFieldNumber = 4;
   inline ::google::protobuf::uint32 commit_time() const;
   inline void set_commit_time(::google::protobuf::uint32 value);
 
-  // optional uint32 checksum = 7;
+  // optional uint32 checksum = 6;
   inline bool has_checksum() const;
   inline void clear_checksum();
-  static const int kChecksumFieldNumber = 7;
+  static const int kChecksumFieldNumber = 6;
   inline ::google::protobuf::uint32 checksum() const;
   inline void set_checksum(::google::protobuf::uint32 value);
 
@@ -2137,17 +2137,17 @@ class LogEntryData : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional int64 log_id = 7;
+  // optional int64 log_id = 1;
   inline bool has_log_id() const;
   inline void clear_log_id();
-  static const int kLogIdFieldNumber = 7;
+  static const int kLogIdFieldNumber = 1;
   inline ::google::protobuf::int64 log_id() const;
   inline void set_log_id(::google::protobuf::int64 value);
 
-  // optional bytes value = 3;
+  // optional bytes value = 2;
   inline bool has_value() const;
   inline void clear_value();
-  static const int kValueFieldNumber = 3;
+  static const int kValueFieldNumber = 2;
   inline const ::std::string& value() const;
   inline void set_value(const ::std::string& value);
   inline void set_value(const char* value);
@@ -2156,24 +2156,24 @@ class LogEntryData : public ::google::protobuf::Message {
   inline ::std::string* release_value();
   inline void set_allocated_value(::std::string* value);
 
-  // optional uint32 partial_index = 5;
+  // optional uint32 partial_index = 3;
   inline bool has_partial_index() const;
   inline void clear_partial_index();
-  static const int kPartialIndexFieldNumber = 5;
+  static const int kPartialIndexFieldNumber = 3;
   inline ::google::protobuf::uint32 partial_index() const;
   inline void set_partial_index(::google::protobuf::uint32 value);
 
-  // optional uint32 partial_count = 6;
+  // optional uint32 partial_count = 4;
   inline bool has_partial_count() const;
   inline void clear_partial_count();
-  static const int kPartialCountFieldNumber = 6;
+  static const int kPartialCountFieldNumber = 4;
   inline ::google::protobuf::uint32 partial_count() const;
   inline void set_partial_count(::google::protobuf::uint32 value);
 
-  // optional int64 last_fully_written_log_id = 8;
+  // optional int64 last_fully_written_log_id = 5;
   inline bool has_last_fully_written_log_id() const;
   inline void clear_last_fully_written_log_id();
-  static const int kLastFullyWrittenLogIdFieldNumber = 8;
+  static const int kLastFullyWrittenLogIdFieldNumber = 5;
   inline ::google::protobuf::int64 last_fully_written_log_id() const;
   inline void set_last_fully_written_log_id(::google::protobuf::int64 value);
 
@@ -2510,44 +2510,44 @@ class ContainerMergedEventData : public ::google::protobuf::Message {
   inline ::google::protobuf::RepeatedField< ::google::protobuf::uint64 >*
       mutable_second_secondary_id();
 
-  // optional .ContainerStorageAddressData first_address = 13;
+  // optional .ContainerStorageAddressData first_address = 5;
   inline bool has_first_address() const;
   inline void clear_first_address();
-  static const int kFirstAddressFieldNumber = 13;
+  static const int kFirstAddressFieldNumber = 5;
   inline const ::ContainerStorageAddressData& first_address() const;
   inline ::ContainerStorageAddressData* mutable_first_address();
   inline ::ContainerStorageAddressData* release_first_address();
   inline void set_allocated_first_address(::ContainerStorageAddressData* first_address);
 
-  // optional .ContainerStorageAddressData second_address = 14;
+  // optional .ContainerStorageAddressData second_address = 6;
   inline bool has_second_address() const;
   inline void clear_second_address();
-  static const int kSecondAddressFieldNumber = 14;
+  static const int kSecondAddressFieldNumber = 6;
   inline const ::ContainerStorageAddressData& second_address() const;
   inline ::ContainerStorageAddressData* mutable_second_address();
   inline ::ContainerStorageAddressData* release_second_address();
   inline void set_allocated_second_address(::ContainerStorageAddressData* second_address);
 
-  // optional .ContainerStorageAddressData new_address = 15;
+  // optional .ContainerStorageAddressData new_address = 7;
   inline bool has_new_address() const;
   inline void clear_new_address();
-  static const int kNewAddressFieldNumber = 15;
+  static const int kNewAddressFieldNumber = 7;
   inline const ::ContainerStorageAddressData& new_address() const;
   inline ::ContainerStorageAddressData* mutable_new_address();
   inline ::ContainerStorageAddressData* release_new_address();
   inline void set_allocated_new_address(::ContainerStorageAddressData* new_address);
 
-  // optional uint64 new_primary_id = 18;
+  // optional uint64 new_primary_id = 8;
   inline bool has_new_primary_id() const;
   inline void clear_new_primary_id();
-  static const int kNewPrimaryIdFieldNumber = 18;
+  static const int kNewPrimaryIdFieldNumber = 8;
   inline ::google::protobuf::uint64 new_primary_id() const;
   inline void set_new_primary_id(::google::protobuf::uint64 value);
 
-  // repeated uint64 new_secondary_id = 11 [packed = true];
+  // repeated uint64 new_secondary_id = 9 [packed = true];
   inline int new_secondary_id_size() const;
   inline void clear_new_secondary_id();
-  static const int kNewSecondaryIdFieldNumber = 11;
+  static const int kNewSecondaryIdFieldNumber = 9;
   inline ::google::protobuf::uint64 new_secondary_id(int index) const;
   inline void set_new_secondary_id(int index, ::google::protobuf::uint64 value);
   inline void add_new_secondary_id(::google::protobuf::uint64 value);
@@ -2556,10 +2556,10 @@ class ContainerMergedEventData : public ::google::protobuf::Message {
   inline ::google::protobuf::RepeatedField< ::google::protobuf::uint64 >*
       mutable_new_secondary_id();
 
-  // repeated uint64 unused_ids = 12 [packed = true];
+  // repeated uint64 unused_ids = 10 [packed = true];
   inline int unused_ids_size() const;
   inline void clear_unused_ids();
-  static const int kUnusedIdsFieldNumber = 12;
+  static const int kUnusedIdsFieldNumber = 10;
   inline ::google::protobuf::uint64 unused_ids(int index) const;
   inline void set_unused_ids(int index, ::google::protobuf::uint64 value);
   inline void add_unused_ids(::google::protobuf::uint64 value);
@@ -2568,17 +2568,17 @@ class ContainerMergedEventData : public ::google::protobuf::Message {
   inline ::google::protobuf::RepeatedField< ::google::protobuf::uint64 >*
       mutable_unused_ids();
 
-  // optional uint32 new_item_count = 16;
+  // optional uint32 new_item_count = 11;
   inline bool has_new_item_count() const;
   inline void clear_new_item_count();
-  static const int kNewItemCountFieldNumber = 16;
+  static const int kNewItemCountFieldNumber = 11;
   inline ::google::protobuf::uint32 new_item_count() const;
   inline void set_new_item_count(::google::protobuf::uint32 value);
 
-  // optional uint32 new_active_data_size = 17;
+  // optional uint32 new_active_data_size = 12;
   inline bool has_new_active_data_size() const;
   inline void clear_new_active_data_size();
-  static const int kNewActiveDataSizeFieldNumber = 17;
+  static const int kNewActiveDataSizeFieldNumber = 12;
   inline ::google::protobuf::uint32 new_active_data_size() const;
   inline void set_new_active_data_size(::google::protobuf::uint32 value);
 
@@ -2705,10 +2705,10 @@ class ContainerDeletedEventData : public ::google::protobuf::Message {
   inline ::google::protobuf::RepeatedField< ::google::protobuf::uint64 >*
       mutable_secondary_container_id();
 
-  // optional .ContainerStorageAddressData address = 5;
+  // optional .ContainerStorageAddressData address = 3;
   inline bool has_address() const;
   inline void clear_address();
-  static const int kAddressFieldNumber = 5;
+  static const int kAddressFieldNumber = 3;
   inline const ::ContainerStorageAddressData& address() const;
   inline ::ContainerStorageAddressData* mutable_address();
   inline ::ContainerStorageAddressData* release_address();
@@ -2811,49 +2811,49 @@ class ContainerMoveEventData : public ::google::protobuf::Message {
   inline ::google::protobuf::uint64 container_id() const;
   inline void set_container_id(::google::protobuf::uint64 value);
 
-  // optional .ContainerStorageAddressData old_address = 6;
+  // optional .ContainerStorageAddressData old_address = 2;
   inline bool has_old_address() const;
   inline void clear_old_address();
-  static const int kOldAddressFieldNumber = 6;
+  static const int kOldAddressFieldNumber = 2;
   inline const ::ContainerStorageAddressData& old_address() const;
   inline ::ContainerStorageAddressData* mutable_old_address();
   inline ::ContainerStorageAddressData* release_old_address();
   inline void set_allocated_old_address(::ContainerStorageAddressData* old_address);
 
-  // optional .ContainerStorageAddressData new_address = 7;
+  // optional .ContainerStorageAddressData new_address = 3;
   inline bool has_new_address() const;
   inline void clear_new_address();
-  static const int kNewAddressFieldNumber = 7;
+  static const int kNewAddressFieldNumber = 3;
   inline const ::ContainerStorageAddressData& new_address() const;
   inline ::ContainerStorageAddressData* mutable_new_address();
   inline ::ContainerStorageAddressData* release_new_address();
   inline void set_allocated_new_address(::ContainerStorageAddressData* new_address);
 
-  // optional uint64 active_data_size = 8;
+  // optional uint64 active_data_size = 4;
   inline bool has_active_data_size() const;
   inline void clear_active_data_size();
-  static const int kActiveDataSizeFieldNumber = 8;
+  static const int kActiveDataSizeFieldNumber = 4;
   inline ::google::protobuf::uint64 active_data_size() const;
   inline void set_active_data_size(::google::protobuf::uint64 value);
 
-  // optional uint64 old_active_data_size = 9;
+  // optional uint64 old_active_data_size = 5;
   inline bool has_old_active_data_size() const;
   inline void clear_old_active_data_size();
-  static const int kOldActiveDataSizeFieldNumber = 9;
+  static const int kOldActiveDataSizeFieldNumber = 5;
   inline ::google::protobuf::uint64 old_active_data_size() const;
   inline void set_old_active_data_size(::google::protobuf::uint64 value);
 
-  // optional uint32 item_count = 10;
+  // optional uint32 item_count = 6;
   inline bool has_item_count() const;
   inline void clear_item_count();
-  static const int kItemCountFieldNumber = 10;
+  static const int kItemCountFieldNumber = 6;
   inline ::google::protobuf::uint32 item_count() const;
   inline void set_item_count(::google::protobuf::uint32 value);
 
-  // optional uint32 old_item_count = 11;
+  // optional uint32 old_item_count = 7;
   inline bool has_old_item_count() const;
   inline void clear_old_item_count();
-  static const int kOldItemCountFieldNumber = 11;
+  static const int kOldItemCountFieldNumber = 7;
   inline ::google::protobuf::uint32 old_item_count() const;
   inline void set_old_item_count(::google::protobuf::uint32 value);
 
@@ -3213,10 +3213,10 @@ class BlockMappingWrittenEventData : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional .BlockMappingPairData mapping_pair = 4;
+  // optional .BlockMappingPairData mapping_pair = 1;
   inline bool has_mapping_pair() const;
   inline void clear_mapping_pair();
-  static const int kMappingPairFieldNumber = 4;
+  static const int kMappingPairFieldNumber = 1;
   inline const ::BlockMappingPairData& mapping_pair() const;
   inline ::BlockMappingPairData* mutable_mapping_pair();
   inline ::BlockMappingPairData* release_mapping_pair();
@@ -3297,19 +3297,19 @@ class BlockMappingWriteFailedEventData : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional .BlockMappingPairData mapping_pair = 4;
+  // optional .BlockMappingPairData mapping_pair = 1;
   inline bool has_mapping_pair() const;
   inline void clear_mapping_pair();
-  static const int kMappingPairFieldNumber = 4;
+  static const int kMappingPairFieldNumber = 1;
   inline const ::BlockMappingPairData& mapping_pair() const;
   inline ::BlockMappingPairData* mutable_mapping_pair();
   inline ::BlockMappingPairData* release_mapping_pair();
   inline void set_allocated_mapping_pair(::BlockMappingPairData* mapping_pair);
 
-  // optional int64 write_event_log_id = 3;
+  // optional int64 write_event_log_id = 2;
   inline bool has_write_event_log_id() const;
   inline void clear_write_event_log_id();
-  static const int kWriteEventLogIdFieldNumber = 3;
+  static const int kWriteEventLogIdFieldNumber = 2;
   inline ::google::protobuf::int64 write_event_log_id() const;
   inline void set_write_event_log_id(::google::protobuf::int64 value);
 
@@ -3564,10 +3564,10 @@ class BlockIndexLogfileData : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional .ContainerTrackerData container_tracker = 2;
+  // optional .ContainerTrackerData container_tracker = 1;
   inline bool has_container_tracker() const;
   inline void clear_container_tracker();
-  static const int kContainerTrackerFieldNumber = 2;
+  static const int kContainerTrackerFieldNumber = 1;
   inline const ::ContainerTrackerData& container_tracker() const;
   inline ::ContainerTrackerData* mutable_container_tracker();
   inline ::ContainerTrackerData* release_container_tracker();
@@ -3648,10 +3648,10 @@ class ChunkIndexLogfileData : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional .ContainerTrackerData container_tracker = 2;
+  // optional .ContainerTrackerData container_tracker = 1;
   inline bool has_container_tracker() const;
   inline void clear_container_tracker();
-  static const int kContainerTrackerFieldNumber = 2;
+  static const int kContainerTrackerFieldNumber = 1;
   inline const ::ContainerTrackerData& container_tracker() const;
   inline ::ContainerTrackerData* mutable_container_tracker();
   inline ::ContainerTrackerData* release_container_tracker();
@@ -3746,10 +3746,10 @@ class BloomFilterLogfileData : public ::google::protobuf::Message {
   inline ::google::protobuf::uint32 k() const;
   inline void set_k(::google::protobuf::uint32 value);
 
-  // optional .ContainerTrackerData container_tracker = 4;
+  // optional .ContainerTrackerData container_tracker = 3;
   inline bool has_container_tracker() const;
   inline void clear_container_tracker();
-  static const int kContainerTrackerFieldNumber = 4;
+  static const int kContainerTrackerFieldNumber = 3;
   inline const ::ContainerTrackerData& container_tracker() const;
   inline ::ContainerTrackerData* mutable_container_tracker();
   inline ::ContainerTrackerData* release_container_tracker();
@@ -4813,12 +4813,12 @@ class LogStateData : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional int64 limit_id = 1;
-  inline bool has_limit_id() const;
-  inline void clear_limit_id();
-  static const int kLimitIdFieldNumber = 1;
-  inline ::google::protobuf::int64 limit_id() const;
-  inline void set_limit_id(::google::protobuf::int64 value);
+  // optional int64 max_item_count = 1;
+  inline bool has_max_item_count() const;
+  inline void clear_max_item_count();
+  static const int kMaxItemCountFieldNumber = 1;
+  inline ::google::protobuf::int64 max_item_count() const;
+  inline void set_max_item_count(::google::protobuf::int64 value);
 
   // optional int64 log_entry_width = 2;
   inline bool has_log_entry_width() const;
@@ -4829,14 +4829,14 @@ class LogStateData : public ::google::protobuf::Message {
 
   // @@protoc_insertion_point(class_scope:LogStateData)
  private:
-  inline void set_has_limit_id();
-  inline void clear_has_limit_id();
+  inline void set_has_max_item_count();
+  inline void clear_has_max_item_count();
   inline void set_has_log_entry_width();
   inline void clear_has_log_entry_width();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::google::protobuf::int64 limit_id_;
+  ::google::protobuf::int64 max_item_count_;
   ::google::protobuf::int64 log_entry_width_;
 
   mutable int _cached_size_;
@@ -5084,7 +5084,7 @@ inline void BlockMappingData::set_version_counter(::google::protobuf::uint32 val
   version_counter_ = value;
 }
 
-// optional uint64 event_log_id = 6;
+// optional uint64 event_log_id = 4;
 inline bool BlockMappingData::has_event_log_id() const {
   return (_has_bits_[0] & 0x00000008u) != 0;
 }
@@ -5106,7 +5106,7 @@ inline void BlockMappingData::set_event_log_id(::google::protobuf::uint64 value)
   event_log_id_ = value;
 }
 
-// optional bytes checksum = 7;
+// optional bytes checksum = 5;
 inline bool BlockMappingData::has_checksum() const {
   return (_has_bits_[0] & 0x00000010u) != 0;
 }
@@ -5738,7 +5738,7 @@ ContainerData::mutable_items() {
   return &items_;
 }
 
-// optional uint32 commit_time = 5;
+// optional uint32 commit_time = 4;
 inline bool ContainerData::has_commit_time() const {
   return (_has_bits_[0] & 0x00000008u) != 0;
 }
@@ -5760,7 +5760,7 @@ inline void ContainerData::set_commit_time(::google::protobuf::uint32 value) {
   commit_time_ = value;
 }
 
-// optional uint32 checksum = 7;
+// optional uint32 checksum = 6;
 inline bool ContainerData::has_checksum() const {
   return (_has_bits_[0] & 0x00000010u) != 0;
 }
@@ -7290,7 +7290,7 @@ inline void LogEventData::set_allocated_message_data(::MessageData* message_data
 
 // LogEntryData
 
-// optional int64 log_id = 7;
+// optional int64 log_id = 1;
 inline bool LogEntryData::has_log_id() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -7312,7 +7312,7 @@ inline void LogEntryData::set_log_id(::google::protobuf::int64 value) {
   log_id_ = value;
 }
 
-// optional bytes value = 3;
+// optional bytes value = 2;
 inline bool LogEntryData::has_value() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
@@ -7382,7 +7382,7 @@ inline void LogEntryData::set_allocated_value(::std::string* value) {
   }
 }
 
-// optional uint32 partial_index = 5;
+// optional uint32 partial_index = 3;
 inline bool LogEntryData::has_partial_index() const {
   return (_has_bits_[0] & 0x00000004u) != 0;
 }
@@ -7404,7 +7404,7 @@ inline void LogEntryData::set_partial_index(::google::protobuf::uint32 value) {
   partial_index_ = value;
 }
 
-// optional uint32 partial_count = 6;
+// optional uint32 partial_count = 4;
 inline bool LogEntryData::has_partial_count() const {
   return (_has_bits_[0] & 0x00000008u) != 0;
 }
@@ -7426,7 +7426,7 @@ inline void LogEntryData::set_partial_count(::google::protobuf::uint32 value) {
   partial_count_ = value;
 }
 
-// optional int64 last_fully_written_log_id = 8;
+// optional int64 last_fully_written_log_id = 5;
 inline bool LogEntryData::has_last_fully_written_log_id() const {
   return (_has_bits_[0] & 0x00000010u) != 0;
 }
@@ -7718,7 +7718,7 @@ ContainerMergedEventData::mutable_second_secondary_id() {
   return &second_secondary_id_;
 }
 
-// optional .ContainerStorageAddressData first_address = 13;
+// optional .ContainerStorageAddressData first_address = 5;
 inline bool ContainerMergedEventData::has_first_address() const {
   return (_has_bits_[0] & 0x00000010u) != 0;
 }
@@ -7756,7 +7756,7 @@ inline void ContainerMergedEventData::set_allocated_first_address(::ContainerSto
   }
 }
 
-// optional .ContainerStorageAddressData second_address = 14;
+// optional .ContainerStorageAddressData second_address = 6;
 inline bool ContainerMergedEventData::has_second_address() const {
   return (_has_bits_[0] & 0x00000020u) != 0;
 }
@@ -7794,7 +7794,7 @@ inline void ContainerMergedEventData::set_allocated_second_address(::ContainerSt
   }
 }
 
-// optional .ContainerStorageAddressData new_address = 15;
+// optional .ContainerStorageAddressData new_address = 7;
 inline bool ContainerMergedEventData::has_new_address() const {
   return (_has_bits_[0] & 0x00000040u) != 0;
 }
@@ -7832,7 +7832,7 @@ inline void ContainerMergedEventData::set_allocated_new_address(::ContainerStora
   }
 }
 
-// optional uint64 new_primary_id = 18;
+// optional uint64 new_primary_id = 8;
 inline bool ContainerMergedEventData::has_new_primary_id() const {
   return (_has_bits_[0] & 0x00000080u) != 0;
 }
@@ -7854,7 +7854,7 @@ inline void ContainerMergedEventData::set_new_primary_id(::google::protobuf::uin
   new_primary_id_ = value;
 }
 
-// repeated uint64 new_secondary_id = 11 [packed = true];
+// repeated uint64 new_secondary_id = 9 [packed = true];
 inline int ContainerMergedEventData::new_secondary_id_size() const {
   return new_secondary_id_.size();
 }
@@ -7879,7 +7879,7 @@ ContainerMergedEventData::mutable_new_secondary_id() {
   return &new_secondary_id_;
 }
 
-// repeated uint64 unused_ids = 12 [packed = true];
+// repeated uint64 unused_ids = 10 [packed = true];
 inline int ContainerMergedEventData::unused_ids_size() const {
   return unused_ids_.size();
 }
@@ -7904,7 +7904,7 @@ ContainerMergedEventData::mutable_unused_ids() {
   return &unused_ids_;
 }
 
-// optional uint32 new_item_count = 16;
+// optional uint32 new_item_count = 11;
 inline bool ContainerMergedEventData::has_new_item_count() const {
   return (_has_bits_[0] & 0x00000400u) != 0;
 }
@@ -7926,7 +7926,7 @@ inline void ContainerMergedEventData::set_new_item_count(::google::protobuf::uin
   new_item_count_ = value;
 }
 
-// optional uint32 new_active_data_size = 17;
+// optional uint32 new_active_data_size = 12;
 inline bool ContainerMergedEventData::has_new_active_data_size() const {
   return (_has_bits_[0] & 0x00000800u) != 0;
 }
@@ -7999,7 +7999,7 @@ ContainerDeletedEventData::mutable_secondary_container_id() {
   return &secondary_container_id_;
 }
 
-// optional .ContainerStorageAddressData address = 5;
+// optional .ContainerStorageAddressData address = 3;
 inline bool ContainerDeletedEventData::has_address() const {
   return (_has_bits_[0] & 0x00000004u) != 0;
 }
@@ -8085,7 +8085,7 @@ inline void ContainerMoveEventData::set_container_id(::google::protobuf::uint64 
   container_id_ = value;
 }
 
-// optional .ContainerStorageAddressData old_address = 6;
+// optional .ContainerStorageAddressData old_address = 2;
 inline bool ContainerMoveEventData::has_old_address() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
@@ -8123,7 +8123,7 @@ inline void ContainerMoveEventData::set_allocated_old_address(::ContainerStorage
   }
 }
 
-// optional .ContainerStorageAddressData new_address = 7;
+// optional .ContainerStorageAddressData new_address = 3;
 inline bool ContainerMoveEventData::has_new_address() const {
   return (_has_bits_[0] & 0x00000004u) != 0;
 }
@@ -8161,7 +8161,7 @@ inline void ContainerMoveEventData::set_allocated_new_address(::ContainerStorage
   }
 }
 
-// optional uint64 active_data_size = 8;
+// optional uint64 active_data_size = 4;
 inline bool ContainerMoveEventData::has_active_data_size() const {
   return (_has_bits_[0] & 0x00000008u) != 0;
 }
@@ -8183,7 +8183,7 @@ inline void ContainerMoveEventData::set_active_data_size(::google::protobuf::uin
   active_data_size_ = value;
 }
 
-// optional uint64 old_active_data_size = 9;
+// optional uint64 old_active_data_size = 5;
 inline bool ContainerMoveEventData::has_old_active_data_size() const {
   return (_has_bits_[0] & 0x00000010u) != 0;
 }
@@ -8205,7 +8205,7 @@ inline void ContainerMoveEventData::set_old_active_data_size(::google::protobuf:
   old_active_data_size_ = value;
 }
 
-// optional uint32 item_count = 10;
+// optional uint32 item_count = 6;
 inline bool ContainerMoveEventData::has_item_count() const {
   return (_has_bits_[0] & 0x00000020u) != 0;
 }
@@ -8227,7 +8227,7 @@ inline void ContainerMoveEventData::set_item_count(::google::protobuf::uint32 va
   item_count_ = value;
 }
 
-// optional uint32 old_item_count = 11;
+// optional uint32 old_item_count = 7;
 inline bool ContainerMoveEventData::has_old_item_count() const {
   return (_has_bits_[0] & 0x00000040u) != 0;
 }
@@ -8375,7 +8375,7 @@ inline void VolumeDetachedEventData::set_volume_id(::google::protobuf::uint32 va
 
 // BlockMappingWrittenEventData
 
-// optional .BlockMappingPairData mapping_pair = 4;
+// optional .BlockMappingPairData mapping_pair = 1;
 inline bool BlockMappingWrittenEventData::has_mapping_pair() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -8417,7 +8417,7 @@ inline void BlockMappingWrittenEventData::set_allocated_mapping_pair(::BlockMapp
 
 // BlockMappingWriteFailedEventData
 
-// optional .BlockMappingPairData mapping_pair = 4;
+// optional .BlockMappingPairData mapping_pair = 1;
 inline bool BlockMappingWriteFailedEventData::has_mapping_pair() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -8455,7 +8455,7 @@ inline void BlockMappingWriteFailedEventData::set_allocated_mapping_pair(::Block
   }
 }
 
-// optional int64 write_event_log_id = 3;
+// optional int64 write_event_log_id = 2;
 inline bool BlockMappingWriteFailedEventData::has_write_event_log_id() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
@@ -8571,7 +8571,7 @@ OphranChunksEventData::mutable_chunk_fp() {
 
 // BlockIndexLogfileData
 
-// optional .ContainerTrackerData container_tracker = 2;
+// optional .ContainerTrackerData container_tracker = 1;
 inline bool BlockIndexLogfileData::has_container_tracker() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -8613,7 +8613,7 @@ inline void BlockIndexLogfileData::set_allocated_container_tracker(::ContainerTr
 
 // ChunkIndexLogfileData
 
-// optional .ContainerTrackerData container_tracker = 2;
+// optional .ContainerTrackerData container_tracker = 1;
 inline bool ChunkIndexLogfileData::has_container_tracker() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -8699,7 +8699,7 @@ inline void BloomFilterLogfileData::set_k(::google::protobuf::uint32 value) {
   k_ = value;
 }
 
-// optional .ContainerTrackerData container_tracker = 4;
+// optional .ContainerTrackerData container_tracker = 3;
 inline bool BloomFilterLogfileData::has_container_tracker() const {
   return (_has_bits_[0] & 0x00000004u) != 0;
 }
@@ -9352,26 +9352,26 @@ inline void LogLogIDData::set_log_id(::google::protobuf::int64 value) {
 
 // LogStateData
 
-// optional int64 limit_id = 1;
-inline bool LogStateData::has_limit_id() const {
+// optional int64 max_item_count = 1;
+inline bool LogStateData::has_max_item_count() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
-inline void LogStateData::set_has_limit_id() {
+inline void LogStateData::set_has_max_item_count() {
   _has_bits_[0] |= 0x00000001u;
 }
-inline void LogStateData::clear_has_limit_id() {
+inline void LogStateData::clear_has_max_item_count() {
   _has_bits_[0] &= ~0x00000001u;
 }
-inline void LogStateData::clear_limit_id() {
-  limit_id_ = GOOGLE_LONGLONG(0);
-  clear_has_limit_id();
+inline void LogStateData::clear_max_item_count() {
+  max_item_count_ = GOOGLE_LONGLONG(0);
+  clear_has_max_item_count();
 }
-inline ::google::protobuf::int64 LogStateData::limit_id() const {
-  return limit_id_;
+inline ::google::protobuf::int64 LogStateData::max_item_count() const {
+  return max_item_count_;
 }
-inline void LogStateData::set_limit_id(::google::protobuf::int64 value) {
-  set_has_limit_id();
-  limit_id_ = value;
+inline void LogStateData::set_max_item_count(::google::protobuf::int64 value) {
+  set_has_max_item_count();
+  max_item_count_ = value;
 }
 
 // optional int64 log_entry_width = 2;

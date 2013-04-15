@@ -115,10 +115,6 @@ ContentStorage::ContentStorage() {
     log_ = 0;
     fingerprinter_name_ = "sha1";
     default_chunker_ = NULL;
-
-    reported_full_block_index_before_ = false;
-    reported_full_chunk_index_before_ = false;
-    reported_full_storage_before_ = false;
 }
 
 ContentStorage::Statistics::Statistics() :
@@ -389,74 +385,6 @@ bool ContentStorage::WriteBlock(Session* session,
     this->stats_.average_block_read_latency_.Add((tbb::tick_count::now() - block_read_start_tick).seconds() * 1000);
 
     bool result = true;
-    if (unlikely(this->block_index_->CheckIfFullWith(original_block_mapping, updated_block_mapping))) {
-        bool old_state = reported_full_block_index_before_.compare_and_swap(true, false);
-        if (!old_state) {
-            WARNING("Block index full: " <<
-                original_block_mapping.DebugString() << " => " << updated_block_mapping.DebugString() <<
-                ", state: not processed" <<
-                ", stats " << block_index_->PrintStatistics());
-        } else {
-            DEBUG("Block index full: " <<
-                original_block_mapping.DebugString() << " => " << updated_block_mapping.DebugString() <<
-                ", state: not processed" <<
-                ", block index item count " << block_index_->GetActiveBlockCount());
-        }
-        if (ec) {
-            ec->set_full();
-        }
-        result = false;
-    } else if (reported_full_block_index_before_) {
-        // reset the reported state
-        reported_full_block_index_before_ = false;
-    }
-    if (unlikely(result && this->chunk_store_->CheckIfFull())) {
-        bool old_state = reported_full_storage_before_.compare_and_swap(true, false);
-        if (!old_state) {
-            WARNING("Chunk store full: " <<
-                original_block_mapping.DebugString() << " => " << updated_block_mapping.DebugString() <<
-                ", state: not processed" <<
-                ", stats " << chunk_store_->PrintStatistics());
-        } else {
-            DEBUG("Chunk store full: " <<
-                original_block_mapping.DebugString() << " => " << updated_block_mapping.DebugString() <<
-                ", state: not processed" <<
-                ", stats " << chunk_store_->PrintStatistics());
-        }
-        if (ec) {
-            ec->set_full();
-        }
-        result = false;
-    } else if (reported_full_storage_before_) {
-        // reset the reported state
-        reported_full_storage_before_ = false;
-    }
-
-    // while it is in a strict sense is possible to complete the write with any new chunks
-    // it is better to exit early
-    // Note: This is only the first line of defense. It only "fires" when at this point in time
-    // the chunk index is already full.
-    if (unlikely(result && !this->chunk_index_->IsAcceptingNewChunks())) {
-        bool old_state = reported_full_chunk_index_before_.compare_and_swap(true, false);
-        if (!old_state) {
-            WARNING("Chunk index full: " <<
-                original_block_mapping.DebugString() << " => " << updated_block_mapping.DebugString() <<
-                ", state: not processed" <<
-                ", stats " << chunk_index_->PrintStatistics());
-        } else {
-            DEBUG("Chunk index full: " <<
-                original_block_mapping.DebugString() << " => " << updated_block_mapping.DebugString() <<
-                ", state: not processed" <<
-                ", stats " << chunk_index_->PrintStatistics());
-        }
-        if (ec) {
-            ec->set_full();
-        }
-        result = false;
-    } else if (reported_full_chunk_index_before_) {
-        // reset the reported state
-        reported_full_chunk_index_before_ = false;
-    }
 
     list<Chunk*> chunks;
     if (result) {

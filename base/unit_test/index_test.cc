@@ -298,22 +298,6 @@ TEST_P(IndexTest, StartWithCustomFilemode) {
 }
 
 /**
- * Checks that the estimated max item count of an persistent index is not 0.
- */
-TEST_P(IndexTest, GetEstimatedMaxItemCount) {
-    if (!index->IsPersistent()) {
-        // if an index is not persistent the create flag is meaning less
-        return;
-    }
-    ASSERT_TRUE(index->Start(StartContext()));
-
-    PersistentIndex* pi = index->AsPersistentIndex();
-    uint64_t max_item_count = pi->GetEstimatedMaxItemCount();
-    DEBUG(max_item_count);
-    ASSERT_GT(max_item_count, 0);
-}
-
-/**
  * Checks that LOOKUP_NOT_FOUND is returned when a key is not existing
  */
 TEST_P(IndexTest, LookupWithoutData) {

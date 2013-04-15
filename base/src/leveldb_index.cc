@@ -318,12 +318,6 @@ bool LeveldbIndex::SetOption(const string& option_name, const string& option) {
         checksum_ = b.value();
         return true;
     }
-    if (option_name == "max-item-count") {
-        Option<int64_t> b = ToStorageUnit(option);
-        CHECK(b.valid(), "Illegal estimated max item count value: " << option);
-        estimated_max_item_count_ = b.value();
-        return true;
-    }
     if (option_name == "block-size") {
         Option<int64_t> b = ToStorageUnit(option);
         CHECK(b.valid(), "Illegal block size value " << option);
@@ -624,10 +618,6 @@ string LeveldbIndex::PrintTrace() {
 
 uint64_t LeveldbIndex::GetItemCount() {
     return item_count_;
-}
-
-uint64_t LeveldbIndex::GetEstimatedMaxItemCount() {
-    return estimated_max_item_count_;
 }
 
 uint64_t LeveldbIndex::GetPersistentSize() {

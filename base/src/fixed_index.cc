@@ -286,6 +286,10 @@ lookup_result FixedIndex::ReadBucket(File* file, int64_t file_id, int64_t global
 
 }
 
+uint64_t FixedIndex::GetMaxItemCount() {
+      return this->GetLimitId();
+}
+
 lookup_result FixedIndex::Lookup(const void* key, size_t key_size,
                                  Message* message) {
     ProfileTimer timer(this->profiling);

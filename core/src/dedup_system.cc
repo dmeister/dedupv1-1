@@ -847,13 +847,6 @@ Option<bool> DedupSystem::Throttle(int thread_id, int thread_count) {
     } else if (unlikely(b.value())) {
         throttled = true;
     }
-
-    b = this->chunk_index_->Throttle(thread_id, thread_count);
-    if (unlikely(!b.valid())) {
-        WARNING("Chunk index throttle failed");
-    } else if (unlikely(b.value())) {
-        throttled = true;
-    }
     return make_option(throttled);
 }
 

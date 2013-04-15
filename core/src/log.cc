@@ -302,11 +302,11 @@ bool Log::Start(const StartContext& start_context, dedupv1::DedupSystem* system)
     if (!start_context.create()) {
         this->log_id_ = logID_data.log_id();
         this->replay_id_ = replayID_data.replay_id();
-        if (state_data.has_limit_id()) {
-            CHECK(this->log_data_->GetLimitId() == state_data.limit_id(),
-                "Limit id mismatch: " <<
-                "configured " << this->log_data_->GetLimitId() <<
-                ", stored " << state_data.limit_id());
+        if (state_data.has_max_item_count()) {
+            CHECK(this->log_data_->GetMaxItemCount() == state_data.max_item_count(),
+                "Max Item count mismatch: " <<
+                "configured " << this->log_data_->GetMaxItemCount() <<
+                ", stored " << state_data.max_item_count());
         }
         if (state_data.has_log_entry_width()) {
             CHECK(max_log_entry_width_ == state_data.log_entry_width(),
@@ -391,7 +391,7 @@ bool Log::Stop(const dedupv1::StopContext& stop_context) {
 }
 
 int64_t Log::GetLogPositionFromId(int64_t id) {
-    return id % this->log_data_->GetLimitId();
+    return id % this->log_data_->GetMaxItemCount();
 }
 
 bool Log::IsNearlyFull(int reserve) {
@@ -399,7 +399,7 @@ bool Log::IsNearlyFull(int reserve) {
     int64_t log_id_with_space = this->log_id_ + reserve;
 
     int64_t diff = log_id_with_space - this->replay_id_;
-    int64_t boundary = (this->log_data_->GetLimitId() - nearly_full_limit_);
+    int64_t boundary = (this->log_data_->GetMaxItemCount() - nearly_full_limit_);
     if (diff >= boundary) {
         return true;
     }
@@ -431,7 +431,7 @@ bool Log::GetRemainingFreeLogPlaces(int64_t* remaining_log_places) {
 
     spin_mutex::scoped_lock l(this->lock_);
     int64_t diff = this->log_id_ - this->replay_id_;
-    *remaining_log_places = this->log_data_->GetLimitId() - diff;
+    *remaining_log_places = this->log_data_->GetMaxItemCount() - diff;
     return true;
 }
 
@@ -444,7 +444,7 @@ bool Log::IsFull(bool hard_limit) {
     }
     int64_t remaining = 0;
     CHECK(GetRemainingFreeLogPlaces(&remaining), "Failed to get remaining free log places");
-    bool r = (remaining < (this->log_data_->GetLimitId() * factor));
+    bool r = (remaining < (this->log_data_->GetMaxItemCount() * factor));
     return r;
 }
 
@@ -583,8 +583,9 @@ bool Log::WriteNextEntry(const LogEventData& event_data, int64_t* log_id_given, 
                 ec->set_full();
             }
             // It is not possible to perform that operation now
-            ERROR("Log full: " << "log id " << this->log_id_ << ", replay id " << this->replay_id_ << ", limit "
-                               << this->log_data_->GetLimitId());
+            ERROR("Log full: " << "log id " << this->log_id_ <<
+                ", replay id " << this->replay_id_ <<
+                ", limit " << this->log_data_->GetMaxItemCount());
             return false;
         }
 
@@ -632,8 +633,9 @@ bool Log::WriteNextEntry(const LogEventData& event_data, int64_t* log_id_given, 
 
 Option<bool> Log::CheckLogId() {
     int64_t next_read_id = this->replay_id_;
-    int64_t max_check_id = std::min(this->log_id_ + this->log_id_update_intervall_, replay_id_
-        + this->log_data_->GetLimitId());
+    int64_t max_check_id = std::min(
+        static_cast<uint32_t>(this->log_id_ + this->log_id_update_intervall_),
+        static_cast<uint32_t>(replay_id_ + this->log_data_->GetMaxItemCount()));
     int64_t real_log_id = 0;
     bool found_any_element = false;
     int64_t real_replay_id = max_check_id;
@@ -678,22 +680,27 @@ Option<bool> Log::CheckLogId() {
                         int64_t entry_id = next_read_id + read_part;
                         int64_t entry_pos = GetLogPositionFromId(entry_id);
                         result = this->ReadEntryRaw(entry_pos, &inner_event_data);
-                        CHECK(result != LOOKUP_ERROR, "Error reading partition " << read_part <<
+                        CHECK(result != LOOKUP_ERROR,
+                            "Error reading partition " << read_part <<
                             ", id " << entry_id <<
-                            ", position " << entry_pos << " of log id " << next_read_id << " at position " << next_read_posistion);
+                            ", position " << entry_pos << " of log id " <<
+                            next_read_id << " at position " << next_read_posistion);
                         if (result == LOOKUP_NOT_FOUND) {
-                            INFO("Could not find partition " << read_part << ", id " << entry_id << ", position "
-                                                             << entry_pos << " of log id " << next_read_id << " at position "
-                                                             << next_read_posistion);
+                            INFO("Could not find partition " << read_part <<
+                                ", id " << entry_id << ", position "
+                                << entry_pos << " of log id " << next_read_id << " at position "
+                              << next_read_posistion);
                             error = true;
                         } else {
                             // LOOKUP_FOUND
                             CHECK(inner_event_data.has_log_id(), "Partition " << read_part << ", id " << entry_id << ", position " << entry_pos << " of event " << next_read_id << " at Position " << next_read_posistion << " had no log_id");
                             if (inner_event_data.log_id() < replay_id_) {
-                                INFO("Partition " << read_part << ", id " << entry_id << ", position " << entry_pos
-                                                  << " of log id " << next_read_id << " at position " << next_read_posistion
-                                                  << " has to old log_id: " << inner_event_data.log_id()
-                                                  << " while replay id is " << replay_id_);
+                                INFO("Partition " << read_part <<
+                                    ", id " << entry_id <<
+                                    ", position " << entry_pos << " of log id " <<
+                                    next_read_id << " at position " << next_read_posistion
+                                    << " has to old log_id: " << inner_event_data.log_id()
+                                    << " while replay id is " << replay_id_);
                                 error = true;
                             } else {
                                 CHECK(inner_event_data.log_id() == entry_id, "Partition " << read_part <<
@@ -890,7 +897,7 @@ Log::log_read Log::ReadEntry(int64_t id, LogEntryData* log_entry, bytestring* lo
 
         uint32_t event_partial_count = event_data.partial_count();
         for (uint32_t i = 1; i < event_partial_count; i++) {
-            int64_t position_key = (pos + i) % this->log_data_->GetLimitId();
+            int64_t position_key = (pos + i) % this->log_data_->GetMaxItemCount();
             LogEntryData event_data;
             enum lookup_result result = this->log_data_->Lookup(&position_key, sizeof(position_key), &event_data);
             CHECK_RETURN(result == LOOKUP_FOUND, LOG_READ_ERROR, "Failed to find partial log data: " <<
@@ -1577,7 +1584,7 @@ bool Log::DumpMetaInfo() {
     DCHECK(this->log_data_, "Log database not set");
 
     LogStateData logState;
-    logState.set_limit_id(this->log_data_->GetLimitId());
+    logState.set_max_item_count(this->log_data_->GetMaxItemCount());
     logState.set_log_entry_width(this->max_log_entry_width_);
     CHECK(this->log_info_store_.PersistInfo("state", logState),
         "Failed to persist state in log info data: " << logState.ShortDebugString());
@@ -1741,11 +1748,11 @@ string Log::PrintLockStatistics() {
 }
 
 double Log::GetFillRatio() {
-    if (log_data_ == NULL || log_data_->GetEstimatedMaxItemCount() == 0) {
+    if (log_data_ == NULL || log_data_->GetMaxItemCount() == 0) {
         return 0.0;
     }
     uint64_t unreplayed_items = log_id_ - replay_id_;
-    double fill_ratio = 1.0 * unreplayed_items / log_data_->GetEstimatedMaxItemCount();
+    double fill_ratio = 1.0 * unreplayed_items / log_data_->GetMaxItemCount();
     return fill_ratio;
 }
 
@@ -1757,7 +1764,7 @@ string Log::PrintStatistics() {
 
     sstr << "{";
     sstr << "\"fill ratio\": ";
-    if (log_data_ && log_data_->GetEstimatedMaxItemCount() != 0) {
+    if (log_data_ && log_data_->GetMaxItemCount() != 0) {
         sstr << GetFillRatio() << ",";
     } else {
         sstr << "null,";
@@ -1784,12 +1791,6 @@ string Log::PrintTrace() {
     sstr << "{";
     sstr << "\"log id\": " << this->log_id_ << "," << std::endl;
     sstr << "\"replay id\": " << this->replay_id_ << "," << std::endl;
-    sstr << "\"max log size\": ";
-    if (log_data_) {
-        sstr << this->log_data_->GetLimitId() << ",";
-    } else {
-        sstr << "null" << "," << std::endl;
-    }
     sstr << "\"multi-entry event count\": " << this->stats_.multi_entry_event_count_ << "," << std::endl;
     sstr << "\"throttle count\": " << this->stats_.throttle_count_ << "," << std::endl;
     sstr << "\"direct replay event\": ";

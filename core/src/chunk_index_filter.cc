@@ -103,9 +103,9 @@ bool ChunkIndexFilter::AcquireChunkLock(const dedupv1::chunkindex::ChunkMapping&
     return this->chunk_index_->chunk_locks().Lock(mapping.fingerprint(), mapping.fingerprint_size());
 }
 
-Filter::filter_result ChunkIndexFilter::Check(Session* session, 
+Filter::filter_result ChunkIndexFilter::Check(Session* session,
       const BlockMapping* block_mapping,
-      ChunkMapping* mapping, 
+      ChunkMapping* mapping,
       ErrorContext* ec) {
     DCHECK_RETURN(mapping, FILTER_ERROR, "Chunk mapping not set");
     enum filter_result result = FILTER_ERROR;
@@ -122,22 +122,14 @@ Filter::filter_result ChunkIndexFilter::Check(Session* session,
         return FILTER_EXISTING;
     }
 
-    CHECK_RETURN(AcquireChunkLock(*mapping), FILTER_ERROR, 
+    CHECK_RETURN(AcquireChunkLock(*mapping), FILTER_ERROR,
         "Failed to acquire chunk lock: " << mapping->DebugString());
 
     this->stats_.reads++;
     enum lookup_result index_result = this->chunk_index_->Lookup(mapping, true, ec);
     if (index_result == LOOKUP_NOT_FOUND) {
-        if (likely(chunk_index_->IsAcceptingNewChunks())) {
-            result = FILTER_NOT_EXISTING;
-            this->stats_.miss++;
-        } else {
-            if (ec) {
-                ec->set_full();
-            }
-            stats_.failures++;
-            result = FILTER_ERROR;
-        }
+        result = FILTER_NOT_EXISTING;
+        this->stats_.miss++;
     } else if (index_result == LOOKUP_FOUND) {
         mapping->set_usage_count(0); // TODO (dmeister): Why???
         this->stats_.hits++;
@@ -157,9 +149,9 @@ Filter::filter_result ChunkIndexFilter::Check(Session* session,
     return result;
 }
 
-bool ChunkIndexFilter::Update(Session* session, 
+bool ChunkIndexFilter::Update(Session* session,
     const BlockMapping* block_mapping,
-    ChunkMapping* mapping, 
+    ChunkMapping* mapping,
     ErrorContext* ec) {
     ProfileTimer timer(this->stats_.time_);
 
@@ -175,9 +167,9 @@ bool ChunkIndexFilter::Update(Session* session,
     return r;
 }
 
-bool ChunkIndexFilter::Abort(Session* session, 
+bool ChunkIndexFilter::Abort(Session* session,
     const BlockMapping* block_mapping,
-    ChunkMapping* chunk_mapping, 
+    ChunkMapping* chunk_mapping,
     ErrorContext* ec) {
     DCHECK(chunk_mapping, "Chunk mapping not set");
 

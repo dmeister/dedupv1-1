@@ -101,8 +101,6 @@ class TCHashIndex : public PersistentIndex {
                 TC_HASH_INDEX_STATE_STARTED //!< TC_HASH_INDEX_STATE_STARTED
         };
 
-        static const double kDefaultEstimatedMaxItemsPerBucket = 16;
-
         std::vector<TCHDB*> hdb_;
         std::vector<std::string> filename_;
 
@@ -240,8 +238,6 @@ class TCHashIndex : public PersistentIndex {
                 const google::protobuf::Message& message);
 
         virtual enum delete_result Delete(const void* key, size_t key_size);
-
-        virtual uint64_t GetEstimatedMaxItemCount();
 
         virtual uint64_t GetItemCount();
 

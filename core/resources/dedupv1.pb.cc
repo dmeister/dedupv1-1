@@ -898,7 +898,7 @@ void protobuf_AssignDesc_dedupv1_2eproto() {
       sizeof(LogLogIDData));
   LogStateData_descriptor_ = file->message_type(42);
   static const int LogStateData_offsets_[2] = {
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LogStateData, limit_id_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LogStateData, max_item_count_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(LogStateData, log_entry_width_),
   };
   LogStateData_reflection_ =
@@ -1151,7 +1151,7 @@ void protobuf_AddDesc_dedupv1_2eproto() {
     "\n\rdedupv1.proto\"\213\001\n\020BlockMappingData\022\020\n\010"
     "block_id\030\001 \001(\004\022$\n\005items\030\002 \003(\0132\025.BlockMap"
     "pingItemData\022\027\n\017version_counter\030\003 \001(\r\022\024\n"
-    "\014event_log_id\030\006 \001(\004\022\020\n\010checksum\030\007 \001(\014\"k\n"
+    "\014event_log_id\030\004 \001(\004\022\020\n\010checksum\030\005 \001(\014\"k\n"
     "\024BlockMappingPairData\022\020\n\010block_id\030\001 \001(\004\022"
     "\027\n\017version_counter\030\002 \001(\r\022(\n\005items\030\003 \003(\0132"
     "\031.BlockMappingPairItemData\"~\n\030BlockMappi"
@@ -1167,7 +1167,7 @@ void protobuf_AddDesc_dedupv1_2eproto() {
     "ast_block_hint\030\005 \001(\004\"\205\001\n\rContainerData\022\022"
     "\n\nprimary_id\030\001 \001(\004\022\026\n\016container_size\030\002 \001"
     "(\r\022!\n\005items\030\003 \003(\0132\022.ContainerItemData\022\023\n"
-    "\013commit_time\030\005 \001(\r\022\020\n\010checksum\030\007 \001(\r\"\203\001\n"
+    "\013commit_time\030\004 \001(\r\022\020\n\010checksum\030\006 \001(\r\"\203\001\n"
     "\021ContainerItemData\022\n\n\002fp\030\001 \001(\014\022\027\n\017positi"
     "on_offset\030\002 \001(\r\022\021\n\titem_size\030\003 \001(\r\022\020\n\010ra"
     "w_size\030\004 \001(\r\022\017\n\007deleted\030\005 \001(\010\022\023\n\013origina"
@@ -1212,10 +1212,10 @@ void protobuf_AddDesc_dedupv1_2eproto() {
     "op_event\030\016 \001(\0132\024.ReplayStopEventData\0221\n\022"
     "system_start_event\030\017 \001(\0132\025.SystemStartEv"
     "entData\022\"\n\014message_data\030b \001(\0132\014.MessageD"
-    "ata\"~\n\014LogEntryData\022\016\n\006log_id\030\007 \001(\003\022\r\n\005v"
-    "alue\030\003 \001(\014\022\025\n\rpartial_index\030\005 \001(\r\022\025\n\rpar"
-    "tial_count\030\006 \001(\r\022!\n\031last_fully_written_l"
-    "og_id\030\010 \001(\003\"_\n\030ContainerOpenedEventData\022"
+    "ata\"~\n\014LogEntryData\022\016\n\006log_id\030\001 \001(\003\022\r\n\005v"
+    "alue\030\002 \001(\014\022\025\n\rpartial_index\030\003 \001(\r\022\025\n\rpar"
+    "tial_count\030\004 \001(\r\022!\n\031last_fully_written_l"
+    "og_id\030\005 \001(\003\"_\n\030ContainerOpenedEventData\022"
     "\024\n\014container_id\030\001 \002(\004\022-\n\007address\030\002 \001(\0132\034"
     ".ContainerStorageAddressData\"\220\001\n\033Contain"
     "erCommittedEventData\022\024\n\014container_id\030\001 \002"
@@ -1225,41 +1225,41 @@ void protobuf_AddDesc_dedupv1_2eproto() {
     "Data\022\020\n\010first_id\030\001 \002(\004\022\021\n\tsecond_id\030\002 \002("
     "\004\022\036\n\022first_secondary_id\030\003 \003(\004B\002\020\001\022\037\n\023sec"
     "ond_secondary_id\030\004 \003(\004B\002\020\001\0223\n\rfirst_addr"
-    "ess\030\r \001(\0132\034.ContainerStorageAddressData\022"
-    "4\n\016second_address\030\016 \001(\0132\034.ContainerStora"
-    "geAddressData\0221\n\013new_address\030\017 \001(\0132\034.Con"
+    "ess\030\005 \001(\0132\034.ContainerStorageAddressData\022"
+    "4\n\016second_address\030\006 \001(\0132\034.ContainerStora"
+    "geAddressData\0221\n\013new_address\030\007 \001(\0132\034.Con"
     "tainerStorageAddressData\022\026\n\016new_primary_"
-    "id\030\022 \001(\004\022\034\n\020new_secondary_id\030\013 \003(\004B\002\020\001\022\026"
-    "\n\nunused_ids\030\014 \003(\004B\002\020\001\022\026\n\016new_item_count"
-    "\030\020 \001(\r\022\034\n\024new_active_data_size\030\021 \001(\r\"\231\001\n"
+    "id\030\010 \001(\004\022\034\n\020new_secondary_id\030\t \003(\004B\002\020\001\022\026"
+    "\n\nunused_ids\030\n \003(\004B\002\020\001\022\026\n\016new_item_count"
+    "\030\013 \001(\r\022\034\n\024new_active_data_size\030\014 \001(\r\"\231\001\n"
     "\031ContainerDeletedEventData\022\024\n\014container_"
     "id\030\001 \002(\004\022\"\n\026secondary_container_id\030\002 \003(\004"
-    "B\002\020\001\022-\n\007address\030\005 \001(\0132\034.ContainerStorage"
+    "B\002\020\001\022-\n\007address\030\003 \001(\0132\034.ContainerStorage"
     "AddressData\022\023\n\013file_offset\030\004 \001(\004\"\370\001\n\026Con"
     "tainerMoveEventData\022\024\n\014container_id\030\001 \002("
-    "\004\0221\n\013old_address\030\006 \001(\0132\034.ContainerStorag"
-    "eAddressData\0221\n\013new_address\030\007 \001(\0132\034.Cont"
+    "\004\0221\n\013old_address\030\002 \001(\0132\034.ContainerStorag"
+    "eAddressData\0221\n\013new_address\030\003 \001(\0132\034.Cont"
     "ainerStorageAddressData\022\030\n\020active_data_s"
-    "ize\030\010 \001(\004\022\034\n\024old_active_data_size\030\t \001(\004\022"
-    "\022\n\nitem_count\030\n \001(\r\022\026\n\016old_item_count\030\013 "
+    "ize\030\004 \001(\004\022\034\n\024old_active_data_size\030\005 \001(\004\022"
+    "\022\n\nitem_count\030\006 \001(\r\022\026\n\016old_item_count\030\007 "
     "\001(\r\"H\n\036ContainerCommitFailedEventData\022\024\n"
     "\014container_id\030\001 \002(\004\022\020\n\010item_key\030\002 \003(\014\",\n"
     "\027VolumeAttachedEventData\022\021\n\tvolume_id\030\001 "
     "\002(\r\",\n\027VolumeDetachedEventData\022\021\n\tvolume"
     "_id\030\001 \002(\r\"K\n\034BlockMappingWrittenEventDat"
-    "a\022+\n\014mapping_pair\030\004 \001(\0132\025.BlockMappingPa"
+    "a\022+\n\014mapping_pair\030\001 \001(\0132\025.BlockMappingPa"
     "irData\"k\n BlockMappingWriteFailedEventDa"
-    "ta\022+\n\014mapping_pair\030\004 \001(\0132\025.BlockMappingP"
-    "airData\022\032\n\022write_event_log_id\030\003 \001(\003\"Q\n\034B"
+    "ta\022+\n\014mapping_pair\030\001 \001(\0132\025.BlockMappingP"
+    "airData\022\032\n\022write_event_log_id\030\002 \001(\003\"Q\n\034B"
     "lockMappingDeletedEventData\0221\n\026original_"
     "block_mapping\030\001 \001(\0132\021.BlockMappingData\")"
     "\n\025OphranChunksEventData\022\020\n\010chunk_fp\030\001 \003("
     "\014\"I\n\025BlockIndexLogfileData\0220\n\021container_"
-    "tracker\030\002 \001(\0132\025.ContainerTrackerData\"I\n\025"
+    "tracker\030\001 \001(\0132\025.ContainerTrackerData\"I\n\025"
     "ChunkIndexLogfileData\0220\n\021container_track"
-    "er\030\002 \001(\0132\025.ContainerTrackerData\"j\n\026Bloom"
+    "er\030\001 \001(\0132\025.ContainerTrackerData\"j\n\026Bloom"
     "FilterLogfileData\022\023\n\013filter_size\030\001 \001(\004\022\t"
-    "\n\001k\030\002 \001(\r\0220\n\021container_tracker\030\004 \001(\0132\025.C"
+    "\n\001k\030\002 \001(\r\0220\n\021container_tracker\030\003 \001(\0132\025.C"
     "ontainerTrackerData\"\234\001\n\036GarbageCollectio"
     "nCandidateData\022\017\n\007address\030\001 \001(\004\0221\n\004item\030"
     "\002 \003(\0132#.GarbageCollectionCandidateItemDa"
@@ -1282,14 +1282,14 @@ void protobuf_AddDesc_dedupv1_2eproto() {
     "ContainerTrackerData\022\030\n\014container_id\030\001 \003"
     "(\004B\002\020\001\022!\n\031highest_seen_container_id\030\002 \001("
     "\004\"$\n\017LogReplayIDData\022\021\n\treplay_id\030\001 \001(\003\""
-    "\036\n\014LogLogIDData\022\016\n\006log_id\030\001 \001(\003\"9\n\014LogSt"
-    "ateData\022\020\n\010limit_id\030\001 \001(\003\022\027\n\017log_entry_w"
-    "idth\030\002 \001(\003\"\036\n\013MessageData\022\017\n\007message\030\001 \001"
-    "(\t\"\026\n\024BlockWriteFailedData*\226\001\n\017Compressi"
-    "onMode\022\022\n\016COMPRESSION_NO\020\000\022\027\n\023COMPRESSIO"
-    "N_DEFLATE\020\001\022\024\n\020COMPRESSION_GZIP\020\002\022\023\n\017COM"
-    "PRESSION_BZ2\020\003\022\026\n\022COMPRESSION_SNAPPY\020\004\022\023"
-    "\n\017COMPRESSION_LZ4\020\005", 5659);
+    "\036\n\014LogLogIDData\022\016\n\006log_id\030\001 \001(\003\"\?\n\014LogSt"
+    "ateData\022\026\n\016max_item_count\030\001 \001(\003\022\027\n\017log_e"
+    "ntry_width\030\002 \001(\003\"\036\n\013MessageData\022\017\n\007messa"
+    "ge\030\001 \001(\t\"\026\n\024BlockWriteFailedData*\226\001\n\017Com"
+    "pressionMode\022\022\n\016COMPRESSION_NO\020\000\022\027\n\023COMP"
+    "RESSION_DEFLATE\020\001\022\024\n\020COMPRESSION_GZIP\020\002\022"
+    "\023\n\017COMPRESSION_BZ2\020\003\022\026\n\022COMPRESSION_SNAP"
+    "PY\020\004\022\023\n\017COMPRESSION_LZ4\020\005", 5665);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "dedupv1.proto", &protobuf_RegisterTypes);
   BlockMappingData::default_instance_ = new BlockMappingData();
@@ -1540,12 +1540,12 @@ bool BlockMappingData::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(48)) goto parse_event_log_id;
+        if (input->ExpectTag(32)) goto parse_event_log_id;
         break;
       }
 
-      // optional uint64 event_log_id = 6;
-      case 6: {
+      // optional uint64 event_log_id = 4;
+      case 4: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_event_log_id:
@@ -1556,12 +1556,12 @@ bool BlockMappingData::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(58)) goto parse_checksum;
+        if (input->ExpectTag(42)) goto parse_checksum;
         break;
       }
 
-      // optional bytes checksum = 7;
-      case 7: {
+      // optional bytes checksum = 5;
+      case 5: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_checksum:
@@ -1608,15 +1608,15 @@ void BlockMappingData::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteUInt32(3, this->version_counter(), output);
   }
 
-  // optional uint64 event_log_id = 6;
+  // optional uint64 event_log_id = 4;
   if (has_event_log_id()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt64(6, this->event_log_id(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(4, this->event_log_id(), output);
   }
 
-  // optional bytes checksum = 7;
+  // optional bytes checksum = 5;
   if (has_checksum()) {
     ::google::protobuf::internal::WireFormatLite::WriteBytes(
-      7, this->checksum(), output);
+      5, this->checksum(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -1644,16 +1644,16 @@ void BlockMappingData::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(3, this->version_counter(), target);
   }
 
-  // optional uint64 event_log_id = 6;
+  // optional uint64 event_log_id = 4;
   if (has_event_log_id()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(6, this->event_log_id(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(4, this->event_log_id(), target);
   }
 
-  // optional bytes checksum = 7;
+  // optional bytes checksum = 5;
   if (has_checksum()) {
     target =
       ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
-        7, this->checksum(), target);
+        5, this->checksum(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -1681,14 +1681,14 @@ int BlockMappingData::ByteSize() const {
           this->version_counter());
     }
 
-    // optional uint64 event_log_id = 6;
+    // optional uint64 event_log_id = 4;
     if (has_event_log_id()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::UInt64Size(
           this->event_log_id());
     }
 
-    // optional bytes checksum = 7;
+    // optional bytes checksum = 5;
     if (has_checksum()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::BytesSize(
@@ -3285,12 +3285,12 @@ bool ContainerData::MergePartialFromCodedStream(
           goto handle_uninterpreted;
         }
         if (input->ExpectTag(26)) goto parse_items;
-        if (input->ExpectTag(40)) goto parse_commit_time;
+        if (input->ExpectTag(32)) goto parse_commit_time;
         break;
       }
 
-      // optional uint32 commit_time = 5;
-      case 5: {
+      // optional uint32 commit_time = 4;
+      case 4: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_commit_time:
@@ -3301,12 +3301,12 @@ bool ContainerData::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(56)) goto parse_checksum;
+        if (input->ExpectTag(48)) goto parse_checksum;
         break;
       }
 
-      // optional uint32 checksum = 7;
-      case 7: {
+      // optional uint32 checksum = 6;
+      case 6: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_checksum:
@@ -3355,14 +3355,14 @@ void ContainerData::SerializeWithCachedSizes(
       3, this->items(i), output);
   }
 
-  // optional uint32 commit_time = 5;
+  // optional uint32 commit_time = 4;
   if (has_commit_time()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32(5, this->commit_time(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(4, this->commit_time(), output);
   }
 
-  // optional uint32 checksum = 7;
+  // optional uint32 checksum = 6;
   if (has_checksum()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32(7, this->checksum(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(6, this->checksum(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -3390,14 +3390,14 @@ void ContainerData::SerializeWithCachedSizes(
         3, this->items(i), target);
   }
 
-  // optional uint32 commit_time = 5;
+  // optional uint32 commit_time = 4;
   if (has_commit_time()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(5, this->commit_time(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(4, this->commit_time(), target);
   }
 
-  // optional uint32 checksum = 7;
+  // optional uint32 checksum = 6;
   if (has_checksum()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(7, this->checksum(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(6, this->checksum(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -3425,14 +3425,14 @@ int ContainerData::ByteSize() const {
           this->container_size());
     }
 
-    // optional uint32 commit_time = 5;
+    // optional uint32 commit_time = 4;
     if (has_commit_time()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::UInt32Size(
           this->commit_time());
     }
 
-    // optional uint32 checksum = 7;
+    // optional uint32 checksum = 6;
     if (has_checksum()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::UInt32Size(
@@ -7314,21 +7314,37 @@ bool LogEntryData::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional bytes value = 3;
-      case 3: {
+      // optional int64 log_id = 1;
+      case 1: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int64, ::google::protobuf::internal::WireFormatLite::TYPE_INT64>(
+                 input, &log_id_)));
+          set_has_log_id();
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(18)) goto parse_value;
+        break;
+      }
+
+      // optional bytes value = 2;
+      case 2: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+         parse_value:
           DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_value()));
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(40)) goto parse_partial_index;
+        if (input->ExpectTag(24)) goto parse_partial_index;
         break;
       }
 
-      // optional uint32 partial_index = 5;
-      case 5: {
+      // optional uint32 partial_index = 3;
+      case 3: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_partial_index:
@@ -7339,12 +7355,12 @@ bool LogEntryData::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(48)) goto parse_partial_count;
+        if (input->ExpectTag(32)) goto parse_partial_count;
         break;
       }
 
-      // optional uint32 partial_count = 6;
-      case 6: {
+      // optional uint32 partial_count = 4;
+      case 4: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_partial_count:
@@ -7355,28 +7371,12 @@ bool LogEntryData::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(56)) goto parse_log_id;
+        if (input->ExpectTag(40)) goto parse_last_fully_written_log_id;
         break;
       }
 
-      // optional int64 log_id = 7;
-      case 7: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
-         parse_log_id:
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int64, ::google::protobuf::internal::WireFormatLite::TYPE_INT64>(
-                 input, &log_id_)));
-          set_has_log_id();
-        } else {
-          goto handle_uninterpreted;
-        }
-        if (input->ExpectTag(64)) goto parse_last_fully_written_log_id;
-        break;
-      }
-
-      // optional int64 last_fully_written_log_id = 8;
-      case 8: {
+      // optional int64 last_fully_written_log_id = 5;
+      case 5: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_last_fully_written_log_id:
@@ -7409,30 +7409,30 @@ bool LogEntryData::MergePartialFromCodedStream(
 
 void LogEntryData::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // optional bytes value = 3;
+  // optional int64 log_id = 1;
+  if (has_log_id()) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt64(1, this->log_id(), output);
+  }
+
+  // optional bytes value = 2;
   if (has_value()) {
     ::google::protobuf::internal::WireFormatLite::WriteBytes(
-      3, this->value(), output);
+      2, this->value(), output);
   }
 
-  // optional uint32 partial_index = 5;
+  // optional uint32 partial_index = 3;
   if (has_partial_index()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32(5, this->partial_index(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(3, this->partial_index(), output);
   }
 
-  // optional uint32 partial_count = 6;
+  // optional uint32 partial_count = 4;
   if (has_partial_count()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32(6, this->partial_count(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(4, this->partial_count(), output);
   }
 
-  // optional int64 log_id = 7;
-  if (has_log_id()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt64(7, this->log_id(), output);
-  }
-
-  // optional int64 last_fully_written_log_id = 8;
+  // optional int64 last_fully_written_log_id = 5;
   if (has_last_fully_written_log_id()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt64(8, this->last_fully_written_log_id(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteInt64(5, this->last_fully_written_log_id(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -7443,31 +7443,31 @@ void LogEntryData::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* LogEntryData::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // optional bytes value = 3;
+  // optional int64 log_id = 1;
+  if (has_log_id()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt64ToArray(1, this->log_id(), target);
+  }
+
+  // optional bytes value = 2;
   if (has_value()) {
     target =
       ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
-        3, this->value(), target);
+        2, this->value(), target);
   }
 
-  // optional uint32 partial_index = 5;
+  // optional uint32 partial_index = 3;
   if (has_partial_index()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(5, this->partial_index(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(3, this->partial_index(), target);
   }
 
-  // optional uint32 partial_count = 6;
+  // optional uint32 partial_count = 4;
   if (has_partial_count()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(6, this->partial_count(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(4, this->partial_count(), target);
   }
 
-  // optional int64 log_id = 7;
-  if (has_log_id()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt64ToArray(7, this->log_id(), target);
-  }
-
-  // optional int64 last_fully_written_log_id = 8;
+  // optional int64 last_fully_written_log_id = 5;
   if (has_last_fully_written_log_id()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt64ToArray(8, this->last_fully_written_log_id(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt64ToArray(5, this->last_fully_written_log_id(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -7481,35 +7481,35 @@ int LogEntryData::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // optional int64 log_id = 7;
+    // optional int64 log_id = 1;
     if (has_log_id()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::Int64Size(
           this->log_id());
     }
 
-    // optional bytes value = 3;
+    // optional bytes value = 2;
     if (has_value()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::BytesSize(
           this->value());
     }
 
-    // optional uint32 partial_index = 5;
+    // optional uint32 partial_index = 3;
     if (has_partial_index()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::UInt32Size(
           this->partial_index());
     }
 
-    // optional uint32 partial_count = 6;
+    // optional uint32 partial_count = 4;
     if (has_partial_count()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::UInt32Size(
           this->partial_count());
     }
 
-    // optional int64 last_fully_written_log_id = 8;
+    // optional int64 last_fully_written_log_id = 5;
     if (has_last_fully_written_log_id()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::Int64Size(
@@ -8371,12 +8371,70 @@ bool ContainerMergedEventData::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(90)) goto parse_new_secondary_id;
+        if (input->ExpectTag(42)) goto parse_first_address;
         break;
       }
 
-      // repeated uint64 new_secondary_id = 11 [packed = true];
-      case 11: {
+      // optional .ContainerStorageAddressData first_address = 5;
+      case 5: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+         parse_first_address:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+               input, mutable_first_address()));
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(50)) goto parse_second_address;
+        break;
+      }
+
+      // optional .ContainerStorageAddressData second_address = 6;
+      case 6: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+         parse_second_address:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+               input, mutable_second_address()));
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(58)) goto parse_new_address;
+        break;
+      }
+
+      // optional .ContainerStorageAddressData new_address = 7;
+      case 7: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+         parse_new_address:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+               input, mutable_new_address()));
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(64)) goto parse_new_primary_id;
+        break;
+      }
+
+      // optional uint64 new_primary_id = 8;
+      case 8: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+         parse_new_primary_id:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
+                 input, &new_primary_id_)));
+          set_has_new_primary_id();
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(74)) goto parse_new_secondary_id;
+        break;
+      }
+
+      // repeated uint64 new_secondary_id = 9 [packed = true];
+      case 9: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_new_secondary_id:
@@ -8388,16 +8446,16 @@ bool ContainerMergedEventData::MergePartialFromCodedStream(
                       WIRETYPE_VARINT) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadRepeatedPrimitiveNoInline<
                    ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
-                 1, 90, input, this->mutable_new_secondary_id())));
+                 1, 74, input, this->mutable_new_secondary_id())));
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(98)) goto parse_unused_ids;
+        if (input->ExpectTag(82)) goto parse_unused_ids;
         break;
       }
 
-      // repeated uint64 unused_ids = 12 [packed = true];
-      case 12: {
+      // repeated uint64 unused_ids = 10 [packed = true];
+      case 10: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_unused_ids:
@@ -8409,58 +8467,16 @@ bool ContainerMergedEventData::MergePartialFromCodedStream(
                       WIRETYPE_VARINT) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadRepeatedPrimitiveNoInline<
                    ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
-                 1, 98, input, this->mutable_unused_ids())));
+                 1, 82, input, this->mutable_unused_ids())));
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(106)) goto parse_first_address;
+        if (input->ExpectTag(88)) goto parse_new_item_count;
         break;
       }
 
-      // optional .ContainerStorageAddressData first_address = 13;
-      case 13: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
-         parse_first_address:
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
-               input, mutable_first_address()));
-        } else {
-          goto handle_uninterpreted;
-        }
-        if (input->ExpectTag(114)) goto parse_second_address;
-        break;
-      }
-
-      // optional .ContainerStorageAddressData second_address = 14;
-      case 14: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
-         parse_second_address:
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
-               input, mutable_second_address()));
-        } else {
-          goto handle_uninterpreted;
-        }
-        if (input->ExpectTag(122)) goto parse_new_address;
-        break;
-      }
-
-      // optional .ContainerStorageAddressData new_address = 15;
-      case 15: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
-         parse_new_address:
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
-               input, mutable_new_address()));
-        } else {
-          goto handle_uninterpreted;
-        }
-        if (input->ExpectTag(128)) goto parse_new_item_count;
-        break;
-      }
-
-      // optional uint32 new_item_count = 16;
-      case 16: {
+      // optional uint32 new_item_count = 11;
+      case 11: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_new_item_count:
@@ -8471,12 +8487,12 @@ bool ContainerMergedEventData::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(136)) goto parse_new_active_data_size;
+        if (input->ExpectTag(96)) goto parse_new_active_data_size;
         break;
       }
 
-      // optional uint32 new_active_data_size = 17;
-      case 17: {
+      // optional uint32 new_active_data_size = 12;
+      case 12: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_new_active_data_size:
@@ -8484,22 +8500,6 @@ bool ContainerMergedEventData::MergePartialFromCodedStream(
                    ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
                  input, &new_active_data_size_)));
           set_has_new_active_data_size();
-        } else {
-          goto handle_uninterpreted;
-        }
-        if (input->ExpectTag(144)) goto parse_new_primary_id;
-        break;
-      }
-
-      // optional uint64 new_primary_id = 18;
-      case 18: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
-         parse_new_primary_id:
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
-                 input, &new_primary_id_)));
-          set_has_new_primary_id();
         } else {
           goto handle_uninterpreted;
         }
@@ -8555,9 +8555,32 @@ void ContainerMergedEventData::SerializeWithCachedSizes(
       this->second_secondary_id(i), output);
   }
 
-  // repeated uint64 new_secondary_id = 11 [packed = true];
+  // optional .ContainerStorageAddressData first_address = 5;
+  if (has_first_address()) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      5, this->first_address(), output);
+  }
+
+  // optional .ContainerStorageAddressData second_address = 6;
+  if (has_second_address()) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      6, this->second_address(), output);
+  }
+
+  // optional .ContainerStorageAddressData new_address = 7;
+  if (has_new_address()) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      7, this->new_address(), output);
+  }
+
+  // optional uint64 new_primary_id = 8;
+  if (has_new_primary_id()) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(8, this->new_primary_id(), output);
+  }
+
+  // repeated uint64 new_secondary_id = 9 [packed = true];
   if (this->new_secondary_id_size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteTag(11, ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED, output);
+    ::google::protobuf::internal::WireFormatLite::WriteTag(9, ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED, output);
     output->WriteVarint32(_new_secondary_id_cached_byte_size_);
   }
   for (int i = 0; i < this->new_secondary_id_size(); i++) {
@@ -8565,9 +8588,9 @@ void ContainerMergedEventData::SerializeWithCachedSizes(
       this->new_secondary_id(i), output);
   }
 
-  // repeated uint64 unused_ids = 12 [packed = true];
+  // repeated uint64 unused_ids = 10 [packed = true];
   if (this->unused_ids_size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteTag(12, ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED, output);
+    ::google::protobuf::internal::WireFormatLite::WriteTag(10, ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED, output);
     output->WriteVarint32(_unused_ids_cached_byte_size_);
   }
   for (int i = 0; i < this->unused_ids_size(); i++) {
@@ -8575,37 +8598,14 @@ void ContainerMergedEventData::SerializeWithCachedSizes(
       this->unused_ids(i), output);
   }
 
-  // optional .ContainerStorageAddressData first_address = 13;
-  if (has_first_address()) {
-    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      13, this->first_address(), output);
-  }
-
-  // optional .ContainerStorageAddressData second_address = 14;
-  if (has_second_address()) {
-    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      14, this->second_address(), output);
-  }
-
-  // optional .ContainerStorageAddressData new_address = 15;
-  if (has_new_address()) {
-    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      15, this->new_address(), output);
-  }
-
-  // optional uint32 new_item_count = 16;
+  // optional uint32 new_item_count = 11;
   if (has_new_item_count()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32(16, this->new_item_count(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(11, this->new_item_count(), output);
   }
 
-  // optional uint32 new_active_data_size = 17;
+  // optional uint32 new_active_data_size = 12;
   if (has_new_active_data_size()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32(17, this->new_active_data_size(), output);
-  }
-
-  // optional uint64 new_primary_id = 18;
-  if (has_new_primary_id()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt64(18, this->new_primary_id(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(12, this->new_active_data_size(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -8654,10 +8654,36 @@ void ContainerMergedEventData::SerializeWithCachedSizes(
       WriteUInt64NoTagToArray(this->second_secondary_id(i), target);
   }
 
-  // repeated uint64 new_secondary_id = 11 [packed = true];
+  // optional .ContainerStorageAddressData first_address = 5;
+  if (has_first_address()) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteMessageNoVirtualToArray(
+        5, this->first_address(), target);
+  }
+
+  // optional .ContainerStorageAddressData second_address = 6;
+  if (has_second_address()) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteMessageNoVirtualToArray(
+        6, this->second_address(), target);
+  }
+
+  // optional .ContainerStorageAddressData new_address = 7;
+  if (has_new_address()) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteMessageNoVirtualToArray(
+        7, this->new_address(), target);
+  }
+
+  // optional uint64 new_primary_id = 8;
+  if (has_new_primary_id()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(8, this->new_primary_id(), target);
+  }
+
+  // repeated uint64 new_secondary_id = 9 [packed = true];
   if (this->new_secondary_id_size() > 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteTagToArray(
-      11,
+      9,
       ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED,
       target);
     target = ::google::protobuf::io::CodedOutputStream::WriteVarint32ToArray(
@@ -8668,10 +8694,10 @@ void ContainerMergedEventData::SerializeWithCachedSizes(
       WriteUInt64NoTagToArray(this->new_secondary_id(i), target);
   }
 
-  // repeated uint64 unused_ids = 12 [packed = true];
+  // repeated uint64 unused_ids = 10 [packed = true];
   if (this->unused_ids_size() > 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteTagToArray(
-      12,
+      10,
       ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED,
       target);
     target = ::google::protobuf::io::CodedOutputStream::WriteVarint32ToArray(
@@ -8682,40 +8708,14 @@ void ContainerMergedEventData::SerializeWithCachedSizes(
       WriteUInt64NoTagToArray(this->unused_ids(i), target);
   }
 
-  // optional .ContainerStorageAddressData first_address = 13;
-  if (has_first_address()) {
-    target = ::google::protobuf::internal::WireFormatLite::
-      WriteMessageNoVirtualToArray(
-        13, this->first_address(), target);
-  }
-
-  // optional .ContainerStorageAddressData second_address = 14;
-  if (has_second_address()) {
-    target = ::google::protobuf::internal::WireFormatLite::
-      WriteMessageNoVirtualToArray(
-        14, this->second_address(), target);
-  }
-
-  // optional .ContainerStorageAddressData new_address = 15;
-  if (has_new_address()) {
-    target = ::google::protobuf::internal::WireFormatLite::
-      WriteMessageNoVirtualToArray(
-        15, this->new_address(), target);
-  }
-
-  // optional uint32 new_item_count = 16;
+  // optional uint32 new_item_count = 11;
   if (has_new_item_count()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(16, this->new_item_count(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(11, this->new_item_count(), target);
   }
 
-  // optional uint32 new_active_data_size = 17;
+  // optional uint32 new_active_data_size = 12;
   if (has_new_active_data_size()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(17, this->new_active_data_size(), target);
-  }
-
-  // optional uint64 new_primary_id = 18;
-  if (has_new_primary_id()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(18, this->new_primary_id(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(12, this->new_active_data_size(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -8743,46 +8743,46 @@ int ContainerMergedEventData::ByteSize() const {
           this->second_id());
     }
 
-    // optional .ContainerStorageAddressData first_address = 13;
+    // optional .ContainerStorageAddressData first_address = 5;
     if (has_first_address()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
           this->first_address());
     }
 
-    // optional .ContainerStorageAddressData second_address = 14;
+    // optional .ContainerStorageAddressData second_address = 6;
     if (has_second_address()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
           this->second_address());
     }
 
-    // optional .ContainerStorageAddressData new_address = 15;
+    // optional .ContainerStorageAddressData new_address = 7;
     if (has_new_address()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
           this->new_address());
     }
 
-    // optional uint64 new_primary_id = 18;
+    // optional uint64 new_primary_id = 8;
     if (has_new_primary_id()) {
-      total_size += 2 +
+      total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::UInt64Size(
           this->new_primary_id());
     }
 
   }
   if (_has_bits_[10 / 32] & (0xffu << (10 % 32))) {
-    // optional uint32 new_item_count = 16;
+    // optional uint32 new_item_count = 11;
     if (has_new_item_count()) {
-      total_size += 2 +
+      total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::UInt32Size(
           this->new_item_count());
     }
 
-    // optional uint32 new_active_data_size = 17;
+    // optional uint32 new_active_data_size = 12;
     if (has_new_active_data_size()) {
-      total_size += 2 +
+      total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::UInt32Size(
           this->new_active_data_size());
     }
@@ -8822,7 +8822,7 @@ int ContainerMergedEventData::ByteSize() const {
     total_size += data_size;
   }
 
-  // repeated uint64 new_secondary_id = 11 [packed = true];
+  // repeated uint64 new_secondary_id = 9 [packed = true];
   {
     int data_size = 0;
     for (int i = 0; i < this->new_secondary_id_size(); i++) {
@@ -8839,7 +8839,7 @@ int ContainerMergedEventData::ByteSize() const {
     total_size += data_size;
   }
 
-  // repeated uint64 unused_ids = 12 [packed = true];
+  // repeated uint64 unused_ids = 10 [packed = true];
   {
     int data_size = 0;
     for (int i = 0; i < this->unused_ids_size(); i++) {
@@ -9077,6 +9077,20 @@ bool ContainerDeletedEventData::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
+        if (input->ExpectTag(26)) goto parse_address;
+        break;
+      }
+
+      // optional .ContainerStorageAddressData address = 3;
+      case 3: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+         parse_address:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+               input, mutable_address()));
+        } else {
+          goto handle_uninterpreted;
+        }
         if (input->ExpectTag(32)) goto parse_file_offset;
         break;
       }
@@ -9090,20 +9104,6 @@ bool ContainerDeletedEventData::MergePartialFromCodedStream(
                    ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
                  input, &file_offset_)));
           set_has_file_offset();
-        } else {
-          goto handle_uninterpreted;
-        }
-        if (input->ExpectTag(42)) goto parse_address;
-        break;
-      }
-
-      // optional .ContainerStorageAddressData address = 5;
-      case 5: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
-         parse_address:
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
-               input, mutable_address()));
         } else {
           goto handle_uninterpreted;
         }
@@ -9144,15 +9144,15 @@ void ContainerDeletedEventData::SerializeWithCachedSizes(
       this->secondary_container_id(i), output);
   }
 
+  // optional .ContainerStorageAddressData address = 3;
+  if (has_address()) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      3, this->address(), output);
+  }
+
   // optional uint64 file_offset = 4;
   if (has_file_offset()) {
     ::google::protobuf::internal::WireFormatLite::WriteUInt64(4, this->file_offset(), output);
-  }
-
-  // optional .ContainerStorageAddressData address = 5;
-  if (has_address()) {
-    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      5, this->address(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -9182,16 +9182,16 @@ void ContainerDeletedEventData::SerializeWithCachedSizes(
       WriteUInt64NoTagToArray(this->secondary_container_id(i), target);
   }
 
-  // optional uint64 file_offset = 4;
-  if (has_file_offset()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(4, this->file_offset(), target);
-  }
-
-  // optional .ContainerStorageAddressData address = 5;
+  // optional .ContainerStorageAddressData address = 3;
   if (has_address()) {
     target = ::google::protobuf::internal::WireFormatLite::
       WriteMessageNoVirtualToArray(
-        5, this->address(), target);
+        3, this->address(), target);
+  }
+
+  // optional uint64 file_offset = 4;
+  if (has_file_offset()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(4, this->file_offset(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -9212,7 +9212,7 @@ int ContainerDeletedEventData::ByteSize() const {
           this->container_id());
     }
 
-    // optional .ContainerStorageAddressData address = 5;
+    // optional .ContainerStorageAddressData address = 3;
     if (has_address()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
@@ -9430,12 +9430,12 @@ bool ContainerMoveEventData::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(50)) goto parse_old_address;
+        if (input->ExpectTag(18)) goto parse_old_address;
         break;
       }
 
-      // optional .ContainerStorageAddressData old_address = 6;
-      case 6: {
+      // optional .ContainerStorageAddressData old_address = 2;
+      case 2: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_old_address:
@@ -9444,12 +9444,12 @@ bool ContainerMoveEventData::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(58)) goto parse_new_address;
+        if (input->ExpectTag(26)) goto parse_new_address;
         break;
       }
 
-      // optional .ContainerStorageAddressData new_address = 7;
-      case 7: {
+      // optional .ContainerStorageAddressData new_address = 3;
+      case 3: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_new_address:
@@ -9458,12 +9458,12 @@ bool ContainerMoveEventData::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(64)) goto parse_active_data_size;
+        if (input->ExpectTag(32)) goto parse_active_data_size;
         break;
       }
 
-      // optional uint64 active_data_size = 8;
-      case 8: {
+      // optional uint64 active_data_size = 4;
+      case 4: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_active_data_size:
@@ -9474,12 +9474,12 @@ bool ContainerMoveEventData::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(72)) goto parse_old_active_data_size;
+        if (input->ExpectTag(40)) goto parse_old_active_data_size;
         break;
       }
 
-      // optional uint64 old_active_data_size = 9;
-      case 9: {
+      // optional uint64 old_active_data_size = 5;
+      case 5: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_old_active_data_size:
@@ -9490,12 +9490,12 @@ bool ContainerMoveEventData::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(80)) goto parse_item_count;
+        if (input->ExpectTag(48)) goto parse_item_count;
         break;
       }
 
-      // optional uint32 item_count = 10;
-      case 10: {
+      // optional uint32 item_count = 6;
+      case 6: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_item_count:
@@ -9506,12 +9506,12 @@ bool ContainerMoveEventData::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(88)) goto parse_old_item_count;
+        if (input->ExpectTag(56)) goto parse_old_item_count;
         break;
       }
 
-      // optional uint32 old_item_count = 11;
-      case 11: {
+      // optional uint32 old_item_count = 7;
+      case 7: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_old_item_count:
@@ -9549,36 +9549,36 @@ void ContainerMoveEventData::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteUInt64(1, this->container_id(), output);
   }
 
-  // optional .ContainerStorageAddressData old_address = 6;
+  // optional .ContainerStorageAddressData old_address = 2;
   if (has_old_address()) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      6, this->old_address(), output);
+      2, this->old_address(), output);
   }
 
-  // optional .ContainerStorageAddressData new_address = 7;
+  // optional .ContainerStorageAddressData new_address = 3;
   if (has_new_address()) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      7, this->new_address(), output);
+      3, this->new_address(), output);
   }
 
-  // optional uint64 active_data_size = 8;
+  // optional uint64 active_data_size = 4;
   if (has_active_data_size()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt64(8, this->active_data_size(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(4, this->active_data_size(), output);
   }
 
-  // optional uint64 old_active_data_size = 9;
+  // optional uint64 old_active_data_size = 5;
   if (has_old_active_data_size()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt64(9, this->old_active_data_size(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(5, this->old_active_data_size(), output);
   }
 
-  // optional uint32 item_count = 10;
+  // optional uint32 item_count = 6;
   if (has_item_count()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32(10, this->item_count(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(6, this->item_count(), output);
   }
 
-  // optional uint32 old_item_count = 11;
+  // optional uint32 old_item_count = 7;
   if (has_old_item_count()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32(11, this->old_item_count(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(7, this->old_item_count(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -9594,38 +9594,38 @@ void ContainerMoveEventData::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(1, this->container_id(), target);
   }
 
-  // optional .ContainerStorageAddressData old_address = 6;
+  // optional .ContainerStorageAddressData old_address = 2;
   if (has_old_address()) {
     target = ::google::protobuf::internal::WireFormatLite::
       WriteMessageNoVirtualToArray(
-        6, this->old_address(), target);
+        2, this->old_address(), target);
   }
 
-  // optional .ContainerStorageAddressData new_address = 7;
+  // optional .ContainerStorageAddressData new_address = 3;
   if (has_new_address()) {
     target = ::google::protobuf::internal::WireFormatLite::
       WriteMessageNoVirtualToArray(
-        7, this->new_address(), target);
+        3, this->new_address(), target);
   }
 
-  // optional uint64 active_data_size = 8;
+  // optional uint64 active_data_size = 4;
   if (has_active_data_size()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(8, this->active_data_size(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(4, this->active_data_size(), target);
   }
 
-  // optional uint64 old_active_data_size = 9;
+  // optional uint64 old_active_data_size = 5;
   if (has_old_active_data_size()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(9, this->old_active_data_size(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(5, this->old_active_data_size(), target);
   }
 
-  // optional uint32 item_count = 10;
+  // optional uint32 item_count = 6;
   if (has_item_count()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(10, this->item_count(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(6, this->item_count(), target);
   }
 
-  // optional uint32 old_item_count = 11;
+  // optional uint32 old_item_count = 7;
   if (has_old_item_count()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(11, this->old_item_count(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(7, this->old_item_count(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -9646,42 +9646,42 @@ int ContainerMoveEventData::ByteSize() const {
           this->container_id());
     }
 
-    // optional .ContainerStorageAddressData old_address = 6;
+    // optional .ContainerStorageAddressData old_address = 2;
     if (has_old_address()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
           this->old_address());
     }
 
-    // optional .ContainerStorageAddressData new_address = 7;
+    // optional .ContainerStorageAddressData new_address = 3;
     if (has_new_address()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
           this->new_address());
     }
 
-    // optional uint64 active_data_size = 8;
+    // optional uint64 active_data_size = 4;
     if (has_active_data_size()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::UInt64Size(
           this->active_data_size());
     }
 
-    // optional uint64 old_active_data_size = 9;
+    // optional uint64 old_active_data_size = 5;
     if (has_old_active_data_size()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::UInt64Size(
           this->old_active_data_size());
     }
 
-    // optional uint32 item_count = 10;
+    // optional uint32 item_count = 6;
     if (has_item_count()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::UInt32Size(
           this->item_count());
     }
 
-    // optional uint32 old_item_count = 11;
+    // optional uint32 old_item_count = 7;
     if (has_old_item_count()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::UInt32Size(
@@ -10521,8 +10521,8 @@ bool BlockMappingWrittenEventData::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional .BlockMappingPairData mapping_pair = 4;
-      case 4: {
+      // optional .BlockMappingPairData mapping_pair = 1;
+      case 1: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
@@ -10552,10 +10552,10 @@ bool BlockMappingWrittenEventData::MergePartialFromCodedStream(
 
 void BlockMappingWrittenEventData::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // optional .BlockMappingPairData mapping_pair = 4;
+  // optional .BlockMappingPairData mapping_pair = 1;
   if (has_mapping_pair()) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      4, this->mapping_pair(), output);
+      1, this->mapping_pair(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -10566,11 +10566,11 @@ void BlockMappingWrittenEventData::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* BlockMappingWrittenEventData::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // optional .BlockMappingPairData mapping_pair = 4;
+  // optional .BlockMappingPairData mapping_pair = 1;
   if (has_mapping_pair()) {
     target = ::google::protobuf::internal::WireFormatLite::
       WriteMessageNoVirtualToArray(
-        4, this->mapping_pair(), target);
+        1, this->mapping_pair(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -10584,7 +10584,7 @@ int BlockMappingWrittenEventData::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // optional .BlockMappingPairData mapping_pair = 4;
+    // optional .BlockMappingPairData mapping_pair = 1;
     if (has_mapping_pair()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
@@ -10740,28 +10740,28 @@ bool BlockMappingWriteFailedEventData::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional int64 write_event_log_id = 3;
-      case 3: {
+      // optional .BlockMappingPairData mapping_pair = 1;
+      case 1: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+               input, mutable_mapping_pair()));
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(16)) goto parse_write_event_log_id;
+        break;
+      }
+
+      // optional int64 write_event_log_id = 2;
+      case 2: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+         parse_write_event_log_id:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int64, ::google::protobuf::internal::WireFormatLite::TYPE_INT64>(
                  input, &write_event_log_id_)));
           set_has_write_event_log_id();
-        } else {
-          goto handle_uninterpreted;
-        }
-        if (input->ExpectTag(34)) goto parse_mapping_pair;
-        break;
-      }
-
-      // optional .BlockMappingPairData mapping_pair = 4;
-      case 4: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
-         parse_mapping_pair:
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
-               input, mutable_mapping_pair()));
         } else {
           goto handle_uninterpreted;
         }
@@ -10787,15 +10787,15 @@ bool BlockMappingWriteFailedEventData::MergePartialFromCodedStream(
 
 void BlockMappingWriteFailedEventData::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // optional int64 write_event_log_id = 3;
-  if (has_write_event_log_id()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt64(3, this->write_event_log_id(), output);
-  }
-
-  // optional .BlockMappingPairData mapping_pair = 4;
+  // optional .BlockMappingPairData mapping_pair = 1;
   if (has_mapping_pair()) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      4, this->mapping_pair(), output);
+      1, this->mapping_pair(), output);
+  }
+
+  // optional int64 write_event_log_id = 2;
+  if (has_write_event_log_id()) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt64(2, this->write_event_log_id(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -10806,16 +10806,16 @@ void BlockMappingWriteFailedEventData::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* BlockMappingWriteFailedEventData::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // optional int64 write_event_log_id = 3;
-  if (has_write_event_log_id()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt64ToArray(3, this->write_event_log_id(), target);
-  }
-
-  // optional .BlockMappingPairData mapping_pair = 4;
+  // optional .BlockMappingPairData mapping_pair = 1;
   if (has_mapping_pair()) {
     target = ::google::protobuf::internal::WireFormatLite::
       WriteMessageNoVirtualToArray(
-        4, this->mapping_pair(), target);
+        1, this->mapping_pair(), target);
+  }
+
+  // optional int64 write_event_log_id = 2;
+  if (has_write_event_log_id()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt64ToArray(2, this->write_event_log_id(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -10829,14 +10829,14 @@ int BlockMappingWriteFailedEventData::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // optional .BlockMappingPairData mapping_pair = 4;
+    // optional .BlockMappingPairData mapping_pair = 1;
     if (has_mapping_pair()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
           this->mapping_pair());
     }
 
-    // optional int64 write_event_log_id = 3;
+    // optional int64 write_event_log_id = 2;
     if (has_write_event_log_id()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::Int64Size(
@@ -11410,8 +11410,8 @@ bool BlockIndexLogfileData::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional .ContainerTrackerData container_tracker = 2;
-      case 2: {
+      // optional .ContainerTrackerData container_tracker = 1;
+      case 1: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
@@ -11441,10 +11441,10 @@ bool BlockIndexLogfileData::MergePartialFromCodedStream(
 
 void BlockIndexLogfileData::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // optional .ContainerTrackerData container_tracker = 2;
+  // optional .ContainerTrackerData container_tracker = 1;
   if (has_container_tracker()) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      2, this->container_tracker(), output);
+      1, this->container_tracker(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -11455,11 +11455,11 @@ void BlockIndexLogfileData::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* BlockIndexLogfileData::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // optional .ContainerTrackerData container_tracker = 2;
+  // optional .ContainerTrackerData container_tracker = 1;
   if (has_container_tracker()) {
     target = ::google::protobuf::internal::WireFormatLite::
       WriteMessageNoVirtualToArray(
-        2, this->container_tracker(), target);
+        1, this->container_tracker(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -11473,7 +11473,7 @@ int BlockIndexLogfileData::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // optional .ContainerTrackerData container_tracker = 2;
+    // optional .ContainerTrackerData container_tracker = 1;
     if (has_container_tracker()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
@@ -11623,8 +11623,8 @@ bool ChunkIndexLogfileData::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional .ContainerTrackerData container_tracker = 2;
-      case 2: {
+      // optional .ContainerTrackerData container_tracker = 1;
+      case 1: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
@@ -11654,10 +11654,10 @@ bool ChunkIndexLogfileData::MergePartialFromCodedStream(
 
 void ChunkIndexLogfileData::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // optional .ContainerTrackerData container_tracker = 2;
+  // optional .ContainerTrackerData container_tracker = 1;
   if (has_container_tracker()) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      2, this->container_tracker(), output);
+      1, this->container_tracker(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -11668,11 +11668,11 @@ void ChunkIndexLogfileData::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* ChunkIndexLogfileData::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // optional .ContainerTrackerData container_tracker = 2;
+  // optional .ContainerTrackerData container_tracker = 1;
   if (has_container_tracker()) {
     target = ::google::protobuf::internal::WireFormatLite::
       WriteMessageNoVirtualToArray(
-        2, this->container_tracker(), target);
+        1, this->container_tracker(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -11686,7 +11686,7 @@ int ChunkIndexLogfileData::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // optional .ContainerTrackerData container_tracker = 2;
+    // optional .ContainerTrackerData container_tracker = 1;
     if (has_container_tracker()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
@@ -11869,12 +11869,12 @@ bool BloomFilterLogfileData::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(34)) goto parse_container_tracker;
+        if (input->ExpectTag(26)) goto parse_container_tracker;
         break;
       }
 
-      // optional .ContainerTrackerData container_tracker = 4;
-      case 4: {
+      // optional .ContainerTrackerData container_tracker = 3;
+      case 3: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_container_tracker:
@@ -11915,10 +11915,10 @@ void BloomFilterLogfileData::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteUInt32(2, this->k(), output);
   }
 
-  // optional .ContainerTrackerData container_tracker = 4;
+  // optional .ContainerTrackerData container_tracker = 3;
   if (has_container_tracker()) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      4, this->container_tracker(), output);
+      3, this->container_tracker(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -11939,11 +11939,11 @@ void BloomFilterLogfileData::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(2, this->k(), target);
   }
 
-  // optional .ContainerTrackerData container_tracker = 4;
+  // optional .ContainerTrackerData container_tracker = 3;
   if (has_container_tracker()) {
     target = ::google::protobuf::internal::WireFormatLite::
       WriteMessageNoVirtualToArray(
-        4, this->container_tracker(), target);
+        3, this->container_tracker(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -11971,7 +11971,7 @@ int BloomFilterLogfileData::ByteSize() const {
           this->k());
     }
 
-    // optional .ContainerTrackerData container_tracker = 4;
+    // optional .ContainerTrackerData container_tracker = 3;
     if (has_container_tracker()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
@@ -14643,7 +14643,7 @@ void LogLogIDData::Swap(LogLogIDData* other) {
 // ===================================================================
 
 #ifndef _MSC_VER
-const int LogStateData::kLimitIdFieldNumber;
+const int LogStateData::kMaxItemCountFieldNumber;
 const int LogStateData::kLogEntryWidthFieldNumber;
 #endif  // !_MSC_VER
 
@@ -14663,7 +14663,7 @@ LogStateData::LogStateData(const LogStateData& from)
 
 void LogStateData::SharedCtor() {
   _cached_size_ = 0;
-  limit_id_ = GOOGLE_LONGLONG(0);
+  max_item_count_ = GOOGLE_LONGLONG(0);
   log_entry_width_ = GOOGLE_LONGLONG(0);
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
@@ -14700,7 +14700,7 @@ LogStateData* LogStateData::New() const {
 
 void LogStateData::Clear() {
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    limit_id_ = GOOGLE_LONGLONG(0);
+    max_item_count_ = GOOGLE_LONGLONG(0);
     log_entry_width_ = GOOGLE_LONGLONG(0);
   }
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
@@ -14713,14 +14713,14 @@ bool LogStateData::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional int64 limit_id = 1;
+      // optional int64 max_item_count = 1;
       case 1: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    ::google::protobuf::int64, ::google::protobuf::internal::WireFormatLite::TYPE_INT64>(
-                 input, &limit_id_)));
-          set_has_limit_id();
+                 input, &max_item_count_)));
+          set_has_max_item_count();
         } else {
           goto handle_uninterpreted;
         }
@@ -14762,9 +14762,9 @@ bool LogStateData::MergePartialFromCodedStream(
 
 void LogStateData::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // optional int64 limit_id = 1;
-  if (has_limit_id()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt64(1, this->limit_id(), output);
+  // optional int64 max_item_count = 1;
+  if (has_max_item_count()) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt64(1, this->max_item_count(), output);
   }
 
   // optional int64 log_entry_width = 2;
@@ -14780,9 +14780,9 @@ void LogStateData::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* LogStateData::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // optional int64 limit_id = 1;
-  if (has_limit_id()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt64ToArray(1, this->limit_id(), target);
+  // optional int64 max_item_count = 1;
+  if (has_max_item_count()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt64ToArray(1, this->max_item_count(), target);
   }
 
   // optional int64 log_entry_width = 2;
@@ -14801,11 +14801,11 @@ int LogStateData::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // optional int64 limit_id = 1;
-    if (has_limit_id()) {
+    // optional int64 max_item_count = 1;
+    if (has_max_item_count()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::Int64Size(
-          this->limit_id());
+          this->max_item_count());
     }
 
     // optional int64 log_entry_width = 2;
@@ -14842,8 +14842,8 @@ void LogStateData::MergeFrom(const ::google::protobuf::Message& from) {
 void LogStateData::MergeFrom(const LogStateData& from) {
   GOOGLE_CHECK_NE(&from, this);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    if (from.has_limit_id()) {
-      set_limit_id(from.limit_id());
+    if (from.has_max_item_count()) {
+      set_max_item_count(from.max_item_count());
     }
     if (from.has_log_entry_width()) {
       set_log_entry_width(from.log_entry_width());
@@ -14871,7 +14871,7 @@ bool LogStateData::IsInitialized() const {
 
 void LogStateData::Swap(LogStateData* other) {
   if (other != this) {
-    std::swap(limit_id_, other->limit_id_);
+    std::swap(max_item_count_, other->max_item_count_);
     std::swap(log_entry_width_, other->log_entry_width_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);

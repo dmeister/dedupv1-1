@@ -130,8 +130,6 @@ class ChunkIndex: public dedupv1::log::LogConsumer, public dedupv1::StatisticPro
 
             dedupv1::base::Profile import_time_;
 
-            tbb::atomic<uint64_t> index_full_failure_count_;
-
             tbb::atomic<uint64_t> imported_container_count_;
 
             /**
@@ -148,10 +146,6 @@ class ChunkIndex: public dedupv1::log::LogConsumer, public dedupv1::StatisticPro
             tbb::atomic<uint32_t> lock_busy_;
 
             dedupv1::base::SimpleSlidingAverage average_lookup_latency_;
-
-            tbb::atomic<uint64_t> throttle_count_;
-
-            dedupv1::base::Profile throttle_time_;
     };
     private:
 
@@ -250,14 +244,6 @@ class ChunkIndex: public dedupv1::log::LogConsumer, public dedupv1::StatisticPro
      * Import delay (in ms)
      */
     uint32_t import_delay_;
-
-    ThrottleHelper throttling_;
-
-    /**
-     * threshold after that the system begins writing dirty data back to disk.
-     * At first, it imports containers, after that it forces the index to write-back dirty pages
-     */
-    uint64_t dirty_chunk_count_threshold_;
 
     /**
      * Flag denoting if the start of an container import/dirty data import was already reported by an
@@ -691,12 +677,6 @@ class ChunkIndex: public dedupv1::log::LogConsumer, public dedupv1::StatisticPro
     inline ContainerTracker* container_tracker();
 
     /**
-     * throttles the system down by waiting for at most ms milliseconds if the hard limit
-     * size of the auxiliary index is reached.
-     */
-    dedupv1::base::Option<bool> Throttle(int thread_id, int thread_count);
-
-    /**
      * Imports all ready (aka committed) container into the persistent chunk index.
      *
      * This method is usually called during a writeback stop and depending on the actual situation
@@ -713,12 +693,6 @@ class ChunkIndex: public dedupv1::log::LogConsumer, public dedupv1::StatisticPro
      * returns the in-combat chunks data
      */
     inline ChunkIndexInCombats& in_combats();
-
-    /**
-     * If false, the chunk index would be full if we already consider the items currently in the auxiliary index
-     * In such situations, the system should stop accepting new data
-     */
-    bool IsAcceptingNewChunks();
 
     /**
      * @param it

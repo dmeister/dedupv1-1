@@ -718,15 +718,6 @@ class BlockIndex : public dedupv1::log::LogConsumer, public VolatileBlockCommitC
             dedupv1::base::ErrorContext* ec);
 
     /**
-     * When in doubt, the method should return false.
-     *
-     * @param previous_block_mapping
-     * @param updated_block_mapping
-     * @return
-     */
-    virtual bool CheckIfFullWith(const BlockMapping& previous_block_mapping, const BlockMapping& updated_block_mapping);
-
-    /**
      * Reads the block info of the given mapping (id of the mapping)
      * from
      * a) the cache

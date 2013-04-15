@@ -66,7 +66,6 @@ SqliteIndex::SqliteIndex() : PersistentIndex(PERSISTENT_ITEM_COUNT | RETURNS_DEL
     this->state = CREATED;
     this->cache_size = 1024;
     this->max_key_size = 512;
-    this->estimated_max_item_count = 0;
     this->sync = true;
     item_count_ = 0;
     preallocate_size_ = 0;
@@ -100,13 +99,6 @@ bool SqliteIndex::SetOption(const string& option_name, const string& option) {
     if (option_name == "sync") {
         CHECK(To<bool>(option).valid(), "Illegal option " << option);
         this->sync = To<bool>(option).value();
-        return true;
-    }
-    if (option_name == "max-item-count") {
-        Option<int64_t> i = ToStorageUnit(option);
-        CHECK(i.valid(), "Illegal option " << option);
-        CHECK(i.value() > 0, "Illegal option " << option);
-        this->estimated_max_item_count = i.value();
         return true;
     }
     if (option_name == "max-key-size") {
@@ -1092,10 +1084,6 @@ uint64_t SqliteIndex::GetPersistentSize() {
         }
     }
     return size_sum;
-}
-
-uint64_t SqliteIndex::GetEstimatedMaxItemCount() {
-    return estimated_max_item_count;
 }
 
 uint64_t SqliteIndex::GetInitialItemCount() {

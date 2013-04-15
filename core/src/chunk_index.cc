@@ -123,8 +123,6 @@ ChunkIndex::Statistics::Statistics() : average_lookup_latency_(256) {
     this->lock_free_ = 0;
     this->lock_busy_ = 0;
     this->imported_container_count_ = 0;
-    this->throttle_count_ = 0;
-    this->index_full_failure_count_ = 0;
     this->bg_container_import_wait_count_ = 0;
 }
 
@@ -142,7 +140,6 @@ ChunkIndex::ChunkIndex() {
     dirty_import_container_exists_ = false;
     import_delay_ = 0;
     dirty_import_finished_ = false;
-    dirty_chunk_count_threshold_ = 0;
     has_reported_importing_ = false;
 }
 
@@ -169,11 +166,6 @@ bool ChunkIndex::SetOption(const string& option_name, const string& option) {
     if (StartsWith(option_name, "in-combats.")) {
         CHECK(this->in_combats_.SetOption(option_name.substr(strlen("in-combats.")),
                 option), "Configuration failed");
-        return true;
-    }
-    if (option_name == "dirty-chunks-threshold") {
-        CHECK(ToStorageUnit(option).valid(), "Illegal option " << option);
-        this->dirty_chunk_count_threshold_ = ToStorageUnit(option).value();
         return true;
     }
     if (option_name == "persistent") {
@@ -204,10 +196,6 @@ bool ChunkIndex::SetOption(const string& option_name, const string& option) {
     if (option_name == "bg-thread-count") {
         CHECK(To<uint32_t>(option).valid(), "Illegal option " << option);
         this->bg_thread_count_ = To<uint32_t>(option).value();
-        return true;
-    } else if (StartsWith(option_name, "throttle.")) {
-        CHECK(this->throttling_.SetOption(option_name.substr(strlen("throttle.")), option),
-            "Failed to configure log throttling");
         return true;
     }
     ERROR("Illegal option: " << option_name);
@@ -286,12 +274,6 @@ bool ChunkIndex::Start(const StartContext& start_context, DedupSystem* system) {
     CHECK(this->chunk_locks_.Start(start_context), "Failed to start chunk locks");
     CHECK(this->in_combats_.Start(start_context, this->log_), "Failed to start chunk in combat");
     CHECK(this->chunk_index_->Start(start_context), "Could not start index");
-
-    if (dirty_chunk_count_threshold_ == 0) {
-        // unset
-        DCHECK(chunk_index_->GetEstimatedMaxCacheItemCount() > 0, "Illegal max cache item count");
-        dirty_chunk_count_threshold_ = chunk_index_->GetEstimatedMaxCacheItemCount() * 0.7;
-    }
 
     this->storage_ = system->storage();
     CHECK(this->storage_, "Failed to set storage");
@@ -536,29 +518,11 @@ bool ChunkIndex::Delete(const ChunkMapping& mapping) {
     return true;
 }
 
-bool ChunkIndex::IsAcceptingNewChunks() {
-    if (this->chunk_index_ == NULL) {
-        return false;
-    }
-    return this->chunk_index_->GetTotalItemCount() < (0.9 * this->chunk_index_->GetEstimatedMaxItemCount());
-}
-
 bool ChunkIndex::Put(const ChunkMapping& mapping, ErrorContext* ec) {
     DCHECK_RETURN(this->state_ == STARTED, PUT_ERROR, "Illegal state: state " << this->state_);
 
     ProfileTimer total_timer(this->stats_.profiling_);
     ProfileTimer update_timer(this->stats_.update_time_);
-
-    if (this->chunk_index_->GetItemCount() >= this->chunk_index_->GetEstimatedMaxItemCount()) {
-        WARNING("Chunk index full: " <<
-            "persistent index item count " << this->chunk_index_->GetItemCount() <<
-            ", estimated maximal item count " << this->chunk_index_->GetEstimatedMaxItemCount());
-        this->stats_.index_full_failure_count_++;
-        if (ec) {
-            ec->set_full();
-        }
-        return false;
-    }
 
     TRACE("Updating chunk index (pinned): " << mapping.DebugString());
 
@@ -582,7 +546,6 @@ bool ChunkIndex::PutOverwrite(ChunkMapping& mapping, ErrorContext* ec) {
 bool ChunkIndex::PersistStatistics(std::string prefix, dedupv1::PersistStatistics* ps) {
     ChunkIndexStatsData data;
     data.set_imported_container_count(this->stats_.imported_container_count_);
-    data.set_index_full_failure_count(stats_.index_full_failure_count_);
     CHECK(ps->Persist(prefix, data), "Failed to persist chunk index stats");
     return true;
 }
@@ -590,13 +553,7 @@ bool ChunkIndex::PersistStatistics(std::string prefix, dedupv1::PersistStatistic
 bool ChunkIndex::RestoreStatistics(std::string prefix, dedupv1::PersistStatistics* ps) {
     ChunkIndexStatsData data;
     CHECK(ps->Restore(prefix, &data), "Failed to restore chunk index stats");
-    if (data.has_imported_container_count()) {
-        this->stats_.imported_container_count_ = data.imported_container_count();
-    }
-
-    if (data.has_index_full_failure_count()) {
-        stats_.index_full_failure_count_ = data.index_full_failure_count();
-    }
+    this->stats_.imported_container_count_ = data.imported_container_count();
     return true;
 }
 
@@ -615,7 +572,6 @@ string ChunkIndex::PrintTrace() {
     stringstream sstr;
     sstr << "{";
     sstr << "\"index\": " << (chunk_index_ ? this->chunk_index_->PrintTrace() : "null") << "," << std::endl;
-    sstr << "\"throttle count\": " << this->stats_.throttle_count_ << "," << std::endl;
     sstr << "\"in combats\": " << this->in_combats_.PrintTrace() << "," << std::endl;
     sstr << "\"replaying state\": " << ToString(static_cast<bool>(is_replaying_)) << "," << std::endl;
     sstr << "\"bg container import wait count\": " << this->stats_.bg_container_import_wait_count_ << std::endl;
@@ -631,24 +587,6 @@ string ChunkIndex::PrintStatistics() {
 
     sstr << "{";
     sstr << "\"imported container count\": " << this->stats_.imported_container_count_ << "," << std::endl;
-
-    if (chunk_index_ && this->chunk_index_->GetEstimatedMaxItemCount() > 0) {
-        uint64_t total_item_count = chunk_index_->GetItemCount();
-        double main_fill_ratio = (1.0 * total_item_count) / this->chunk_index_->GetEstimatedMaxItemCount();
-        sstr << "\"index fill ratio\": " << main_fill_ratio << "," << std::endl;
-    } else {
-        sstr << "\"index fill ratio\": null," << std::endl;
-    }
-
-    if (chunk_index_ && this->chunk_index_->GetEstimatedMaxCacheItemCount() > 0) {
-        uint64_t total_item_count = chunk_index_->GetDirtyItemCount();
-        double main_fill_ratio = (1.0 * total_item_count) / this->chunk_index_->GetEstimatedMaxCacheItemCount();
-        sstr << "\"dirty cache fill ratio\": " << main_fill_ratio << "," << std::endl;
-    } else {
-        sstr << "\"dirty cache fill ratio\": null," << std::endl;
-    }
-
-    sstr << "\"index full failure count\": " << this->stats_.index_full_failure_count_ << "," << std::endl;
     sstr << "\"index item count\": " << (chunk_index_ ? ToString(this->chunk_index_->GetItemCount()) : "null") << ","
          << std::endl;
     sstr << "\"total index item count\": " << (chunk_index_ ? ToString(this->chunk_index_->GetTotalItemCount()) : "null") << ","
@@ -671,7 +609,6 @@ string ChunkIndex::PrintProfile() {
     sstr << "\"lookup time\": " << this->stats_.lookup_time_.GetSum() << "," << std::endl;
     sstr << "\"import time\": " << this->stats_.import_time_.GetSum() << "," << std::endl;
     sstr << "\"update time\": " << this->stats_.update_time_.GetSum() << "," << std::endl;
-    sstr << "\"throttle time\": " << this->stats_.throttle_time_.GetSum() << "," << std::endl;
     sstr << "\"chunk locks\": " << chunk_locks_.PrintProfile() << "," << std::endl;
 
     sstr << "\"index\": " << (chunk_index_ ? this->chunk_index_->PrintProfile() : "null") << std::endl;
@@ -1276,16 +1213,12 @@ ChunkIndex::import_result ChunkIndex::TryImportDirtyChunks(uint64_t* resume_hand
 
     bool should_import = (import_if_replaying_ && is_replaying_ && this->chunk_index_->GetDirtyItemCount() > 0);
     if (!should_import) {
-        should_import = (this->chunk_index_->GetDirtyItemCount() > dirty_chunk_count_threshold_);
-    }
-    if (!should_import) {
         if (unlikely(has_reported_importing_)) {
             has_reported_importing_ = false;
             INFO("Chunk index importing stopped: " <<
                 "replaying state " << ToString(is_replaying_) <<
                 ", dirty item count " << chunk_index_->GetDirtyItemCount() <<
                 ", total item count " << chunk_index_->GetTotalItemCount() <<
-                ", dirty chunk count threshold " << dirty_chunk_count_threshold_ <<
                 ", persistent item count " << chunk_index_->GetItemCount());
         }
         return IMPORT_NO_MORE;
@@ -1295,7 +1228,6 @@ ChunkIndex::import_result ChunkIndex::TryImportDirtyChunks(uint64_t* resume_hand
             "replaying state " << ToString(is_replaying_) <<
             ", dirty item count " << chunk_index_->GetDirtyItemCount() <<
             ", total item count " << chunk_index_->GetTotalItemCount() <<
-            ", dirty chunk count threshold " << dirty_chunk_count_threshold_ <<
             ", persistent item count " << chunk_index_->GetItemCount());
     }
 
@@ -1315,16 +1247,12 @@ ChunkIndex::import_result ChunkIndex::TryImportContainer() {
 
     bool should_import = (import_if_replaying_ && is_replaying_);
     if (!should_import) {
-        should_import = (this->chunk_index_->GetDirtyItemCount() > dirty_chunk_count_threshold_);
-    }
-    if (!should_import) {
         if (unlikely(has_reported_importing_)) {
             has_reported_importing_ = false;
             INFO("Chunk index importing stopped: " <<
                 "replaying state " << ToString(is_replaying_) <<
                 ", dirty item count " << chunk_index_->GetDirtyItemCount() <<
                 ", total item count " << chunk_index_->GetTotalItemCount() <<
-                ", dirty chunk count threshold " << dirty_chunk_count_threshold_ <<
                 ", persistent item count " << chunk_index_->GetItemCount());
         }
         return IMPORT_NO_MORE;
@@ -1341,7 +1269,6 @@ ChunkIndex::import_result ChunkIndex::TryImportContainer() {
                 "replaying state " << ToString(is_replaying_) <<
                 ", dirty item count " << chunk_index_->GetDirtyItemCount() <<
                 ", total item count " << chunk_index_->GetTotalItemCount() <<
-                ", dirty chunk count threshold " << dirty_chunk_count_threshold_ <<
                 ", persistent item count " << chunk_index_->GetItemCount() <<
                 ", reason no container left to import");
         }
@@ -1355,7 +1282,6 @@ ChunkIndex::import_result ChunkIndex::TryImportContainer() {
             "replaying state " << ToString(is_replaying_) <<
             ", dirty item count " << chunk_index_->GetDirtyItemCount() <<
             ", total item count " << chunk_index_->GetTotalItemCount() <<
-            ", dirty chunk count threshold " << dirty_chunk_count_threshold_ <<
             ", persistent item count " << chunk_index_->GetItemCount());
     }
 
@@ -1391,19 +1317,6 @@ ChunkIndex::import_result ChunkIndex::TryImportContainer() {
 
 void ChunkIndex::set_state(chunk_index_state new_state) {
     this->state_ = new_state;
-}
-
-Option<bool> ChunkIndex::Throttle(int thread_id, int thread_count) {
-    ProfileTimer timer(this->stats_.throttle_time_);
-
-    double item_count = this->chunk_index_->GetDirtyItemCount();
-    double fill_ratio = item_count / (chunk_index_->GetEstimatedMaxCacheItemCount());
-    double thread_ratio = 1.0 * thread_id / thread_count;
-    Option<bool> r = throttling_.Throttle(fill_ratio, thread_ratio);
-    if (r.valid() && r.value()) {
-        this->stats_.throttle_count_++;
-    }
-    return r;
 }
 
 }

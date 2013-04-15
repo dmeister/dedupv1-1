@@ -91,7 +91,6 @@ TCHashIndex::TCHashIndex() : PersistentIndex(PERSISTENT_ITEM_COUNT | RETURNS_DEL
     this->mem_mapped_size_ = -1; // default value selected by TC
     this->version_counter_ = 0;
     this->state_ = TC_HASH_INDEX_STATE_CREATED;
-    this->estimated_max_items_per_bucket_ = kDefaultEstimatedMaxItemsPerBucket;
     this->checksum_ = true;
 }
 
@@ -106,11 +105,6 @@ bool TCHashIndex::SetOption(const string& option_name, const string& option) {
         CHECK(ToStorageUnit(option).valid(), "Illegal option " << option);
         this->buckets_ = ToStorageUnit(option).value();
         CHECK(this->buckets_ > 0, "Illegal option " << option);
-        return true;
-    }
-    if (option_name == "max-items-per-bucket") {
-        CHECK(To<int32_t>(option).valid(), "Illegal option " << option);
-        this->estimated_max_items_per_bucket_ = To<int32_t>(option).value();
         return true;
     }
     if (option_name == "record-alignment") {
@@ -486,10 +480,6 @@ uint64_t TCHashIndex::GetPersistentSize() {
         }
     }
     return size_sum;
-}
-
-uint64_t TCHashIndex::GetEstimatedMaxItemCount() {
-    return this->buckets_ * estimated_max_items_per_bucket_;
 }
 
 uint64_t TCHashIndex::GetItemCount() {

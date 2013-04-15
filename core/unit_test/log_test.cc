@@ -1681,7 +1681,7 @@ TEST_P(LogTest, RestartLogWithOverflow) {
     ASSERT_TRUE(log);
 
     StartSizeLimitedLog(log);
-    int limit_count = log->log_data_->GetLimitId();
+    int limit_count = log->log_data_->GetMaxItemCount();
     int overflow_count = limit_count + 10;
 
     LogTestLogConsumer context;
@@ -1708,7 +1708,7 @@ TEST_P(LogTest, RestartLogWithOverflow) {
     log = CreateLog(config_file());
     ASSERT_TRUE(log);
     StartSizeLimitedLog(log, true, false, true);
-    ASSERT_EQ(limit_count, log->log_data_->GetLimitId());
+    ASSERT_EQ(limit_count, log->log_data_->GetMaxItemCount());
     EXPECT_LE(overflow_count, log->log_id_);
     EXPECT_GT(log->replay_id_, 10);
 }
@@ -1718,7 +1718,7 @@ TEST_P(LogTest, GenerateEmptyLogEvent) {
     ASSERT_TRUE(log);
     StartSizeLimitedLog(log);
 
-    int64_t limit_id = log->log_data()->GetLimitId();
+    int64_t limit_id = log->log_data()->GetMaxItemCount();
     DEBUG("Limit id " << limit_id);
 
     int64_t current_log_id = 0;
@@ -1759,7 +1759,7 @@ TEST_P(LogTest, GenerateEmptyLogEvent) {
     log = CreateLog(config_file());
     ASSERT_TRUE(log);
     StartSizeLimitedLog(log, true, false, true);
-    ASSERT_EQ(limit_id, log->log_data()->GetLimitId());
+    ASSERT_EQ(limit_id, log->log_data()->GetMaxItemCount());
     EXPECT_EQ(current_log_id, log->log_id());
     EXPECT_EQ(current_replay_id, log->replay_id());
 
@@ -1771,7 +1771,7 @@ TEST_P(LogTest, RestartRandom) {
     StartSizeLimitedLog(log);
     ASSERT_TRUE(log->Replay(EVENT_REPLAY_MODE_REPLAY_BG, 1, NULL, NULL)); // new log event
 
-    int64_t limit_id = log->log_data()->GetLimitId();
+    int64_t limit_id = log->log_data()->GetMaxItemCount();
     DEBUG("Limit id " << limit_id);
     LC_RNG rng(1024);
 
@@ -1786,7 +1786,9 @@ TEST_P(LogTest, RestartRandom) {
             replay_count = rng.GenerateWord32(limit_id / 5, 0.5 * limit_id);
         }
 
-        DEBUG("Round " << i << ", commit " << commit_count << ", replay " << replay_count << ", limit id " << limit_id);
+        DEBUG("Round " << i << ", commit " << commit_count <<
+            ", replay " << replay_count <<
+            ", limit id " << limit_id);
 
         for (int i = 0; i < commit_count; i++) {
             MessageData message;
@@ -1819,7 +1821,7 @@ TEST_P(LogTest, RestartRandom) {
         log = CreateLog(config_file());
         ASSERT_TRUE(log);
         StartSizeLimitedLog(log, true, false, true);
-        ASSERT_EQ(limit_id, log->log_data()->GetLimitId());
+        ASSERT_EQ(limit_id, log->log_data()->GetMaxItemCount());
         EXPECT_EQ(current_log_id, log->log_id());
         EXPECT_EQ(current_replay_id, log->replay_id());
     }
@@ -1830,7 +1832,7 @@ TEST_P(LogTest, RestartAll) {
     ASSERT_TRUE(log);
     StartSizeLimitedLog(log);
 
-    int64_t limit_id = log->log_data()->GetLimitId();
+    int64_t limit_id = log->log_data()->GetMaxItemCount();
     DEBUG("Limit id " << limit_id);
 
     int64_t current_log_id = 0;
@@ -1873,7 +1875,7 @@ TEST_P(LogTest, RestartAll) {
         log = CreateLog(config_file());
         ASSERT_TRUE(log);
         StartSizeLimitedLog(log, true, false, true);
-        ASSERT_EQ(limit_id, log->log_data()->GetLimitId());
+        ASSERT_EQ(limit_id, log->log_data()->GetMaxItemCount());
         EXPECT_EQ(current_log_id, log->log_id());
         EXPECT_EQ(current_replay_id, log->replay_id());
     }
@@ -1887,9 +1889,7 @@ TEST_P(LogTest, RestartLogWithLogIdOnPositionZero) {
     ASSERT_TRUE(log);
     StartSizeLimitedLog(log);
 
-    int64_t limit_id = log->log_data()->GetLimitId();
-    DEBUG("Limit id " << limit_id);
-
+    int64_t limit_id = log->log_data()->GetMaxItemCount();
     LogTestLogConsumer context;
     ASSERT_TRUE(log->RegisterConsumer("context", &context));
 
@@ -1924,7 +1924,7 @@ TEST_P(LogTest, RestartLogWithLogIdOnPositionZero) {
     log = CreateLog(config_file());
     ASSERT_TRUE(log);
     StartSizeLimitedLog(log, true, false, true);
-    ASSERT_EQ(limit_id, log->log_data()->GetLimitId());
+    ASSERT_EQ(limit_id, log->log_data()->GetMaxItemCount());
     EXPECT_EQ(current_log_id, log->log_id());
     EXPECT_EQ(current_replay_id, log->replay_id());
 }
@@ -1938,8 +1938,7 @@ TEST_P(LogTest, RestartLogWithOverflowAndDeletedLastHalfAfterCrash) {
     ASSERT_TRUE(log);
     StartSizeLimitedLog(log);
 
-    int64_t limit_id = log->log_data_->GetLimitId();
-    DEBUG("Limit id " << limit_id);
+    int64_t limit_id = log->log_data_->GetMaxItemCount();
 
     LogTestLogConsumer context;
     ASSERT_TRUE(log->RegisterConsumer("context", &context));
@@ -1976,7 +1975,7 @@ TEST_P(LogTest, RestartLogWithOverflowAndDeletedLastHalfAfterCrash) {
     log = CreateLog(config_file());
     ASSERT_TRUE(log);
     StartSizeLimitedLog(log, true, true, true); // start crashed
-    ASSERT_EQ(limit_id, log->log_data_->GetLimitId());
+    ASSERT_EQ(limit_id, log->log_data_->GetMaxItemCount());
     EXPECT_EQ(current_log_id, log->log_id_);
     EXPECT_EQ(current_replay_id, log->replay_id_);
 }
@@ -1985,8 +1984,6 @@ TEST_P(LogTest, RestartLogWithOverflowAndDeletedLastHalf) {
     log = CreateLog(config_file());
     ASSERT_TRUE(log);
     StartSizeLimitedLog(log);
-
-    int64_t limit_id = log->log_data_->GetLimitId();
 
     LogTestLogConsumer context;
     ASSERT_TRUE(log->RegisterConsumer("context", &context));
@@ -2022,7 +2019,6 @@ TEST_P(LogTest, RestartLogWithOverflowAndDeletedLastHalf) {
     log = CreateLog(config_file());
     ASSERT_TRUE(log);
     StartSizeLimitedLog(log, true, false, true);
-    ASSERT_EQ(limit_id, log->log_data_->GetLimitId());
     EXPECT_EQ(current_log_id, log->log_id_);
     EXPECT_EQ(current_replay_id, log->replay_id_);
 }
@@ -2033,7 +2029,6 @@ TEST_P(LogTest, RestartLogWithOverflowAndDeletedMiddle) {
     StartSizeLimitedLog(log);
     // Lower the limit so that the log doesn't replay everything.
     log->nearly_full_limit_ = 2;
-    int64_t limit_id = log->log_data_->GetLimitId();
 
     LogTestLogConsumer context;
     ASSERT_TRUE(log->RegisterConsumer("context", &context));
@@ -2069,7 +2064,6 @@ TEST_P(LogTest, RestartLogWithOverflowAndDeletedMiddle) {
     log = CreateLog(config_file());
     ASSERT_TRUE(log);
     StartSizeLimitedLog(log, true, false, true);
-    ASSERT_EQ(limit_id, log->log_data_->GetLimitId());
     EXPECT_EQ(current_log_id, log->log_id_);
     EXPECT_EQ(current_replay_id, log->replay_id_);
 }
@@ -2080,8 +2074,6 @@ TEST_P(LogTest, RestartLogWithOverflowAndDeletedStartAndEnd) {
     StartSizeLimitedLog(log);
     // Lower the limit so that the log doesn't replay everything.
     log->nearly_full_limit_ = 2;
-
-    int64_t limit_id = log->log_data_->GetLimitId();
 
     LogTestLogConsumer context;
     ASSERT_TRUE(log->RegisterConsumer("context", &context));
@@ -2121,7 +2113,6 @@ TEST_P(LogTest, RestartLogWithOverflowAndDeletedStartAndEnd) {
     log = CreateLog(config_file());
     ASSERT_TRUE(log);
     StartSizeLimitedLog(log, true, false, true);
-    ASSERT_EQ(limit_id, log->log_data_->GetLimitId());
     EXPECT_EQ(current_log_id, log->log_id_);
     EXPECT_EQ(current_replay_id, log->replay_id_);
 }

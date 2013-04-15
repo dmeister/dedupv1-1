@@ -181,12 +181,6 @@ class ContentStorage : public dedupv1::StatisticProvider {
      */
     dedupv1::base::Threadpool* tp_;
 
-    tbb::atomic<bool> reported_full_block_index_before_;
-
-    tbb::atomic<bool> reported_full_chunk_index_before_;
-
-    tbb::atomic<bool> reported_full_storage_before_;
-
 	/**
 	 * Merged to chunk mappings into the current request.
      *

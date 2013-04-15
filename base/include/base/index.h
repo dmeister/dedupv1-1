@@ -469,15 +469,6 @@ class PersistentIndex : public Index {
         virtual bool SetOption(const std::string& option_name, const std::string& option);
 
         /**
-         * Persistent space is always limited. Each index can be full.
-         *
-         * @return an estimated maximal number of items the index can store. This is useful to
-         * calculate the fill ratio of the index. An index can, but must not execute the insertion
-         * of new items
-         */
-        virtual uint64_t GetEstimatedMaxItemCount() = 0;
-
-        /**
          * returns true if the started index supports to creation
          * of cursors.
          * @return
@@ -535,8 +526,6 @@ class PersistentIndex : public Index {
 
         virtual uint64_t GetTotalItemCount();
 
-        virtual uint64_t GetEstimatedMaxCacheItemCount();
-
         virtual bool TryPersistDirtyItem(
                 uint32_t max_batch_size,
                 uint64_t* resume_handle,
@@ -572,21 +561,12 @@ class IDBasedIndex : public PersistentIndex {
         virtual ~IDBasedIndex();
 
         /**
-         * Persistent space is always limited. Each index can be full.
-         *
-         * @return an estimated maximal number of items the index can store. This is useful to
-         * calculate the fill ratio of the index. An index can, but must not execute the insertion
-         * of new items
-         */
-        virtual uint64_t GetEstimatedMaxItemCount();
-
-        /**
          * Maximal supported id (aka key) of by the index.
          * Should only be called after Start.
          *
          * @return
          */
-        virtual int64_t GetLimitId() = 0;
+        virtual uint64_t GetMaxItemCount() = 0;
 };
 
 /**

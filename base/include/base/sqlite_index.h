@@ -262,8 +262,6 @@ class SqliteIndex : public PersistentIndex {
 
     virtual uint64_t GetPersistentSize();
 
-    virtual uint64_t GetEstimatedMaxItemCount();
-
     virtual uint64_t GetItemCount();
 
     virtual bool SupportsCursor();

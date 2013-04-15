@@ -13,7 +13,7 @@ from google.protobuf import descriptor_pb2
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='dedupv1_stats.proto',
   package='',
-  serialized_pb='\n\x13\x64\x65\x64upv1_stats.proto\"Y\n\x13\x43hunkIndexStatsData\x12 \n\x18imported_container_count\x18\x01 \x01(\x04\x12 \n\x18index_full_failure_count\x18\x02 \x01(\x04\"\xaa\x01\n\x13\x42lockIndexStatsData\x12\x18\n\x10index_read_count\x18\x01 \x01(\x04\x12\x19\n\x11index_write_count\x18\x02 \x01(\x04\x12\x1e\n\x16index_real_write_count\x18\x03 \x01(\x04\x12\x1c\n\x14imported_block_count\x18\x04 \x01(\x04\x12 \n\x18\x66\x61iled_block_write_count\x18\x05 \x01(\x04\"X\n\x13\x43hunkStoreStatsData\x12\x12\n\nread_count\x18\x01 \x01(\x04\x12\x13\n\x0bwrite_count\x18\x02 \x01(\x04\x12\x18\n\x10real_write_count\x18\x03 \x01(\x04\"a\n#ContainerStorageWriteCacheStatsData\x12\x11\n\thit_count\x18\x01 \x01(\x04\x12\x12\n\nmiss_count\x18\x02 \x01(\x04\x12\x13\n\x0b\x63heck_count\x18\x03 \x01(\x04\"\xb2\x02\n\x19\x43ontainerStorageStatsData\x12\x12\n\nread_count\x18\x01 \x01(\x04\x12\x1d\n\x15write_cache_hit_count\x18\x02 \x01(\x04\x12\x1f\n\x17\x63ontainer_timeout_count\x18\x03 \x01(\x04\x12\x1e\n\x16readed_container_count\x18\x04 \x01(\x04\x12!\n\x19\x63ommitted_container_count\x18\x05 \x01(\x04\x12\x1d\n\x15moved_container_count\x18\x06 \x01(\x04\x12\x1e\n\x16merged_container_count\x18\x07 \x01(\x04\x12\x1e\n\x16\x66\x61iled_container_count\x18\x08 \x01(\x04\x12\x1f\n\x17\x64\x65leted_container_count\x18\t \x01(\x04\"v\n\"ContainerStorageReadCacheStatsData\x12\x11\n\thit_count\x18\x01 \x01(\x04\x12\x12\n\nmiss_count\x18\x02 \x01(\x04\x12\x13\n\x0b\x63heck_count\x18\x03 \x01(\x04\x12\x14\n\x0cupdate_count\x18\x04 \x01(\x04\"V\n\x19\x42lockIndexFilterStatsData\x12\x11\n\thit_count\x18\x01 \x01(\x04\x12\x12\n\nmiss_count\x18\x02 \x01(\x04\x12\x12\n\nread_count\x18\x03 \x01(\x04\"f\n\x14\x42loomFilterStatsData\x12\x11\n\thit_count\x18\x01 \x01(\x04\x12\x12\n\nmiss_count\x18\x02 \x01(\x04\x12\x12\n\nread_count\x18\x03 \x01(\x04\x12\x13\n\x0bwrite_count\x18\x04 \x01(\x04\"W\n\x1a\x42yteCompareFilterStatsData\x12\x11\n\thit_count\x18\x01 \x01(\x04\x12\x12\n\nmiss_count\x18\x02 \x01(\x04\x12\x12\n\nread_count\x18\x03 \x01(\x04\"\x9e\x01\n\x19\x43hunkIndexFilterStatsData\x12\x11\n\thit_count\x18\x01 \x01(\x04\x12\x12\n\nmiss_count\x18\x02 \x01(\x04\x12\x12\n\nread_count\x18\x03 \x01(\x04\x12\x13\n\x0bwrite_count\x18\x04 \x01(\x04\x12\x15\n\rfailure_count\x18\x06 \x01(\x04\x12\x1a\n\x12\x65mpty_fp_hit_count\x18\x05 \x01(\x04\"\xc3\x01\n\x19GarbageCollectorStatsData\x12\x1d\n\x15processed_block_count\x18\x01 \x01(\x04\x12$\n\x1cprocessed_gc_candidate_count\x18\x02 \x01(\x04\x12\x1b\n\x13skipped_chunk_count\x18\x03 \x01(\x04\x12%\n\x1d\x61lready_processed_chunk_count\x18\x04 \x01(\x04\x12\x1d\n\x15processed_chunk_count\x18\x05 \x01(\x04\"o\n\x15RabinChunkerStatsData\x12\x13\n\x0b\x63hunk_count\x18\x01 \x01(\x04\x12\x1f\n\x17size_forced_chunk_count\x18\x02 \x01(\x04\x12 \n\x18\x63lose_forced_chunk_count\x18\x03 \x01(\x04\"i\n\x17\x43ontentStorageStatsData\x12\x12\n\nread_count\x18\x01 \x01(\x04\x12\x13\n\x0bwrite_count\x18\x02 \x01(\x04\x12\x11\n\tread_size\x18\x03 \x01(\x04\x12\x12\n\nwrite_size\x18\x04 \x01(\x04\"\xa5\x01\n\x0cLogStatsData\x12\x13\n\x0b\x65vent_count\x18\x01 \x01(\x04\x12\x1c\n\x14replayed_event_count\x18\x02 \x01(\x04\x12\x33\n\rlogtype_count\x18\x03 \x03(\x0b\x32\x1c.LogStatsData.LogTypeCounter\x1a-\n\x0eLogTypeCounter\x12\x0c\n\x04type\x18\x01 \x01(\x05\x12\r\n\x05\x63ount\x18\x02 \x01(\x04')
+  serialized_pb='\n\x13\x64\x65\x64upv1_stats.proto\"7\n\x13\x43hunkIndexStatsData\x12 \n\x18imported_container_count\x18\x01 \x01(\x04\"\xaa\x01\n\x13\x42lockIndexStatsData\x12\x18\n\x10index_read_count\x18\x01 \x01(\x04\x12\x19\n\x11index_write_count\x18\x02 \x01(\x04\x12\x1e\n\x16index_real_write_count\x18\x03 \x01(\x04\x12\x1c\n\x14imported_block_count\x18\x04 \x01(\x04\x12 \n\x18\x66\x61iled_block_write_count\x18\x05 \x01(\x04\"X\n\x13\x43hunkStoreStatsData\x12\x12\n\nread_count\x18\x01 \x01(\x04\x12\x13\n\x0bwrite_count\x18\x02 \x01(\x04\x12\x18\n\x10real_write_count\x18\x03 \x01(\x04\"a\n#ContainerStorageWriteCacheStatsData\x12\x11\n\thit_count\x18\x01 \x01(\x04\x12\x12\n\nmiss_count\x18\x02 \x01(\x04\x12\x13\n\x0b\x63heck_count\x18\x03 \x01(\x04\"\xb2\x02\n\x19\x43ontainerStorageStatsData\x12\x12\n\nread_count\x18\x01 \x01(\x04\x12\x1d\n\x15write_cache_hit_count\x18\x02 \x01(\x04\x12\x1f\n\x17\x63ontainer_timeout_count\x18\x03 \x01(\x04\x12\x1e\n\x16readed_container_count\x18\x04 \x01(\x04\x12!\n\x19\x63ommitted_container_count\x18\x05 \x01(\x04\x12\x1d\n\x15moved_container_count\x18\x06 \x01(\x04\x12\x1e\n\x16merged_container_count\x18\x07 \x01(\x04\x12\x1e\n\x16\x66\x61iled_container_count\x18\x08 \x01(\x04\x12\x1f\n\x17\x64\x65leted_container_count\x18\t \x01(\x04\"v\n\"ContainerStorageReadCacheStatsData\x12\x11\n\thit_count\x18\x01 \x01(\x04\x12\x12\n\nmiss_count\x18\x02 \x01(\x04\x12\x13\n\x0b\x63heck_count\x18\x03 \x01(\x04\x12\x14\n\x0cupdate_count\x18\x04 \x01(\x04\"V\n\x19\x42lockIndexFilterStatsData\x12\x11\n\thit_count\x18\x01 \x01(\x04\x12\x12\n\nmiss_count\x18\x02 \x01(\x04\x12\x12\n\nread_count\x18\x03 \x01(\x04\"f\n\x14\x42loomFilterStatsData\x12\x11\n\thit_count\x18\x01 \x01(\x04\x12\x12\n\nmiss_count\x18\x02 \x01(\x04\x12\x12\n\nread_count\x18\x03 \x01(\x04\x12\x13\n\x0bwrite_count\x18\x04 \x01(\x04\"W\n\x1a\x42yteCompareFilterStatsData\x12\x11\n\thit_count\x18\x01 \x01(\x04\x12\x12\n\nmiss_count\x18\x02 \x01(\x04\x12\x12\n\nread_count\x18\x03 \x01(\x04\"\x9e\x01\n\x19\x43hunkIndexFilterStatsData\x12\x11\n\thit_count\x18\x01 \x01(\x04\x12\x12\n\nmiss_count\x18\x02 \x01(\x04\x12\x12\n\nread_count\x18\x03 \x01(\x04\x12\x13\n\x0bwrite_count\x18\x04 \x01(\x04\x12\x15\n\rfailure_count\x18\x06 \x01(\x04\x12\x1a\n\x12\x65mpty_fp_hit_count\x18\x05 \x01(\x04\"\xc3\x01\n\x19GarbageCollectorStatsData\x12\x1d\n\x15processed_block_count\x18\x01 \x01(\x04\x12$\n\x1cprocessed_gc_candidate_count\x18\x02 \x01(\x04\x12\x1b\n\x13skipped_chunk_count\x18\x03 \x01(\x04\x12%\n\x1d\x61lready_processed_chunk_count\x18\x04 \x01(\x04\x12\x1d\n\x15processed_chunk_count\x18\x05 \x01(\x04\"o\n\x15RabinChunkerStatsData\x12\x13\n\x0b\x63hunk_count\x18\x01 \x01(\x04\x12\x1f\n\x17size_forced_chunk_count\x18\x02 \x01(\x04\x12 \n\x18\x63lose_forced_chunk_count\x18\x03 \x01(\x04\"i\n\x17\x43ontentStorageStatsData\x12\x12\n\nread_count\x18\x01 \x01(\x04\x12\x13\n\x0bwrite_count\x18\x02 \x01(\x04\x12\x11\n\tread_size\x18\x03 \x01(\x04\x12\x12\n\nwrite_size\x18\x04 \x01(\x04\"\xa5\x01\n\x0cLogStatsData\x12\x13\n\x0b\x65vent_count\x18\x01 \x01(\x04\x12\x1c\n\x14replayed_event_count\x18\x02 \x01(\x04\x12\x33\n\rlogtype_count\x18\x03 \x03(\x0b\x32\x1c.LogStatsData.LogTypeCounter\x1a-\n\x0eLogTypeCounter\x12\x0c\n\x04type\x18\x01 \x01(\x05\x12\r\n\x05\x63ount\x18\x02 \x01(\x04')
 
 
 
@@ -32,13 +32,6 @@ _CHUNKINDEXSTATSDATA = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
-    _descriptor.FieldDescriptor(
-      name='index_full_failure_count', full_name='ChunkIndexStatsData.index_full_failure_count', index=1,
-      number=2, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
   ],
   extensions=[
   ],
@@ -49,7 +42,7 @@ _CHUNKINDEXSTATSDATA = _descriptor.Descriptor(
   is_extendable=False,
   extension_ranges=[],
   serialized_start=23,
-  serialized_end=112,
+  serialized_end=78,
 )
 
 
@@ -104,8 +97,8 @@ _BLOCKINDEXSTATSDATA = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=115,
-  serialized_end=285,
+  serialized_start=81,
+  serialized_end=251,
 )
 
 
@@ -146,8 +139,8 @@ _CHUNKSTORESTATSDATA = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=287,
-  serialized_end=375,
+  serialized_start=253,
+  serialized_end=341,
 )
 
 
@@ -188,8 +181,8 @@ _CONTAINERSTORAGEWRITECACHESTATSDATA = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=377,
-  serialized_end=474,
+  serialized_start=343,
+  serialized_end=440,
 )
 
 
@@ -272,8 +265,8 @@ _CONTAINERSTORAGESTATSDATA = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=477,
-  serialized_end=783,
+  serialized_start=443,
+  serialized_end=749,
 )
 
 
@@ -321,8 +314,8 @@ _CONTAINERSTORAGEREADCACHESTATSDATA = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=785,
-  serialized_end=903,
+  serialized_start=751,
+  serialized_end=869,
 )
 
 
@@ -363,8 +356,8 @@ _BLOCKINDEXFILTERSTATSDATA = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=905,
-  serialized_end=991,
+  serialized_start=871,
+  serialized_end=957,
 )
 
 
@@ -412,8 +405,8 @@ _BLOOMFILTERSTATSDATA = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=993,
-  serialized_end=1095,
+  serialized_start=959,
+  serialized_end=1061,
 )
 
 
@@ -454,8 +447,8 @@ _BYTECOMPAREFILTERSTATSDATA = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1097,
-  serialized_end=1184,
+  serialized_start=1063,
+  serialized_end=1150,
 )
 
 
@@ -517,8 +510,8 @@ _CHUNKINDEXFILTERSTATSDATA = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1187,
-  serialized_end=1345,
+  serialized_start=1153,
+  serialized_end=1311,
 )
 
 
@@ -573,8 +566,8 @@ _GARBAGECOLLECTORSTATSDATA = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1348,
-  serialized_end=1543,
+  serialized_start=1314,
+  serialized_end=1509,
 )
 
 
@@ -615,8 +608,8 @@ _RABINCHUNKERSTATSDATA = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1545,
-  serialized_end=1656,
+  serialized_start=1511,
+  serialized_end=1622,
 )
 
 
@@ -664,8 +657,8 @@ _CONTENTSTORAGESTATSDATA = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1658,
-  serialized_end=1763,
+  serialized_start=1624,
+  serialized_end=1729,
 )
 
 
@@ -699,8 +692,8 @@ _LOGSTATSDATA_LOGTYPECOUNTER = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1886,
-  serialized_end=1931,
+  serialized_start=1852,
+  serialized_end=1897,
 )
 
 _LOGSTATSDATA = _descriptor.Descriptor(
@@ -740,8 +733,8 @@ _LOGSTATSDATA = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=1766,
-  serialized_end=1931,
+  serialized_start=1732,
+  serialized_end=1897,
 )
 
 _LOGSTATSDATA_LOGTYPECOUNTER.containing_type = _LOGSTATSDATA;

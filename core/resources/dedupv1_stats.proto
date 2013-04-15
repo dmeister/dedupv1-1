@@ -7,7 +7,6 @@
 
 message ChunkIndexStatsData {
     optional uint64 imported_container_count = 1;
-    optional uint64 index_full_failure_count = 2;
 }
 
 message BlockIndexStatsData {

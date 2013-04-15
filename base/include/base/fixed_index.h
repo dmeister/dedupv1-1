@@ -263,6 +263,8 @@ class FixedIndex : public IDBasedIndex {
 
         virtual bool SupportsIterator();
         virtual IndexIterator* CreateIterator();
+
+        virtual uint64_t GetMaxItemCount();
 };
 
 }

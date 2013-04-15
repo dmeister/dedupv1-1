@@ -644,8 +644,6 @@ class DiskHashIndex : public PersistentIndex {
      */
     static const size_t kMaxFiles = 32;
 
-    static const double kDefaultEstimatedMaxFillRatio = 0.7;
-
     /**
      * Enumeration for the states of the disk-based hash index
      */
@@ -1302,10 +1300,6 @@ class DiskHashIndex : public PersistentIndex {
      * @return
      */
     uint64_t GetBucket(const void* key, size_t key_size);
-
-    uint64_t GetEstimatedMaxItemCount();
-
-    uint64_t GetEstimatedMaxCacheItemCount();
 };
 
 void DiskHashIndex::MarkAsDirty(int file_index) {

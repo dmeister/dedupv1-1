@@ -110,27 +110,17 @@ class ChunkIndexStatsData : public ::google::protobuf::Message {
   inline ::google::protobuf::uint64 imported_container_count() const;
   inline void set_imported_container_count(::google::protobuf::uint64 value);
 
-  // optional uint64 index_full_failure_count = 2;
-  inline bool has_index_full_failure_count() const;
-  inline void clear_index_full_failure_count();
-  static const int kIndexFullFailureCountFieldNumber = 2;
-  inline ::google::protobuf::uint64 index_full_failure_count() const;
-  inline void set_index_full_failure_count(::google::protobuf::uint64 value);
-
   // @@protoc_insertion_point(class_scope:ChunkIndexStatsData)
  private:
   inline void set_has_imported_container_count();
   inline void clear_has_imported_container_count();
-  inline void set_has_index_full_failure_count();
-  inline void clear_has_index_full_failure_count();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::google::protobuf::uint64 imported_container_count_;
-  ::google::protobuf::uint64 index_full_failure_count_;
 
   mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(1 + 31) / 32];
 
   friend void  protobuf_AddDesc_dedupv1_5fstats_2eproto();
   friend void protobuf_AssignDesc_dedupv1_5fstats_2eproto();
@@ -1749,28 +1739,6 @@ inline ::google::protobuf::uint64 ChunkIndexStatsData::imported_container_count(
 inline void ChunkIndexStatsData::set_imported_container_count(::google::protobuf::uint64 value) {
   set_has_imported_container_count();
   imported_container_count_ = value;
-}
-
-// optional uint64 index_full_failure_count = 2;
-inline bool ChunkIndexStatsData::has_index_full_failure_count() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
-}
-inline void ChunkIndexStatsData::set_has_index_full_failure_count() {
-  _has_bits_[0] |= 0x00000002u;
-}
-inline void ChunkIndexStatsData::clear_has_index_full_failure_count() {
-  _has_bits_[0] &= ~0x00000002u;
-}
-inline void ChunkIndexStatsData::clear_index_full_failure_count() {
-  index_full_failure_count_ = GOOGLE_ULONGLONG(0);
-  clear_has_index_full_failure_count();
-}
-inline ::google::protobuf::uint64 ChunkIndexStatsData::index_full_failure_count() const {
-  return index_full_failure_count_;
-}
-inline void ChunkIndexStatsData::set_index_full_failure_count(::google::protobuf::uint64 value) {
-  set_has_index_full_failure_count();
-  index_full_failure_count_ = value;
 }
 
 // -------------------------------------------------------------------

@@ -147,6 +147,8 @@ class TCFixedIndex : public IDBasedIndex {
 
         virtual IndexIterator* CreateIterator();
 
+        virtual uint64_t GetMaxItemCount();
+
 };
 
 }

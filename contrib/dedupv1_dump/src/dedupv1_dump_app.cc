@@ -162,7 +162,7 @@ bool DumpLog(DedupSystem* dedup_system) {
     Log* log = dedup_system->log();
     CHECK(log, "Log not set");
 
-    int64_t log_id = log->log_id() - log->log_data()->GetLimitId();
+    int64_t log_id = log->log_id() - log->log_data()->GetMaxItemCount();
     if (FLAGS_only_last != 0) {
         if (log_id < log->log_id() - FLAGS_only_last) {
             log_id = log->log_id() - FLAGS_only_last;

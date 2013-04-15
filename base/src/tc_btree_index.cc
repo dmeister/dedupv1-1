@@ -96,7 +96,6 @@ TCBTreeIndex::TCBTreeIndex() : PersistentIndex(PERSISTENT_ITEM_COUNT | RETURNS_D
     this->version_counter_ = 0;
     this->state_ = TC_BTREE_INDEX_STATE_CREATED;
     checksum_ = true;
-    this->estimated_max_items_per_bucket_ = kDefaultEstimatedMaxItemsPerBucket;
 }
 
 TCBTreeIndex::Statistics::Statistics() {
@@ -112,11 +111,6 @@ bool TCBTreeIndex::SetOption(const string& option_name,const string& option) {
     if (option_name == "filename") {
         CHECK(option.size() < 1024, "Illegal filename");
         this->filename_.push_back(option);
-        return true;
-    }
-    if (option_name == "max-items-per-bucket") {
-        CHECK(To<int32_t>(option).valid(), "Illegal option " << option);
-        this->estimated_max_items_per_bucket_ = To<int32_t>(option).value();
         return true;
     }
     if (option_name == "leaf-members") {
@@ -626,10 +620,6 @@ uint64_t TCBTreeIndex::GetPersistentSize() {
         }
     }
     return size_sum;
-}
-
-uint64_t TCBTreeIndex::GetEstimatedMaxItemCount() {
-    return this->buckets_ * estimated_max_items_per_bucket_;
 }
 
 uint64_t TCBTreeIndex::GetItemCount() {

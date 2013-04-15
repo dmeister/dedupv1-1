@@ -811,21 +811,6 @@ bool BlockIndex::BlockMappingStorageCheck(const BlockMapping& modified_block_map
     return true;
 }
 
-bool BlockIndex::CheckIfFullWith(const BlockMapping& previous_block_mapping, const BlockMapping& updated_block_mapping) {
-    if (previous_block_mapping.version() == 0 && updated_block_mapping.version() == 1) {
-        // here we have a new block
-        if (this->block_index_->GetItemCount() + this->open_new_block_count_ + 1 > this->block_index_->GetEstimatedMaxItemCount()) {
-            WARNING("Block index full: "
-                << previous_block_mapping.DebugString() << " => " << updated_block_mapping.DebugString() <<
-                ", persistent item count " << this->block_index_->GetItemCount() <<
-                ", open new block count " << this->open_new_block_count_ <<
-                ", auxiliary item count " << this->auxiliary_block_index_->GetItemCount());
-            return true;
-        }
-    }
-    return false;
-}
-
 Option<bool> BlockIndex::Throttle(int thread_id, int thread_count) {
     ProfileTimer timer(this->stats_.throttle_time_);
 
@@ -871,17 +856,6 @@ bool BlockIndex::StoreBlock(const BlockMapping& previous_block_mapping,
         ProfileTimer timer(this->stats_.open_new_block_check_time_);
         if (previous_block_mapping.version() == 0 && updated_block_mapping.version() == 1) {
             // here we have a new block
-            if (this->block_index_->GetItemCount() + this->open_new_block_count_ + 1 > this->block_index_->GetEstimatedMaxItemCount()) {
-                WARNING("Block index full: "
-                    << previous_block_mapping.DebugString() << " => " << updated_block_mapping.DebugString() <<
-                    ", persistent item count " << this->block_index_->GetItemCount() <<
-                    ", open new block count " << this->open_new_block_count_ <<
-                    ", auxiliary item count " << this->auxiliary_block_index_->GetItemCount());
-                if (ec) {
-                    ec->set_full();
-                }
-                return false;
-            }
             TRACE("New block: " << previous_block_mapping.DebugString() << " => " << updated_block_mapping.DebugString() <<
                 ", open new blocks " << (open_new_block_count_ + 1));
             this->open_new_block_count_++;
@@ -1091,14 +1065,6 @@ string BlockIndex::PrintStatistics() {
     } else {
         sstr << "\"auxiliary index fill ratio\": null," << std::endl;
     }
-
-    if (block_index_ && this->block_index_->GetEstimatedMaxItemCount()) {
-        double main_fill_ratio = (1.0 * this->block_index_->GetItemCount() + this->open_new_block_count_) / this->block_index_->GetEstimatedMaxItemCount();
-        sstr << "\"index fill ratio\": " << main_fill_ratio << "," << std::endl;
-    } else {
-        sstr << "\"index fill ratio\": null," << std::endl;
-    }
-
     sstr << "\"volatile block store\": " << this->volatile_blocks_.PrintStatistics() << std::endl;
     sstr << "}";
     return sstr.str();
