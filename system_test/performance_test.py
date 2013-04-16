@@ -138,7 +138,7 @@ class Dedupv1PerformanceSystemTest(Dedupv1BaseRemoteSystemTest):
                 self.client_sys.device_name = "/dev/disk/by-path/ip-%s:3260-iscsi-%s:special-lun-0" % (
                     iscsi_target_ip, iscsi_target_name)
 
-                file = os.path.join(test_data_dir, performance_test_files[0])
+                file = os.path.join(test_data_dir, performance_test_file)
                 start_time = time()
                 self.data.copy_raw(file,
                     count=128 * 1024,
@@ -176,6 +176,97 @@ class Dedupv1PerformanceSystemTest(Dedupv1BaseRemoteSystemTest):
 
         self.dedupv1.stop()
 
+    def test_basic_read_performance(self):
+        """
+        test_basic_read_performance
+        """
+        test_data_dir = self.configuration["test data dir"]
+        iscsi_target_name = self.configuration["test iscsi target name"]
+        iscsi_target_ip = self.configuration["test iscsi target ip"]
+        performance_test_files = self.configuration.get("performance test files", [])
+
+        self.data.device_name = "/dev/disk/by-path/ip-%s:3260-iscsi-%s-lun-0" % (
+              iscsi_target_ip, iscsi_target_name)
+        self.client_sys.device_name = "/dev/disk/by-path/ip-%s:3260-iscsi-%s:special-lun-0" % (
+              iscsi_target_ip, iscsi_target_name)
+
+        self.start_default_system()
+        self.sys.rm_scst_local()
+        sleep(5)
+
+        self.dedupv1.stop()
+
+        self.sys.clear_cache()
+        self.dedupv1.start()
+        sleep(5)
+
+        self.dedupv1.targets("add tid=3 name=%s" % (iscsi_target_name))
+        self.assertExitcode(0)
+
+        self.open_iscsi.discover(server=iscsi_target_ip)
+        self.assertExitcode(0)
+        self.open_iscsi.connect(server=iscsi_target_ip,
+                name=iscsi_target_name)
+        self.assertExitcode(0)
+
+        try:
+            generation_count = 1
+            for performance_test_file in performance_test_files:
+                file = os.path.join(test_data_dir, performance_test_file)
+                self.data.copy_raw(file,
+                    count=128 * 1024,
+                    seek=2 * 128 * 1024 * (generation_count - 1))
+                generation_count += 1
+
+                self.dedupv1.monitor("profile")
+                self.dedupv1.monitor("trace")
+                self.dedupv1.monitor("stats")
+        finally:
+            self.open_iscsi.disconnect(server=iscsi_target_ip,
+                name=iscsi_target_name)
+
+        self.dedupv1.monitor("idle", "force-idle=true")
+
+        # Wait until all replayed
+        open_event_count = self.dedupv1.monitor("log")["open events"]
+        while open_event_count > 64:
+            sleep(30)
+            open_event_count = self.dedupv1.monitor("log")["open events"]
+
+        self.dedupv1.stop()
+        self.assertExitcode(0)
+
+        self.sys.clear_cache()
+
+        self.dedupv1.start("--force")
+        self.assertExitcode(0)
+
+        self.open_iscsi.connect(server=iscsi_target_ip,
+                name=iscsi_target_name)
+        self.assertExitcode(0)
+
+        try:
+            generation_count = 1
+            for performance_test_file in performance_test_files:
+                start_time = time()
+                self.data.read_raw(
+                    count=128 * 1024,
+                    seek=2 * 128 * 1024 * (generation_count - 1))
+
+                end_time = time()
+                print "Read time (%s) %s" % (generation_count,
+                    end_time - start_time)
+
+                generation_count += 1
+
+                self.dedupv1.monitor("profile")
+                self.dedupv1.monitor("trace")
+                self.dedupv1.monitor("stats")
+        finally:
+            self.open_iscsi.disconnect(server=iscsi_target_ip,
+                name=iscsi_target_name)
+
+        self.dedupv1.stop()
 if __name__ == "__main__":
     perform_systemtest(
             [
