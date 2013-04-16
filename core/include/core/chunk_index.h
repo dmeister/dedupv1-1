@@ -558,15 +558,18 @@ public:
      * wrong, the gc must be changed.
      *
      * @param mapping
-     * @param ensure_persistence Ensures that the mapping is persistent on disk when the call returns (successfully). Otherwise
-     * the mapping is put as dirty item into the write-back cache and is written back eventually.
-     * @param pin iff true, the data is pinned to memory and should never be written back before the pin state is changed. Only
+     * @param ensure_persistence Ensures that the mapping is persistent on disk
+     * when the call returns (successfully). Otherwise
+     * the mapping is put as dirty item into the write-back cache and is written
+     * back eventually.
+     * @param pin iff true, the data is pinned to memory and should never be
+     * written back before the pin state is changed. Only
      * ensure_persistance or pin can be specified.
      * @param ec Error context that can be filled if case of special errors
      * @return true iff ok, otherwise an error has occurred
      */
-    virtual bool PutPersistentIndex(const ChunkMapping& mapping, bool ensure_persistence,
-                                    bool pin,
+    virtual bool PutPersistentIndex(const ChunkMapping& mapping,
+        bool ensure_persistence,
                                     dedupv1::base::ErrorContext* ec);
 
     /**
@@ -574,15 +577,11 @@ public:
      * It doesn't enforce the persistence of actual data of the mapping given, but the last written
      * version of the mapping with the given chunk fingerprint.
      *
-     * If the chunk is still pinned, PUT_KEEP with pinned = true is returned. For what the chunk index knows,
+     * If the chunk is still pinned, PUT_KEEP with pinned = true is returned.
+     * For what the chunk index knows,
      * this chunk has not been committed yet.
      */
-    virtual dedupv1::base::put_result EnsurePersistent(const ChunkMapping& mapping, bool* pinned);
-
-    /**
-     * Changes the pinning state of the chunk with the given fingerprint key.
-     */
-    virtual dedupv1::base::lookup_result ChangePinningState(const void* key, size_t key_size, bool new_pin_state);
+    virtual dedupv1::base::put_result EnsurePersistent(const ChunkMapping& mapping);
 
     virtual bool PersistStatistics(std::string prefix, dedupv1::PersistStatistics* ps);
 

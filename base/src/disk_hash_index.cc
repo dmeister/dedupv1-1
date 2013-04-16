@@ -557,7 +557,7 @@ lookup_result DiskHashIndex::InternalLookup(const void* key, size_t key_size, Me
         if (write_back_result == LOOKUP_FOUND) {
             // there is data from this page available in the cache
             bool is_dirty = false;
-            result = cache_page.Search(key, key_size, message, &is_dirty, NULL);
+            result = cache_page.Search(key, key_size, message, &is_dirty);
             CHECK_RETURN(result != LOOKUP_ERROR, LOOKUP_ERROR,
                 "Hash index page search failed : " <<
                 "page " << cache_page.DebugString() <<
@@ -602,7 +602,7 @@ lookup_result DiskHashIndex::InternalLookup(const void* key, size_t key_size, Me
             // We have this fresh from disk
             CacheLine* cache_line = cache_lines_[cache_index];
             cache_line->current_cache_item_count_++;
-            cache_page.Update(key, key_size, *message, false, false, false);
+            cache_page.Update(key, key_size, *message, false, false);
             CHECK_RETURN(CopyToWriteBackCache(cache_line, &cache_page), LOOKUP_ERROR,
                 "Failed to put data to write back cache");
         }
@@ -654,7 +654,7 @@ lookup_result DiskHashIndex::LookupCacheOnly(const void* key, size_t key_size, e
     lookup_result result = LOOKUP_NOT_FOUND;
     if (write_back_result == LOOKUP_FOUND) {
         bool is_dirty = false;
-        result = cache_page.Search(key, key_size, message, &is_dirty, NULL);
+        result = cache_page.Search(key, key_size, message, &is_dirty);
         CHECK_RETURN(result != LOOKUP_ERROR, LOOKUP_ERROR,
             "Hash index page search failed : " <<
             "page " << cache_page.DebugString() <<
@@ -671,52 +671,6 @@ lookup_result DiskHashIndex::LookupCacheOnly(const void* key, size_t key_size, e
         statistics_.write_cache_miss_count_++;
     }
     return result;
-}
-
-bool DiskHashIndex::DropAllPinned() {
-    DCHECK(this->state_ == STARTED, "Index not started");
-
-    for (int cache_line_id = 0; cache_line_id < this->page_locks_count_; cache_line_id++) {
-        ScopedReadWriteLock scoped_lock(this->page_locks_.Get(cache_line_id));
-        CHECK(scoped_lock.AcquireWriteLockWithStatistics(&this->statistics_.lock_free_,
-                &this->statistics_.lock_busy_), "Lock failed");
-
-        CacheLine* cache_line = this->cache_lines_[cache_line_id];
-
-        unordered_map<uint64_t, uint32_t>::iterator i;
-        for (i = cache_line->cache_page_map_.begin(); i != cache_line->cache_page_map_.end(); i++) {
-            uint64_t bucket_id = i->first;
-            uint32_t cache_page_id = i->second;
-
-            if (cache_line->bucket_dirty_state_[cache_page_id]) {
-                DiskHashCachePage cache_page(bucket_id, page_size_, max_key_size_, max_value_size_);
-                lookup_result cache_lr = ReadFromWriteBackCache(cache_line, &cache_page);
-                CHECK(cache_lr != LOOKUP_ERROR,
-                    "Failed to read page from cache: " << cache_page.DebugString());
-                CHECK(cache_lr != LOOKUP_NOT_FOUND,
-                    "The page should really be here: " << cache_page.DebugString());
-
-                uint64_t dropped_item_count = 0;
-                CHECK(cache_page.DropAllPinned(&dropped_item_count),
-                    "Failed to drop all pinned items in page: " << cache_page.DebugString());
-
-                this->dirty_item_count_ -= dropped_item_count;
-                this->total_item_count_ -= dropped_item_count;
-                if (dropped_item_count > 0) {
-                  DEBUG("Dropped items from page: " <<
-                      cache_page.DebugString() <<
-                      ", dropped item count " << dropped_item_count <<
-                      ", updated dirty item count " << dirty_item_count_ <<
-                      ", update total item count " << total_item_count_);
-                }
-                CHECK_RETURN(CopyToWriteBackCache(cache_line, &cache_page), LOOKUP_ERROR,
-                    "Failed to put data to write back cache");
-            } else {
-                // a clean page cannot have a pinned item
-            }
-        }
-    }
-    return true;
 }
 
 bool DiskHashIndex::PersistAllDirty() {
@@ -755,12 +709,10 @@ bool DiskHashIndex::PersistAllDirty() {
                 CHECK(write_back_result == LOOKUP_FOUND, "Failed to check write back cache: "
                     << cache_page.DebugString());
 
-                uint32_t pinned_item_count = 0;
                 uint32_t merged_item_count = 0;
                 uint32_t merged_new_item_count = 0;
 
                 CHECK(page.MergeWithCache(&cache_page,
-                        &pinned_item_count,
                         &merged_item_count,
                         &merged_new_item_count), "Failed to merge with cache: " << page.DebugString());
 
@@ -772,8 +724,6 @@ bool DiskHashIndex::PersistAllDirty() {
                 statistics_.write_cache_persisted_page_count_++;
                 CHECK(CopyToWriteBackCache(cache_line, &cache_page),
                     "Failed to put data to write back cache: " << page.DebugString());
-            } else {
-                // a clean page cannot have a pinned item
             }
         }
     }
@@ -861,7 +811,7 @@ put_result DiskHashIndex::InternalPut(const void* key, size_t key_size, const Me
         cache_read_timer.stop();
 
         int item_count_before = cache_page.item_count();
-        result = cache_page.Update(key, key_size, message, keep, true, false);
+        result = cache_page.Update(key, key_size, message, keep, true);
 
         if (cache_page.item_count() > item_count_before) {
             total_item_count_++;
@@ -873,7 +823,6 @@ put_result DiskHashIndex::InternalPut(const void* key, size_t key_size, const Me
             uint32_t merged_new_item_count = 0;
 
             CHECK_RETURN(page.MergeWithCache(&cache_page,
-                    NULL,
                     NULL,
                     &merged_new_item_count), PUT_ERROR,
                 "Failed to merge with cache: " << page.DebugString());
@@ -929,64 +878,8 @@ put_result DiskHashIndex::PutIfAbsent(const void* key, size_t key_size, const Me
     return InternalPut(key, key_size, message, true);
 }
 
-enum lookup_result DiskHashIndex::ChangePinningState(const void* key, size_t key_size, bool new_pin_state) {
-    CHECK_RETURN(this->state_ == STARTED, LOOKUP_ERROR, "Index not started");
-    CHECK_RETURN(write_back_cache_ != NULL, LOOKUP_ERROR, "Pinning not supported without write cache");
-
-    CHECK_RETURN(key_size <= this->max_key_size_, LOOKUP_ERROR, "Key size > Max key size");
-
-    unsigned int bucket_id = this->GetBucket(key, key_size);
-    unsigned cache_index = 0;
-    this->GetFileIndex(bucket_id, NULL, &cache_index);
-    CacheLine* cache_line = cache_lines_[cache_index];
-
-    DEBUG("Pin: key " << ToHexString(key, key_size) <<
-        ", bucket id " << bucket_id <<
-        ", cache line id " << cache_index <<
-        ", new pin state " << ToString(new_pin_state));
-
-    DiskHashCachePage cache_page(bucket_id, page_size_, max_key_size_, max_value_size_);
-    ScopedReadWriteLock scoped_lock(this->page_locks_.Get(cache_index));
-    CHECK_RETURN(scoped_lock.AcquireWriteLockWithStatistics(&this->statistics_.lock_free_,
-            &this->statistics_.lock_busy_), LOOKUP_ERROR, "Lock failed: page lock " << cache_index);
-
-    lookup_result write_back_check_result = IsWriteBackPageDirty(bucket_id);
-    CHECK_RETURN(write_back_check_result != LOOKUP_ERROR, LOOKUP_ERROR,
-        "Failed to check write back cache: "
-        << "key " << ToHexString(key, key_size));
-    if (write_back_check_result == LOOKUP_NOT_FOUND) {
-        // not dirty
-        TRACE("Change Pinning State not possible: " <<
-            "key " << ToHexString(key, key_size) << " is not dirty.");
-        return LOOKUP_NOT_FOUND;
-    }
-
-    lookup_result write_back_result = ReadFromWriteBackCache(cache_line, &cache_page);
-    CHECK_RETURN(write_back_result == LOOKUP_FOUND, LOOKUP_ERROR,
-        "Failed to check write back cache: "
-        << "key " << ToHexString(key, key_size));
-
-    lookup_result lr = cache_page.ChangePinningState(key, key_size, new_pin_state);
-    CHECK_RETURN(lr != LOOKUP_ERROR, LOOKUP_ERROR, "Failed to merge with cache");
-
-    if (lr == LOOKUP_FOUND) {
-        CHECK_RETURN(CopyToWriteBackCache(cache_line, &cache_page), LOOKUP_ERROR,
-            "Failed to put data to write back cache");
-    } else if (lr == LOOKUP_NOT_FOUND) {
-        TRACE("Pinning skipped, key not found: " <<
-          "key " << ToHexString(key, key_size) <<
-          ", bucket id " << bucket_id <<
-          ", cache line id " << cache_index <<
-          ", new pin state " << ToString(new_pin_state));
-    }
-
-    CHECK_RETURN(scoped_lock.ReleaseLock(), LOOKUP_ERROR, "Unlock failed");
-    return lr;
-}
-
 put_result DiskHashIndex::EnsurePersistent(const void* key,
-    size_t key_size,
-    bool* pinned) {
+    size_t key_size) {
     CHECK_RETURN(this->state_ == STARTED, PUT_ERROR, "Index not started");
     CHECK_RETURN(key_size <= this->max_key_size_, PUT_ERROR, "Key size > Max key size");
 
@@ -1032,9 +925,8 @@ put_result DiskHashIndex::EnsurePersistent(const void* key,
         << "key " << ToHexString(key, key_size));
 
     bool is_dirty = false;
-    bool is_pinned = false;
     lookup_result search_result = cache_page.Search(
-        key, key_size, NULL, &is_dirty, &is_pinned);
+        key, key_size, NULL, &is_dirty);
     CHECK_RETURN(search_result != LOOKUP_ERROR, PUT_ERROR,
         "Failed to search cache page: " << cache_page.DebugString());
     if (search_result == LOOKUP_NOT_FOUND) {
@@ -1050,14 +942,6 @@ put_result DiskHashIndex::EnsurePersistent(const void* key,
             ", key " << ToHexString(key, key_size));
         return PUT_KEEP;
     }
-    if (is_pinned) {
-        TRACE("Cache item still pinned: " << cache_page.DebugString() <<
-            ", key " << ToHexString(key, key_size));
-        if (pinned) {
-            *pinned = true;
-        }
-        return PUT_KEEP;
-    }
 
     ProfileTimer page_timer(this->statistics_.update_time_page_read_);
     CHECK_RETURN(page.Read(file), PUT_ERROR,
@@ -1066,12 +950,10 @@ put_result DiskHashIndex::EnsurePersistent(const void* key,
 
     DiskHashIndexTransaction transaction(this->trans_system_, page);
 
-    uint32_t pinned_item_count = 0;
     uint32_t merged_item_count = 0;
     uint32_t merged_new_item_count = 0;
 
     CHECK_RETURN(page.MergeWithCache(&cache_page,
-            &pinned_item_count,
             &merged_item_count,
             &merged_new_item_count), PUT_ERROR,
         "Failed to merge with cache: " << page.DebugString());
@@ -1093,13 +975,10 @@ put_result DiskHashIndex::EnsurePersistent(const void* key,
         "Failed to put data to write back cache");
 
     CHECK_RETURN(scoped_lock.ReleaseLock(), PUT_ERROR, "Unlock failed");
-    if (pinned) {
-        *pinned = false;
-    }
     return PUT_OK;
 }
 
-put_result DiskHashIndex::PutDirty(const void* key, size_t key_size, const Message& message, bool pin) {
+put_result DiskHashIndex::PutDirty(const void* key, size_t key_size, const Message& message) {
     DCHECK_RETURN(key_size <= this->max_key_size_, PUT_ERROR, "Key size > Max key size");
     CHECK_RETURN(this->state_ == STARTED, PUT_ERROR, "Index not started");
 
@@ -1114,7 +993,6 @@ put_result DiskHashIndex::PutDirty(const void* key, size_t key_size, const Messa
     CacheLine* cache_line = cache_lines_[cache_index];
 
     DEBUG("Put item (dirty): key " << ToHexString(key, key_size) <<
-        ", pin " << ToString(pin) <<
         ", bucket id " << bucket_id <<
         ", cache line " << cache_index);
 
@@ -1131,17 +1009,15 @@ put_result DiskHashIndex::PutDirty(const void* key, size_t key_size, const Messa
     CHECK_RETURN(write_back_result != LOOKUP_ERROR, PUT_ERROR,
         "Failed to check write back cache: " <<
         "key " << ToHexString(key, key_size) <<
-        ", pin " << ToString(pin) <<
         ", bucket id " << bucket_id <<
         ", cache line " << cache_index);
     cache_read_timer.stop();
 
     bool was_dirty = cache_page.is_dirty();
     uint32_t item_count_before = cache_page.item_count();
-    put_result result = cache_page.Update(key, key_size, message, false, true, pin);
+    put_result result = cache_page.Update(key, key_size, message, false, true);
     CHECK_RETURN(result, PUT_ERROR, "Hash index page update failed: " <<
         "key " << ToHexString(key, key_size) <<
-        ", pin " << ToString(pin) <<
         ", bucket id " << bucket_id <<
         ", cache line " << cache_index);
 
@@ -1156,7 +1032,6 @@ put_result DiskHashIndex::PutDirty(const void* key, size_t key_size, const Messa
 
     CHECK_RETURN(CopyToWriteBackCache(cache_line, &cache_page), PUT_ERROR,
         "Failed to put data to write back cache: key " << ToHexString(key, key_size) <<
-        ", pin " << ToString(pin) <<
         ", bucket id " << bucket_id <<
         ", cache line " << cache_index);
     CHECK_RETURN(scoped_lock.ReleaseLock(), PUT_ERROR, "Unlock failed");
@@ -1205,12 +1080,10 @@ delete_result DiskHashIndex::Delete(const void* key, size_t key_size) {
                 "Failed to delete key from cache page");
 
             if (cache_page.item_count() > 0) {
-                uint32_t pinned_item_count = 0;
                 uint32_t merged_item_count = 0;
                 uint32_t merged_new_item_count = 0;
 
                 CHECK_RETURN(page.MergeWithCache(&cache_page,
-                        &pinned_item_count,
                         &merged_item_count,
                         &merged_new_item_count), DELETE_ERROR,
                     "Failed to merge with cache: " << page.DebugString());
@@ -1316,7 +1189,6 @@ lookup_result DiskHashIndex::ReadFromWriteBackCache(CacheLine* cache_line, DiskH
     page->ParseData();
 
     page->set_dirty(cache_line->bucket_dirty_state_[cache_id]);
-    page->set_pinned(cache_line->bucket_pinned_state_[cache_id]);
     cache_line->bucket_cache_state_[cache_id] = true; // it is used
 
     TRACE("Read page from cache: " <<
@@ -1351,12 +1223,10 @@ bool DiskHashIndex::WriteBackCachePage(CacheLine* cache_line, DiskHashCachePage*
 
     DiskHashIndexTransaction transaction(this->trans_system_, page);
 
-    uint32_t pinned_item_count = 0;
     uint32_t merged_item_count = 0;
     uint32_t merged_new_item_count = 0;
 
     CHECK(page.MergeWithCache(cache_page,
-            &pinned_item_count,
             &merged_item_count,
             &merged_new_item_count), "Failed to merge with cache: " << page.DebugString());
 
@@ -1490,7 +1360,6 @@ bool DiskHashIndex::TryPersistDirtyItem(uint32_t max_batch_size,
             ", cache id " << cache_id);
         cache_page.ParseData();
         cache_page.set_dirty(cache_line->bucket_dirty_state_[cache_id]);
-        cache_page.set_pinned(cache_line->bucket_pinned_state_[cache_id]);
         TRACE("Found cache map entry: " << cache_page.DebugString() << ", size " << buf_size);
 
         if (cache_page.is_dirty()) {
@@ -1533,7 +1402,6 @@ bool DiskHashIndex::EvictCacheItem(CacheLine* cache_line, uint32_t cache_id, boo
         ", cache id " << cache_id);
     cache_page.ParseData();
     cache_page.set_dirty(cache_line->bucket_dirty_state_[cache_id]);
-    cache_page.set_pinned(cache_line->bucket_pinned_state_[cache_id]);
     TRACE("Found cache map entry: " << cache_page.DebugString() << ", size " << buf_size);
 
     uint64_t bucket_id = cache_page.bucket_id();
@@ -1561,7 +1429,6 @@ bool DiskHashIndex::EvictCacheItem(CacheLine* cache_line, uint32_t cache_id, boo
     cache_line->bucket_dirty_state_[cache_id] = false;
     cache_line->bucket_cache_state_[cache_id] = false;
     cache_line->bucket_cache_state2_[cache_id] = false;
-    cache_line->bucket_pinned_state_[cache_id] = false;
     cache_line->current_cache_item_count_ -= cache_page.item_count();
     cache_line->cache_page_map_.erase(bucket_id);
 
@@ -1582,30 +1449,12 @@ dedupv1::base::Option<bool> DiskHashIndex::CacheLine::SearchDirtyPage(uint32_t* 
         "cache line id " << cache_line_id_ <<
         ", start victim id " << next_dirty_search_cache_victim_);
     uint32_t try_counter = max_cache_page_count_;
-    uint32_t pinned_page_count = 0;
     for (;; ) {
         next_dirty_search_cache_victim_++;
         if (next_dirty_search_cache_victim_ == max_cache_page_count_) {
             next_dirty_search_cache_victim_ = 0;
         }
-        if (bucket_pinned_state_[next_dirty_search_cache_victim_]) {
-            pinned_page_count++;
-
-            // we cannot evict pinned pages
-            // There is simply no way. However, this results in serious problems.
-            try_counter--;
-
-            // We scanned the cache states four times and havn't found a page to use
-            // There must be something wrong
-            if (try_counter == 0) {
-                TRACE("Checked all pages. Failed to find a page to evict: " <<
-                    "cache line id " << DebugString() <<
-                    ", end cache victim " << next_dirty_search_cache_victim_ <<
-                    ", pinned page count " << pinned_page_count <<
-                    ", max page count " << max_cache_page_count_);
-                return make_option(false);
-            }
-        } else if (!bucket_dirty_state_[next_dirty_search_cache_victim_]) {
+        if (!bucket_dirty_state_[next_dirty_search_cache_victim_]) {
             // a clean page
             try_counter--;
 
@@ -1615,14 +1464,12 @@ dedupv1::base::Option<bool> DiskHashIndex::CacheLine::SearchDirtyPage(uint32_t* 
                 TRACE("Checked all pages. Failed to find a page to evict: " <<
                     "cache line id " << DebugString() <<
                     ", end cache victim " << next_dirty_search_cache_victim_ <<
-                    ", pinned page count " << pinned_page_count <<
                     ", max page count " << max_cache_page_count_);
                 return make_option(false);
             }
         } else {
             TRACE("Found dirty cache id " << next_dirty_search_cache_victim_ <<
-                ", bucket dirty state " << bucket_dirty_state_[next_dirty_search_cache_victim_] <<
-                ", bucket pinned state " << bucket_pinned_state_[next_dirty_search_cache_victim_]);
+                ", bucket dirty state " << bucket_dirty_state_[next_dirty_search_cache_victim_]);
             *cache_id = next_dirty_search_cache_victim_;
             return make_option(true);
         }
@@ -1638,7 +1485,6 @@ bool DiskHashIndex::CacheLine::SearchEvictPage(uint32_t* cache_id) {
         "cache line id " << cache_line_id_ <<
         ", start victim id " << next_cache_victim_);
     uint32_t try_counter = max_cache_page_count_;
-    uint32_t pinned_page_count = 0;
     uint32_t ref_page_count = 0;
     uint32_t dirty_page_count = 0;
     for (;; ) {
@@ -1649,26 +1495,8 @@ bool DiskHashIndex::CacheLine::SearchEvictPage(uint32_t* cache_id) {
         TRACE("Search cache page for eviction: "
             "cache line id " << cache_line_id_ <<
             ", cache id " << next_cache_victim_ <<
-            ", pin state " << ToString(bucket_pinned_state_[next_cache_victim_]) <<
             ", dirty state " << ToString(bucket_dirty_state_[next_cache_victim_]) <<
             ", cache state " << ToString(bucket_cache_state_[next_cache_victim_]) << "/" << ToString(bucket_cache_state2_[next_cache_victim_]));
-        if (bucket_pinned_state_[next_cache_victim_]) {
-            pinned_page_count++;
-
-            // we cannot evict pinned pages
-            // There is simply no way. However, this results in serious problems.
-            try_counter--;
-
-            // We scanned the cache states four times and havn't found a page to use
-            // There must be something wrong
-            CHECK(try_counter > 0,
-                "Checked all pages. Failed to find a page to evict: " <<
-                "cache line id " << DebugString() <<
-                ", pinned page count " << pinned_page_count <<
-                ", ref page count " << ref_page_count <<
-                ", dirty page count " << dirty_page_count <<
-                ", max page count " << max_cache_page_count_);
-        } else {
             if (bucket_cache_state_[next_cache_victim_]) {
                 // reset state
                 ref_page_count++;
@@ -1688,7 +1516,6 @@ bool DiskHashIndex::CacheLine::SearchEvictPage(uint32_t* cache_id) {
                 CHECK(try_counter > 0,
                     "Checked all pages. Failed to find a page to evict: " <<
                     "cache line id " << DebugString() <<
-                    ", pinned page count " << pinned_page_count <<
                     ", ref page count " << ref_page_count <<
                     ", dirty page count " << dirty_page_count <<
                     ", max page count " << max_cache_page_count_);
@@ -1697,7 +1524,6 @@ bool DiskHashIndex::CacheLine::SearchEvictPage(uint32_t* cache_id) {
                 *cache_id = next_cache_victim_;
                 return true;
             }
-        }
     }
     ERROR("Here are dragons");
     return false;
@@ -1806,7 +1632,6 @@ bool DiskHashIndex::CopyToWriteBackCache(CacheLine* cache_line, internal::DiskHa
         statistics_.write_cache_dirty_page_count_--;
     }
     cache_line->bucket_dirty_state_[cache_id] = page->is_dirty();
-    cache_line->bucket_pinned_state_[cache_id] = page->is_pinned();
     cache_line->bucket_cache_state_[cache_id] = true; // it is used
     cache_line->bucket_cache_state2_[cache_id] = page->is_dirty(); // it is used
     cache_line->bucket_free_state_[cache_id] = false;
@@ -1829,7 +1654,7 @@ bool DiskHashIndex::CopyToWriteBackCache(CacheLine* cache_line, internal::DiskHa
         page->used_size());
     CHECK(pr != PUT_ERROR, "Failed to put write back page: " << page->DebugString());
 
-    if (page->is_dirty() && page->is_pinned()) {
+    if (page->is_dirty()) {
         MarkBucketAsDirty(page->bucket_id(), cache_line->cache_line_id_, cache_id);
     }
     return true;
@@ -1852,7 +1677,6 @@ DiskHashIndex::CacheLine::CacheLine(uint32_t cache_line_id, uint32_t cache_page_
     bucket_cache_state2_.resize(max_cache_page_count_);
     bucket_dirty_state_.resize(max_cache_page_count_);
     bucket_free_state_.resize(max_cache_page_count_);
-    bucket_pinned_state_.resize(max_cache_page_count_);
     for (int i = 0; i < max_cache_page_count_; i++) {
         bucket_free_state_[i] = true;
     }
@@ -2354,7 +2178,7 @@ bool DiskHashPage::Write(File* file) {
     return true;
 }
 
-bool DiskHashPage::MergeWithCache(DiskHashCachePage* cache_page, uint32_t* pinned_item_count,
+bool DiskHashPage::MergeWithCache(DiskHashCachePage* cache_page,
                                   uint32_t* merged_item_count, uint32_t* merged_new_item_count) {
     DCHECK(cache_page, "Cache page not set");
     changed_since_last_serialize_ = true;
@@ -2366,12 +2190,11 @@ bool DiskHashPage::MergeWithCache(DiskHashCachePage* cache_page, uint32_t* pinne
 
     DiskHashCacheEntry cache_entry(cache_page->mutable_raw_buffer(), cache_page->raw_buffer_size(),
                                    this->index_->max_key_size(), this->index_->max_value_size());
-    uint32_t pinned_count = 0;
     lookup_result cache_lr = cache_page->IterateInit(&cache_entry);
     while (cache_lr == LOOKUP_FOUND) {
-        if (cache_entry.is_dirty() && !cache_entry.is_pinned()) {
+        if (cache_entry.is_dirty()) {
             TRACE("Found mergeable cache entry: " << cache_entry.DebugString());
-            // only merge if entry is dirty and not pinned
+            // only merge if entry is dirty
 
             cache_entry.set_dirty(false);
             cache_entry.Store();
@@ -2379,9 +2202,6 @@ bool DiskHashPage::MergeWithCache(DiskHashCachePage* cache_page, uint32_t* pinne
             cache_entries[make_bytestring(static_cast<const byte*>(cache_entry.key()), cache_entry.key_size())]
                 = cache_entry.current_offset();
         } else {
-            if (cache_entry.is_pinned()) {
-                pinned_count++;
-            }
             TRACE("Found un-mergeable cache entry: " << cache_entry.DebugString());
         }
         cache_lr = cache_page->Iterate(&cache_entry);
@@ -2511,12 +2331,7 @@ bool DiskHashPage::MergeWithCache(DiskHashCachePage* cache_page, uint32_t* pinne
         }
     }
 
-    cache_page->set_pinned(pinned_count > 0);
-    cache_page->set_dirty(pinned_count > 0);
-
-    if (pinned_item_count) {
-        *pinned_item_count = pinned_count;
-    }
+    cache_page->set_dirty(false);
 
     // Check post conditions
     DCHECK(used_size() <= raw_buffer_size(), "Illegal used size: " << DebugString() <<

@@ -668,19 +668,6 @@ bool ContainerStorage::CommitContainer(Container* container, const ContainerStor
         return false;
     }
 
-    // In some sense, it would be better to unpin it in the LogAck method, but there
-    // we don't have to container available. But you should be aware that the
-    // event might be replayed in parallel in the direct or even in the log bg thread.
-    vector<ContainerItem*>::iterator i;
-    for (i = container->items().begin(); i != container->items().end(); i++) {
-        ContainerItem* item = *i;
-        if (item) {
-            DEBUG("Unpin chunk: container id " << container_id <<
-                ", item " << item->DebugString());
-            this->chunk_index_->ChangePinningState(item->key(), item->key_size(), false);
-        }
-    }
-
     // the cache is updated using the log acknowledgment
     // if we are here, the meta data cache item has been unsticked
 

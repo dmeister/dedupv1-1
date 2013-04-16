@@ -336,7 +336,7 @@ bool NoneGarbageCollector::ProcessDiffDirtyStart(ChunkMapping* mapping,
             mapping->set_block_hint(block_id);
             mapping->set_usage_count_change_log_id(context.log_id());
 
-            CHECK(chunk_index_->PutPersistentIndex(*mapping, false, false, NO_EC)
+            CHECK(chunk_index_->PutPersistentIndex(*mapping, false, NO_EC)
                 != PUT_ERROR,
                 "Failed to put usage change to index: " <<
                 ", chunk " << mapping->DebugString());
@@ -396,7 +396,7 @@ bool NoneGarbageCollector::ProcessDiffDirect(ChunkMapping* mapping,
                 dedupv1::log::Log::GetReplayModeName(context.replay_mode()));
 
             // Overwrites the data in the chunk index as dirty chunk
-            if (chunk_index_->PutPersistentIndex(*mapping, false, false, NO_EC) == PUT_ERROR) {
+            if (chunk_index_->PutPersistentIndex(*mapping, false, NO_EC) == PUT_ERROR) {
                 ERROR("Failed to put usage change to index: " <<
                     ", chunk " << mapping->DebugString());
                 failed = true;

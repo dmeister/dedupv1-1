@@ -121,7 +121,7 @@ enum index_capability {
      * Capability to support iterators
      */
     HAS_ITERATOR = 2,
-    
+
     /**
      * Capability to support a write back cache.
      * However, an index with this Capability might support this feature only
@@ -427,7 +427,7 @@ class Index {
 
         /**
         * Create a new iterator. All persistent index should support an
-        * iterator. Memory indexes can support the iterator. The support can be checked via 
+        * iterator. Memory indexes can support the iterator. The support can be checked via
         * the HAS_ITERATOR capability.
         *
         * @return a new iterator pointer or NULL if an error occurred.
@@ -523,7 +523,7 @@ class PersistentIndex : public Index {
          * Otherwise the normal put method is used
          */
         virtual enum put_result PutDirty(const void* key, size_t key_size,
-                    const google::protobuf::Message& message, bool pin);
+                    const google::protobuf::Message& message);
 
         /**
          * Ensures that the last write of the given key and key size is persistent.
@@ -533,15 +533,13 @@ class PersistentIndex : public Index {
          * Always should return true if the index has not the write back
          * cache capability.
          */
-        virtual enum put_result EnsurePersistent(const void* key, size_t key_size, bool* pinned);
+        virtual enum put_result EnsurePersistent(const void* key, size_t key_size);
 
         /**
          * returns true if the index has the write back capability and
          * the configuration allows the usage of the write-back cache
          */
         virtual bool IsWriteBackCacheEnabled();
-
-        virtual enum lookup_result ChangePinningState(const void* key, size_t key_size, bool new_pin_state);
 
         virtual uint64_t GetDirtyItemCount();
 
@@ -553,10 +551,6 @@ class PersistentIndex : public Index {
                 uint32_t max_batch_size,
                 uint64_t* resume_handle,
                 bool* persisted);
-
-        /**
-         */
-        virtual bool DropAllPinned();
 
         /**
          */

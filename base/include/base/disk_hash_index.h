@@ -96,7 +96,7 @@ class DiskHashEntry {
          * returns the current key
          */
         inline void* mutable_key();
-        
+
         /**
          * returns a mutable pointer to the current value.
          * When a client copied data into the value, the maximal
@@ -107,7 +107,7 @@ class DiskHashEntry {
         /**
          * Constructor.
          * Buffer is not assigned. key and value are set to zero length.
-         * 
+         *
          * @param max_key_size maximal size allowed for a key.
          * @param max_value_size maximal size allowed for a entry value.
          */
@@ -329,7 +329,7 @@ class DiskHashPage {
 
         /**
          * Updates the given key in the page.
-         
+
          * @param key
          * @param key_size
          * @param message
@@ -343,7 +343,6 @@ class DiskHashPage {
          * Merges a cache with a cache page with the intent for writting it back
          */
         bool MergeWithCache(DiskHashCachePage* cache_page,
-                uint32_t* pinned_item_count,
                 uint32_t* merged_item_count,
                 uint32_t* merged_new_item_count);
 
@@ -377,15 +376,15 @@ class DiskHashPage {
 
         /**
          * returns a const pointer to the data buffer.
-         * 
+         *
          * The data buffer differs from the raw buffer in that
          * the data buffer is the place for the page payload (the entries).
          * The raw buffer consists of a page header of kPageDataSize byte
          * followed by the data buffer.
          */
         inline const byte* data_buffer() const;
-        
-        /** 
+
+        /**
          * returns a mutable pointer to the data buffer.
          * The data buffer differs from the raw buffer in that
          * the data buffer is the place for the page payload (the entries).
@@ -394,7 +393,7 @@ class DiskHashPage {
          *
          */
         inline byte* mutable_data_buffer();
-               
+
         inline size_t data_buffer_size() const;
 
         /**
@@ -406,7 +405,7 @@ class DiskHashPage {
          * followed by the data buffer.
          */
         inline const byte* raw_buffer() const;
-        
+
         /**
          * Mutable pointer to the raw buffer of the page.
          * Use with extreme care. However, we need this so that the write cache
@@ -421,7 +420,7 @@ class DiskHashPage {
         inline size_t raw_buffer_size() const;
 
         inline size_t used_size() const;
-        
+
         inline size_t used_data_size() const;
 
         /**
@@ -566,12 +565,12 @@ class DiskHashIndex : public PersistentIndex {
              * Constructor
              */
             Statistics();
-            
+
             /**
              * number of times a page lock was acquired and found free.
              */
             tbb::atomic<uint32_t> lock_free_;
-            
+
             /**
              * number of times a page lock was acquire and found busy.
              */
@@ -756,7 +755,7 @@ class DiskHashIndex : public PersistentIndex {
      * iterator is used. It is also used to check which transactions areas have to update the item count
      *
      * The version counter is restored after a restart by the transaction system.
-     * The version numer is updated in DiskHashIndexTransaction::Start. 
+     * The version numer is updated in DiskHashIndexTransaction::Start.
      */
     tbb::atomic<uint64_t> version_counter_;
 
@@ -793,7 +792,7 @@ class DiskHashIndex : public PersistentIndex {
     internal::DiskHashIndexTransactionSystem* trans_system_;
 
     double estimated_max_fill_ratio_;
-    
+
     /**
      * Index to hold pages to might be read to write back.
      *
@@ -887,11 +886,6 @@ class DiskHashIndex : public PersistentIndex {
             std::vector<bool> bucket_free_state_;
 
             /**
-             * a bit per page if the page is pinned
-             */
-            std::vector<bool> bucket_pinned_state_;
-
-            /**
              * next victim pointer.
              * Used to find the next free id and to find the
              * next unused id
@@ -945,7 +939,7 @@ class DiskHashIndex : public PersistentIndex {
 
     /**
      * Spin lock to protect the dirty page tree
-     */ 
+     */
     tbb::spin_mutex dirty_page_map_lock_;
 
     void MarkBucketAsDirty(uint64_t bucket_id, uint32_t cache_line_id, uint32_t cache_id);
@@ -953,7 +947,7 @@ class DiskHashIndex : public PersistentIndex {
     /**
      * Checks if the bucket is marked as dirty.
      * The information may be outdated on usage
-     */ 
+     */
     bool IsBucketDirty(uint64_t bucket_id, uint32_t* cache_line_id, uint32_t* cache_id);
     void ClearBucketDirtyState(uint64_t bucket_id);
 
@@ -1011,7 +1005,7 @@ class DiskHashIndex : public PersistentIndex {
      */
     inline void MarkAsDirty(int file_index);
     inline bool SyncFile(int file_index);
-    
+
     /**
      * Checks if the given bucket is dirty.
      *
@@ -1022,7 +1016,7 @@ class DiskHashIndex : public PersistentIndex {
      * something went wrong.
      */
     lookup_result IsWriteBackPageDirty(uint64_t bucket_id);
-    
+
     /**
      * Updates the page data/buffer with the data from the write cache if there is updated
      * data in the cache.
@@ -1037,7 +1031,7 @@ class DiskHashIndex : public PersistentIndex {
      * LOOKUP_ERROR if something went wrong.
      */
     lookup_result ReadFromWriteBackCache(CacheLine* cache_line, internal::DiskHashCachePage* page);
-    
+
     /**
      * Copies the page to the write cache.
      * Updates the write cache if the page was stored there before.
@@ -1165,7 +1159,7 @@ class DiskHashIndex : public PersistentIndex {
     virtual enum put_result PutIfAbsent(
             const void* key, size_t key_size,
             const google::protobuf::Message& message);
-            
+
     /**
      * Inserts or updates the key/value pair and marks it as dirty. The next time the page
      * is written, the value is put to disk.
@@ -1174,12 +1168,12 @@ class DiskHashIndex : public PersistentIndex {
      * there. It persists a possible dirty version and marks the page clean.
      */
     virtual enum put_result PutDirty(const void* key, size_t key_size,
-                const google::protobuf::Message& message, bool pin);
+                const google::protobuf::Message& message);
 
     /**
      * If there is a dirty version of the page in memory, force it to disk
      */
-    virtual enum put_result EnsurePersistent(const void* key, size_t key_size, bool* pinned);
+    virtual enum put_result EnsurePersistent(const void* key, size_t key_size);
 
     /**
      * Method is used to try to persist any dirty page. Is scans a series of cache lines and searches for the next
@@ -1196,17 +1190,10 @@ class DiskHashIndex : public PersistentIndex {
             uint64_t* resume_handle,
             bool* persisted);
 
-    virtual enum lookup_result ChangePinningState(const void* key, size_t key_size, bool new_pin_state);
-
     /**
      * returns true iff the configuration allows the usage of the write cache.
      */
     virtual bool IsWriteBackCacheEnabled();
-
-    /**
-     * Goes to everything in the cache
-     */
-    virtual bool DropAllPinned();
 
     /**
      * Goes to everything in the cache

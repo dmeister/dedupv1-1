@@ -998,7 +998,7 @@ public:
                     ", current log id " << context_.log_id());
 
                 // Overwrites the data in the persistent chunk index
-                if (gc_->chunk_index_->PutPersistentIndex(*mapping_, true, false, NO_EC)
+                if (gc_->chunk_index_->PutPersistentIndex(*mapping_, true, NO_EC)
                     == PUT_ERROR) {
                     ERROR("Failed to put usage change to index: " <<
                         "usage modifier " << usage_modifier_ <<
@@ -1014,45 +1014,13 @@ public:
 
         // I shouldn't hold any locks while doing ensure persistent
         if (!failed && should_ensure_persistence) {
-            // First we try to ensure the persistence. If the chunk is dirty and
-            // not pinned, every thing is fine after step 1)
-            // If the item is still pinned and this can happen due to a bad timing,
-            // we wait until the direct replay queue is replayed and
-            // then try again.
-
             // The complete idea here is to handle the common case fast and throw
             // bigger guns at the problems if the next least hard/fast
             // way fails.
-            bool is_still_pinned = false;
-            put_result pr = gc_->chunk_index_->EnsurePersistent(*mapping_, &is_still_pinned);
+            put_result pr = gc_->chunk_index_->EnsurePersistent(*mapping_);
             if (pr == PUT_ERROR) {
                 ERROR("Failed to persist chunk mapping: " << mapping_->DebugString());
                 failed = true;
-            } else if (pr == PUT_KEEP && is_still_pinned) {
-
-                // I am sure that the container is committed
-                // It is checked in ProcessBlockMappingParallel
-                enum lookup_result lr = gc_->chunk_index_->ChangePinningState(
-                    mapping_->fingerprint(),
-                    mapping_->fingerprint_size(),
-                    false);
-                if (lr == LOOKUP_ERROR) {
-                    ERROR("Failed to changed pinning state: " << mapping_->DebugString());
-                    failed = true;
-                } else if (lr == LOOKUP_NOT_FOUND) {
-                    ERROR("Failed to change pinning state: " << mapping_->DebugString() <<
-                        ", reason element not found");
-                } else {
-                    // ok
-                    pr = gc_->chunk_index_->EnsurePersistent(*mapping_, &is_still_pinned);
-                    if (pr == PUT_ERROR) {
-                        ERROR("Failed to persist chunk mapping: " << mapping_->DebugString());
-                        failed = true;
-                    } else if (pr == PUT_KEEP && is_still_pinned) {
-                        ERROR("Mapping should not be still pinned: " << mapping_->DebugString());
-                        failed = true;
-                    }
-                }
             } else if (pr == PUT_KEEP) {
                 DEBUG("Mapping wasn't dirty in cache: " << mapping_->DebugString());
             } else {
@@ -1576,7 +1544,7 @@ bool UsageCountGarbageCollector::ProcessDiffDirtyStart(ChunkMapping* mapping,
             mapping->set_usage_count(aux_mapping.usage_count() + usage_modifier);
             mapping->set_usage_count_change_log_id(context.log_id());
 
-            CHECK(chunk_index_->PutPersistentIndex(*mapping, false, false, NO_EC)
+            CHECK(chunk_index_->PutPersistentIndex(*mapping, false, NO_EC)
                 != PUT_ERROR,
                 "Failed to put usage change to index: " <<
                 ", usage modifier " << usage_modifier <<
@@ -1605,19 +1573,7 @@ bool UsageCountGarbageCollector::ProcessDiffDirtyStart(ChunkMapping* mapping,
             mapping->set_usage_count_change_log_id(context.log_id());
             DEBUG("Load chunk into cache: " << mapping->DebugString());
 
-            bool has_to_pin = true;
-            storage_commit_state commit_state = storage_->IsCommitted(mapping->data_address());
-            CHECK(commit_state != STORAGE_ADDRESS_ERROR, "Failed to check commit state");
-            if (commit_state == STORAGE_ADDRESS_COMMITED) {
-                has_to_pin = false;
-                // this is one of the major cases where we know that a container
-                // is committed even before the end of the dirty replay. But we
-                // cannot get the correct location of the container or similar
-                // things. Some container might be committed, but we don't know
-                // that yet. Therefore we have to pin them.
-                // Some container might not be committed, we pin them, too.
-            }
-            CHECK(chunk_index_->PutPersistentIndex(*mapping, false, has_to_pin, NO_EC) != PUT_ERROR,
+            CHECK(chunk_index_->PutPersistentIndex(*mapping, false, NO_EC) != PUT_ERROR,
                 "Failed to put usage change to index: " <<
                 ", usage modifier " << usage_modifier <<
                 ", chunk " << mapping->DebugString());
@@ -1630,10 +1586,7 @@ bool UsageCountGarbageCollector::ProcessDiffDirtyStart(ChunkMapping* mapping,
             mapping->set_usage_count(aux_mapping.usage_count() + usage_modifier);
             mapping->set_usage_count_change_log_id(context.log_id());
 
-            // The problem here is that we have no information if the address is
-            // committed or not.
-            // Therefore we pin it to the main memory
-            CHECK(chunk_index_->PutPersistentIndex(*mapping, false, true, NO_EC)
+            CHECK(chunk_index_->PutPersistentIndex(*mapping, false, NO_EC)
                 != PUT_ERROR,
                 "Failed to put usage change to index: " <<
                 "usage modifier " << usage_modifier <<
@@ -1694,7 +1647,7 @@ bool UsageCountGarbageCollector::ProcessDiffDirect(ChunkMapping* mapping,
                 dedupv1::log::Log::GetReplayModeName(context.replay_mode()));
 
             // Overwrites the data in the chunk index as dirty chunk
-            if (chunk_index_->PutPersistentIndex(*mapping, false, false, NO_EC) == PUT_ERROR) {
+            if (chunk_index_->PutPersistentIndex(*mapping, false, NO_EC) == PUT_ERROR) {
                 ERROR("Failed to put usage change to index: " <<
                     "usage modifier " << usage_modifier <<
                     ", chunk " << mapping->DebugString());

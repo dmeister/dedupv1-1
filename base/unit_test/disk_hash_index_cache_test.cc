@@ -82,7 +82,7 @@ TEST_P(DiskHashIndexCacheTest, EnsurePersistent) {
     IntData value;
     value.set_i(5);
     DEBUG("Put Dirty key " << ToHexString(&key, sizeof(key)) << " with key size " << sizeof(key));
-    ASSERT_EQ(index->PutDirty(&key, sizeof(key), value, true), PUT_OK);
+    ASSERT_EQ(index->PutDirty(&key, sizeof(key), value), PUT_OK);
 
     TRACE("LookupDirty cache and dirty");
     ASSERT_EQ(index->LookupDirty(&key, sizeof(key), CACHE_LOOKUP_DEFAULT, CACHE_ALLOW_DIRTY, &value), LOOKUP_FOUND);
@@ -93,62 +93,13 @@ TEST_P(DiskHashIndexCacheTest, EnsurePersistent) {
     ASSERT_EQ(index->LookupDirty(&key, sizeof(key), CACHE_LOOKUP_ONLY, CACHE_ONLY_CLEAN, &value), LOOKUP_NOT_FOUND);
 
     TRACE("EnsurePersistent");
-    bool is_pinned = false;
-    ASSERT_EQ(index->EnsurePersistent(&key, sizeof(key), &is_pinned), PUT_KEEP);
-    ASSERT_TRUE(is_pinned);
-
-    TRACE("ChangePinningState");
-    ASSERT_EQ(index->ChangePinningState(&key, sizeof(key), false), LOOKUP_FOUND);
-
-    TRACE("EnsurePersistent");
-    is_pinned = false;
-    ASSERT_EQ(index->EnsurePersistent(&key, sizeof(key), &is_pinned), PUT_OK);
+    ASSERT_EQ(index->EnsurePersistent(&key, sizeof(key)), PUT_OK);
 
     TRACE("LookupDirty disk and clean");
     ASSERT_EQ(index->LookupDirty(&key, sizeof(key), CACHE_LOOKUP_BYPASS, CACHE_ONLY_CLEAN, &value), LOOKUP_FOUND);
     TRACE("LookupDirty cache and clean");
     ASSERT_EQ(index->LookupDirty(&key, sizeof(key), CACHE_LOOKUP_ONLY, CACHE_ONLY_CLEAN, &value), LOOKUP_FOUND);
     TRACE("Test done");
-}
-
-TEST_P(DiskHashIndexCacheTest, EnsurePersistentAfterUpdate) {
-    uint64_t key = 10;
-    IntData value;
-    value.set_i(5);
-    ASSERT_EQ(index->PutDirty(&key, sizeof(key), value, true), PUT_OK);
-
-    ASSERT_EQ(index->LookupDirty(&key, sizeof(key), CACHE_LOOKUP_DEFAULT, CACHE_ALLOW_DIRTY, &value), LOOKUP_FOUND);
-    ASSERT_EQ(index->LookupDirty(&key, sizeof(key), CACHE_LOOKUP_BYPASS, CACHE_ONLY_CLEAN, &value), LOOKUP_NOT_FOUND);
-    ASSERT_EQ(index->LookupDirty(&key, sizeof(key), CACHE_LOOKUP_ONLY, CACHE_ONLY_CLEAN, &value), LOOKUP_NOT_FOUND);
-
-    value.set_i(7);
-    ASSERT_EQ(index->PutDirty(&key, sizeof(key), value, true), PUT_OK); // also pinned
-
-    ASSERT_EQ(index->LookupDirty(&key, sizeof(key), CACHE_LOOKUP_DEFAULT, CACHE_ALLOW_DIRTY, &value), LOOKUP_FOUND);
-    ASSERT_EQ(index->LookupDirty(&key, sizeof(key), CACHE_LOOKUP_BYPASS, CACHE_ONLY_CLEAN, &value), LOOKUP_NOT_FOUND);
-    ASSERT_EQ(index->LookupDirty(&key, sizeof(key), CACHE_LOOKUP_ONLY, CACHE_ONLY_CLEAN, &value), LOOKUP_NOT_FOUND);
-
-    value.set_i(8);
-    ASSERT_EQ(index->PutDirty(&key, sizeof(key), value, false), PUT_OK); // not pinned
-
-    ASSERT_EQ(index->LookupDirty(&key, sizeof(key), CACHE_LOOKUP_DEFAULT, CACHE_ALLOW_DIRTY, &value), LOOKUP_FOUND);
-    ASSERT_EQ(index->LookupDirty(&key, sizeof(key), CACHE_LOOKUP_BYPASS, CACHE_ONLY_CLEAN, &value), LOOKUP_NOT_FOUND);
-    ASSERT_EQ(index->LookupDirty(&key, sizeof(key), CACHE_LOOKUP_ONLY, CACHE_ONLY_CLEAN, &value), LOOKUP_NOT_FOUND);
-
-    bool is_pinned = false;
-    ASSERT_EQ(index->EnsurePersistent(&key, sizeof(key), &is_pinned), PUT_KEEP);
-    ASSERT_TRUE(is_pinned);
-
-    ASSERT_EQ(index->ChangePinningState(&key, sizeof(key), false), LOOKUP_FOUND);
-
-    value.set_i(8);
-    ASSERT_EQ(index->PutDirty(&key, sizeof(key), value, false), PUT_OK); // not pinned
-
-    is_pinned = false;
-    ASSERT_EQ(index->EnsurePersistent(&key, sizeof(key), &is_pinned), PUT_OK);
-
-    ASSERT_EQ(index->LookupDirty(&key, sizeof(key), CACHE_LOOKUP_BYPASS, CACHE_ONLY_CLEAN, &value), LOOKUP_FOUND);
-    ASSERT_EQ(index->LookupDirty(&key, sizeof(key), CACHE_LOOKUP_ONLY, CACHE_ONLY_CLEAN, &value), LOOKUP_FOUND);
 }
 
 }

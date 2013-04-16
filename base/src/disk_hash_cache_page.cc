@@ -87,8 +87,7 @@ namespace dedupv1 {
 namespace base {
 namespace internal {
 
-lookup_result DiskHashCachePage::Search(const void* key, size_t key_size, Message* message, bool* is_dirty,
-                                        bool* is_pinned) {
+lookup_result DiskHashCachePage::Search(const void* key, size_t key_size, Message* message, bool* is_dirty) {
     DCHECK_RETURN(key, LOOKUP_ERROR, "Key not set");
 
     TRACE("Search cache page: bucket " << bucket_id_ << ", key " << ToHexString(key, key_size));
@@ -111,54 +110,11 @@ lookup_result DiskHashCachePage::Search(const void* key, size_t key_size, Messag
             if (is_dirty) {
                 *is_dirty = entry.is_dirty();
             }
-            if (is_pinned) {
-                *is_pinned = entry.is_pinned();
-            }
             return LOOKUP_FOUND;
         }
         cache_lr = Iterate(&entry);
     }
     return LOOKUP_NOT_FOUND;
-}
-
-bool DiskHashCachePage::DropAllPinned(uint64_t* dropped_item_count) {
-    TRACE("Drop all pinned from cache page: bucket " << bucket_id_);
-
-    if (dropped_item_count) {
-      *dropped_item_count = 0;
-    }
-
-    DiskHashCacheEntry entry(buffer_, buffer_size_, max_key_size_, max_value_size_);
-    lookup_result cache_lr = IterateInit(&entry);
-    while (cache_lr == LOOKUP_FOUND) {
-        if (entry.is_pinned()) {
-            TRACE("Drop pinned entry: " << entry.DebugString());
-            byte* next_buffer = buffer_ + entry.current_offset() + entry.entry_data_size();
-            byte* current_buffer = buffer_ + entry.current_offset();
-            size_t s = buffer_size_ - (next_buffer - buffer_);
-
-            DCHECK(next_buffer + s <= buffer_ + buffer_size_, "Illegal next buffer: " <<
-                "buffer size " << buffer_size_ <<
-                "copy size " << s <<
-                "next buffer offset " << static_cast<int>(next_buffer - buffer_));
-
-            // The next line will bring sometimes a valgind error:
-            //     Source and destination overlap in memcpy
-            // This is completely o.k. here.
-            memcpy(current_buffer, next_buffer, s);
-            memset(buffer_ + buffer_size_ - entry.entry_data_size(), 0, entry.entry_data_size());
-            item_count_--;
-
-            if (dropped_item_count) {
-              (*dropped_item_count)++;
-            }
-
-            CHECK(entry.ParseFrom(entry.current_offset()), "Error parsing entry at offset " << entry.current_offset());
-        } else {
-            cache_lr = Iterate(&entry);
-        }
-    }
-    return true;
 }
 
 delete_result DiskHashCachePage::Delete(const void* key, unsigned int key_size) {
@@ -218,39 +174,6 @@ enum lookup_result DiskHashCachePage::Iterate(DiskHashCacheEntry* cache_entry) c
     return LOOKUP_NOT_FOUND;
 }
 
-enum lookup_result DiskHashCachePage::ChangePinningState(const void* key, size_t key_size, bool new_pinning_state) {
-    DCHECK_RETURN(key, LOOKUP_ERROR, "Key not set");
-
-    TRACE("Pin: bucket " << bucket_id_ <<
-        ", key " << ToHexString(key, key_size) <<
-        ", key size " << key_size <<
-        ", page bin state " << pinned_ <<
-        ", page dirty state " << dirty_ <<
-        ", new key pin state " << ToString(new_pinning_state));
-
-    uint32_t pinned_count = 0;
-    bool found = false;
-    DiskHashCacheEntry entry(buffer_, buffer_size_, max_key_size_, max_value_size_);
-    lookup_result cache_lr = IterateInit(&entry);
-    while (cache_lr == LOOKUP_FOUND) {
-        if (raw_compare(entry.key(), entry.key_size(), key, key_size) == 0) {
-            // Found it
-            entry.set_pinned(new_pinning_state);
-            entry.Store();
-            found = true;
-        }
-        if (entry.is_pinned()) {
-            pinned_count++;
-        }
-        cache_lr = Iterate(&entry);
-    }
-    this->pinned_ = (pinned_count > 0);
-    if (found) {
-        return LOOKUP_FOUND;
-    }
-    return LOOKUP_NOT_FOUND;
-}
-
 void DiskHashCachePage::RaiseBuffer(size_t minimal_new_buffer_size) {
     if (minimal_new_buffer_size < buffer_size_) {
         return;
@@ -268,7 +191,7 @@ void DiskHashCachePage::RaiseBuffer(size_t minimal_new_buffer_size) {
 }
 
 put_result DiskHashCachePage::Update(const void* key, size_t key_size, const Message& message, bool keep,
-                                     bool dirty_change, bool pin) {
+                                     bool dirty_change) {
     DCHECK_RETURN(key, PUT_ERROR, "Key not set");
 
     TRACE("Update cache page: bucket " << bucket_id_ <<
@@ -287,10 +210,6 @@ put_result DiskHashCachePage::Update(const void* key, size_t key_size, const Mes
             if (dirty_change) {
                 this->dirty_ = true;
                 entry.set_dirty(true);
-            }
-            if (pin) {
-                this->pinned_ = true;
-                entry.set_pinned(pin);
             }
             entry.Store();
             TRACE("Update cache entry: bucket " << bucket_id_ << ", key " << ToHexString(key, key_size) <<
@@ -318,10 +237,6 @@ put_result DiskHashCachePage::Update(const void* key, size_t key_size, const Mes
         this->dirty_ = true;
         entry.set_dirty(true);
     }
-    if (pin) {
-        this->pinned_ = true;
-        entry.set_pinned(true);
-    }
     entry.Store();
     item_count_++;
     return PUT_OK;
@@ -337,7 +252,6 @@ DiskHashCachePage::DiskHashCachePage(uint64_t bucket_id, size_t page_size, uint3
     this->bucket_id_ = bucket_id;
     this->page_size_ = page_size;
     dirty_ = false;
-    pinned_ = false;
     max_key_size_ = max_key_size;
     max_value_size_ = max_value_size;
     item_count_ = 0;
@@ -354,15 +268,11 @@ bool DiskHashCachePage::ParseData() {
         "Illegal item count");
 
     dirty_ = false;
-    pinned_ = false;
     DiskHashCacheEntry entry(buffer_, buffer_size_, max_key_size_, max_value_size_);
     lookup_result cache_lr = IterateInit(&entry);
     while (cache_lr == LOOKUP_FOUND) {
         if (entry.is_dirty()) {
             dirty_ = true;
-        }
-        if (entry.is_pinned()) {
-            pinned_ = true;
         }
         cache_lr = Iterate(&entry);
     }
@@ -381,7 +291,7 @@ bool DiskHashCachePage::Store() {
 string DiskHashCachePage::DebugString() const {
     stringstream sstr;
     sstr << "[cache page " << this->bucket_id_ << ", cache buffer size " << buffer_size_ << ", item count "
-         << item_count_ << ", dirty " << ToString(dirty_) << ", pinned " << ToString(pinned_) << "]";
+         << item_count_ << ", dirty " << ToString(dirty_) << "]";
     return sstr.str();
 }
 
@@ -406,7 +316,6 @@ bool DiskHashCacheEntry::ParseFrom(uint32_t offset) {
         key_size_ = 0;
         value_size_ = 0;
         dirty_ = false;
-        pinned_ = false;
         return false;
     }
 
@@ -414,7 +323,6 @@ bool DiskHashCacheEntry::ParseFrom(uint32_t offset) {
     value_size_ = GetFromBuffer<uint16_t>(buf, 1);
     uint8_t state = GetFromBuffer<uint8_t>(buf, 3);
     dirty_ = state & 1;
-    pinned_ = state & 2;
 
     DCHECK(key_size_ <= max_key_size_, "Illegal key size: " << key_size_);
     DCHECK(value_size_ <= max_value_size_, "Illegal value size: " << value_size_);
@@ -434,7 +342,7 @@ void DiskHashCacheEntry::Store() {
     SetToBuffer<uint8_t>(buf, 0, (uint8_t) key_size_);
     SetToBuffer<uint16_t>(buf, 1, (uint16_t) value_size_);
 
-    uint8_t state = (dirty_) | (pinned_ << 1);
+    uint8_t state = (dirty_);
     SetToBuffer<uint8_t>(buf, 3, (uint8_t) state);
 }
 
@@ -466,7 +374,6 @@ DiskHashCacheEntry::DiskHashCacheEntry(byte* buffer, size_t buffer_size, uint32_
     this->key_size_ = 0;
     this->value_size_ = 0;
     dirty_ = false;
-    pinned_ = false;
     offset_ = 0;
     max_key_size_ = max_key_size;
     max_value_size_ = max_value_size;
@@ -475,8 +382,7 @@ DiskHashCacheEntry::DiskHashCacheEntry(byte* buffer, size_t buffer_size, uint32_
 string DiskHashCacheEntry::DebugString() {
     return "cache entry: key " + ToHexString(this->key(), this->key_size()) + ", key size "
            + ToString(this->key_size()) + ", value " + ToHexString(this->value(), this->value_size())
-           + ", value size " + ToString(this->value_size()) + ", dirty " + ToString(dirty_) + ", pinned " + ToString(
-        pinned_);
+           + ", value size " + ToString(this->value_size()) + ", dirty " + ToString(dirty_);
 }
 
 }

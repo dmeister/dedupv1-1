@@ -392,7 +392,7 @@ bool Dedupv1Checker::CheckContainerItem(ChunkIndex* chunk_index, Fingerprinter* 
         if (repair_) {
             // We can repair this by correcting the data address
             mapping.set_data_address(item->original_id());
-            CHECK(chunk_index->PutPersistentIndex(mapping, true, false, NO_EC),
+            CHECK(chunk_index->PutPersistentIndex(mapping, true, NO_EC),
                 "Failed to chunk mapping with incorrect data address: " << mapping.DebugString());
             fixed_errors_++;
         }

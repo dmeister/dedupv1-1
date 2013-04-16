@@ -425,7 +425,7 @@ TEST_P(UsageCountGarbageCollectorTest, ProcessBlockMappingWrittenReplayCommitted
         ASSERT_TRUE(item->ConvertTo(&chunk));
 
         chunk.set_usage_count(10);
-        ASSERT_TRUE(chunk_index->PutPersistentIndex(chunk, false, false, NO_EC));
+        ASSERT_TRUE(chunk_index->PutPersistentIndex(chunk, false, NO_EC));
     }
     LogReplayContext replay_context(EVENT_REPLAY_MODE_REPLAY_BG, 1);
     ReplayWrittenLogEntry(gc, replay_context, orig, m1);
@@ -461,7 +461,7 @@ TEST_P(UsageCountGarbageCollectorTest, ProcessBlockMappingDeletedReplay) {
         ASSERT_TRUE(item->ConvertTo(&chunk));
 
         chunk.set_usage_count(10);
-        ASSERT_TRUE(chunk_index->PutPersistentIndex(chunk, false, false, NO_EC));
+        ASSERT_TRUE(chunk_index->PutPersistentIndex(chunk, false,NO_EC));
     }
     LogReplayContext replay_context(EVENT_REPLAY_MODE_REPLAY_BG, 1);
     ReplayDeletedLogEntry(gc, replay_context, m1);
@@ -502,7 +502,7 @@ TEST_P(UsageCountGarbageCollectorTest, ProcessBlockMappingWrittenWithUpdatedMapp
         ASSERT_TRUE(item->ConvertTo(&chunk));
 
         chunk.set_usage_count(1);
-        ASSERT_TRUE(chunk_index->PutPersistentIndex(chunk, false, false, NO_EC));
+        ASSERT_TRUE(chunk_index->PutPersistentIndex(chunk, false, NO_EC));
     }
     for (i = m2.items().begin(); i != m2.items().end(); i++) {
         ChunkMapping chunk;
@@ -511,7 +511,7 @@ TEST_P(UsageCountGarbageCollectorTest, ProcessBlockMappingWrittenWithUpdatedMapp
         ASSERT_TRUE(item->ConvertTo(&chunk));
 
         chunk.set_usage_count(1);
-        ASSERT_TRUE(chunk_index->PutPersistentIndex(chunk, false, false, NO_EC));
+        ASSERT_TRUE(chunk_index->PutPersistentIndex(chunk, false, NO_EC));
     }
 
     LogReplayContext replay_context(EVENT_REPLAY_MODE_REPLAY_BG, 1);
@@ -583,7 +583,7 @@ TEST_P(UsageCountGarbageCollectorTest, TriggerByIdleStart) {
         chunk.set_usage_count(0);
         chunk.set_data_address(container_id);
 
-        ASSERT_TRUE(chunk_index->PutPersistentIndex(chunk, false, false, NO_EC));
+        ASSERT_TRUE(chunk_index->PutPersistentIndex(chunk, false, NO_EC));
 
         multimap<uint64_t, ChunkMapping> gc_chunks;
         gc_chunks.insert(make_pair(container_id, chunk));
@@ -639,7 +639,7 @@ TEST_P(UsageCountGarbageCollectorTest, TriggerByIdleStartLogReplayed) {
         chunk.set_usage_count(0);
         chunk.set_data_address(container_id);
 
-        ASSERT_TRUE(chunk_index->PutPersistentIndex(chunk, false, false, NO_EC));
+        ASSERT_TRUE(chunk_index->PutPersistentIndex(chunk, false, NO_EC));
 
         multimap<uint64_t, ChunkMapping> gc_chunks;
         gc_chunks.insert(make_pair(container_id, chunk));
@@ -690,7 +690,7 @@ TEST_P(UsageCountGarbageCollectorTest, TriggerByStartProcessing) {
         chunk.set_usage_count(0);
         chunk.set_data_address(container_id);
 
-        ASSERT_TRUE(chunk_index->PutPersistentIndex(chunk, false, false, NO_EC));
+        ASSERT_TRUE(chunk_index->PutPersistentIndex(chunk, false, NO_EC));
 
         multimap<uint64_t, ChunkMapping> gc_chunks;
         gc_chunks.insert(make_pair(container_id, chunk));

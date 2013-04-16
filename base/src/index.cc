@@ -190,8 +190,7 @@ enum lookup_result PersistentIndex::LookupDirty(const void* key, size_t key_size
 }
 
 enum put_result PersistentIndex::PutDirty(const void* key, size_t key_size,
-                                          const google::protobuf::Message& message, bool pin) {
-    CHECK_RETURN(!pin, PUT_ERROR, "Index doesn't support pinning");
+                                          const google::protobuf::Message& message) {
     return Put(key, key_size, message);
 }
 
@@ -228,16 +227,11 @@ enum put_result Index::PutBatch(
     return PUT_OK;
 }
 
-bool PersistentIndex::DropAllPinned() {
-    ERROR("Index doesn't support pinning");
-    return false;
-}
-
 bool PersistentIndex::PersistAllDirty() {
     return true;
 }
 
-enum put_result PersistentIndex::EnsurePersistent(const void* key, size_t key_size, bool* pinned) {
+enum put_result PersistentIndex::EnsurePersistent(const void* key, size_t key_size) {
     return PUT_OK;
 }
 
@@ -256,11 +250,6 @@ bool PersistentIndex::TryPersistDirtyItem(
     DCHECK(persisted, "Persisted not set");
     *persisted = false;
     return true;
-}
-
-enum lookup_result PersistentIndex::ChangePinningState(const void* key, size_t key_size, bool new_pin_state) {
-    ERROR("Index doesn't support pinning");
-    return LOOKUP_ERROR;
 }
 
 uint64_t PersistentIndex::GetDirtyItemCount() {

@@ -212,7 +212,7 @@ bool ChunkIndexRestorer::ReadContainerData(ChunkIndex* chunk_index) {
 
                     DEBUG("Restore container item " << mapping.DebugString());
                     // Insert the chunk mapping into the chunk index.
-                    CHECK(chunk_index->PutPersistentIndex(mapping, true, false, NO_EC),
+                    CHECK(chunk_index->PutPersistentIndex(mapping, true, NO_EC),
                         "Failed to store chunk mapping: " << mapping.DebugString());
 
                 }
@@ -310,7 +310,7 @@ bool ChunkIndexRestorer::RestoreUsageCount(ChunkIndex* chunk_index) {
             DEBUG("Update usage count " << mapping.DebugString());
 
             // Put it back to the chunk index.
-            CHECK(chunk_index->PutPersistentIndex(mapping, true, false, NO_EC),
+            CHECK(chunk_index->PutPersistentIndex(mapping, true, NO_EC),
                 "Failed to put usage change to index: " << mapping.DebugString());
         }
         processed_blocks++;

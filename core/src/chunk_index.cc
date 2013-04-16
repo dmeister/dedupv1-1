@@ -556,7 +556,6 @@ bool ChunkIndex::PutIndex(Index* index,
 
 bool ChunkIndex::PutPersistentIndex(const ChunkMapping& mapping,
                                     bool ensure_persistence,
-                                    bool pin,
                                     dedupv1::base::ErrorContext* ec) {
     ChunkMappingData data;
     CHECK(mapping.SerializeTo(&data),
@@ -564,8 +563,7 @@ bool ChunkIndex::PutPersistentIndex(const ChunkMapping& mapping,
 
     TRACE("Put index entry: "
         "chunk " << mapping.DebugString() <<
-        ", ensure persistence " << ToString(ensure_persistence) <<
-        ", pin " << ToString(pin));
+        ", ensure persistence " << ToString(ensure_persistence));
 
     put_result result;
     if (ensure_persistence) {
@@ -574,8 +572,7 @@ bool ChunkIndex::PutPersistentIndex(const ChunkMapping& mapping,
     } else {
         result = chunk_index_->PutDirty(mapping.fingerprint(),
             mapping.fingerprint_size(),
-            data,
-            pin);
+            data);
     }
     CHECK(result != PUT_ERROR,
         "Cannot put chunk mapping data: " << mapping.DebugString());
@@ -621,7 +618,7 @@ bool ChunkIndex::Put(const ChunkMapping& mapping, ErrorContext* ec) {
     TRACE("Updating chunk index (pinned): " << mapping.DebugString());
 
     // we pin the item into main memory
-    return this->PutPersistentIndex(mapping, false, true, ec);
+    return this->PutPersistentIndex(mapping, false, ec);
 }
 
 bool ChunkIndex::PutOverwrite(ChunkMapping& mapping, ErrorContext* ec) {
@@ -632,7 +629,7 @@ bool ChunkIndex::PutOverwrite(ChunkMapping& mapping, ErrorContext* ec) {
     ProfileTimer update_timer(this->stats_.update_time_);
 
     TRACE("Updating persistent chunk index: " << mapping.DebugString());
-    bool result = this->PutPersistentIndex(mapping, false, false, ec);
+    bool result = this->PutPersistentIndex(mapping, false, ec);
     CHECK(result, "Failed to put overwrite a chunk mapping: " << mapping.DebugString());
 
     return true;
@@ -790,19 +787,9 @@ bool ChunkIndex::ImportContainerItem(const ContainerItem& item, ErrorContext* ec
     mapping.set_data_address(item.original_id());
 
     DEBUG("Import container item: " << item.DebugString());
-    bool is_still_pinned = false;
-    put_result pr = EnsurePersistent(mapping, &is_still_pinned);
+    put_result pr = EnsurePersistent(mapping);
     CHECK(pr != PUT_ERROR, "Failed to ensure that container item is persisted: " <<
         item.DebugString());
-    if (is_still_pinned) {
-        // I am sure that the container is committed
-        CHECK(chunk_index_->ChangePinningState(item.key(), item.key_size(), false) != LOOKUP_ERROR,
-            "Failed to changed pinning state: " << item.DebugString());
-        put_result pr = EnsurePersistent(mapping, &is_still_pinned);
-        CHECK(pr != PUT_ERROR, "Failed to ensure that container item is persisted: " <<
-            item.DebugString());
-        CHECK(!(pr == PUT_KEEP && is_still_pinned), "Item should not still be pinned");
-    }
     if (pr == PUT_KEEP) {
         DEBUG("Item was not dirty in chunk index: " << item.DebugString());
     }
@@ -965,8 +952,6 @@ bool ChunkIndex::LoadContainerIntoCache(uint64_t container_id,
                 TRACE("Container item was imported before: item " << item->DebugString() << ", imported container id "
                                                                   << container_id << ", mapping " << mapping.DebugString());
             }
-            CHECK(chunk_index_->ChangePinningState(item->key(), item->key_size(), false),
-                "Failed to change pinning state: " << item->DebugString());
         } else {
             DEBUG("We have a item from a non-imported container that is unused: " <<
                 item->DebugString());
@@ -987,7 +972,7 @@ bool ChunkIndex::LoadContainerIntoCache(uint64_t container_id,
                 // get ouf of sync of the container id: Container id mismatch
                 mapping.set_data_address(item->original_id());
 
-                CHECK(PutPersistentIndex(mapping, false, false, ec),
+                CHECK(PutPersistentIndex(mapping, false, ec),
                     "Cannot put logged mapping into persistent index (dirty): " << mapping.DebugString() <<
                     ", container item " << item->DebugString());
             }
@@ -1126,33 +1111,21 @@ Option<bool> ChunkIndex::IsContainerImported(uint64_t container_id) {
     return make_option(!shouldImported);
 }
 
-enum lookup_result ChunkIndex::ChangePinningState(const void* key, size_t key_size, bool new_pin_state) {
-    DCHECK_RETURN(chunk_index_, LOOKUP_ERROR, "Chunk index not set");
-
-    return chunk_index_->ChangePinningState(key, key_size, new_pin_state);
-}
-
-enum put_result ChunkIndex::EnsurePersistent(const ChunkMapping &mapping, bool* pinned) {
+enum put_result ChunkIndex::EnsurePersistent(const ChunkMapping &mapping) {
     DCHECK_RETURN(chunk_index_, PUT_ERROR, "Chunk index not set");
 
     DEBUG("Ensure persistence: "
         "chunk " << mapping.DebugString());
 
-    bool is_still_pinned = false;
     put_result pr;
     pr = chunk_index_->EnsurePersistent(mapping.fingerprint(),
-        mapping.fingerprint_size(), &is_still_pinned);
+        mapping.fingerprint_size());
     CHECK_RETURN(pr != PUT_ERROR, PUT_ERROR, "Failed to persist chunk mapping: " << mapping.DebugString());
 
-    if (pr == PUT_KEEP && is_still_pinned) {
-        DEBUG("Mapping still pinned: " << mapping.DebugString());
-    } else if (pr == PUT_KEEP) {
+    if (pr == PUT_KEEP) {
         DEBUG("Mapping wasn't dirty in cache: " << mapping.DebugString());
     } else {
         // it is persisted, we are fine here
-    }
-    if (pinned) {
-        *pinned = is_still_pinned;
     }
     return pr;
 }
@@ -1184,8 +1157,6 @@ bool ChunkIndex::FinishDirtyLogReplay() {
         }
         dirty_import_container_tracker_.Clear();
     }
-    // Everything still pinned at this point in time has to go
-    this->chunk_index_->DropAllPinned();
     dirty_import_finished_ = true;
     return true;
 }
