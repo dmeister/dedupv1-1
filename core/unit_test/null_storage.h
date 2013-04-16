@@ -63,10 +63,8 @@ class NullStorageSession : public StorageSession {
     public:
         NullStorageSession() {}
 
-        virtual bool WriteNew(const void* key, size_t key_size, const void* data,
-                size_t data_size, bool is_indexed,
-                uint64_t* address, dedupv1::base::ErrorContext* ec) {
-            *address = 0;
+        virtual bool WriteNew(std::list<StorageRequest>* requests,
+                dedupv1::base::ErrorContext* ec) {
             return true;
         }
 

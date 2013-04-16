@@ -145,7 +145,7 @@ class ChunkStore : public dedupv1::StatisticProvider {
      * @return true iff ok, otherwise an error has occurred
      */
     virtual bool WriteBlock(StorageSession* session,
-            dedupv1::chunkindex::ChunkMapping* chunk_mappings,
+            std::vector<dedupv1::chunkindex::ChunkMapping>* chunk_mappings,
             dedupv1::base::ErrorContext* ec);
 
     /**

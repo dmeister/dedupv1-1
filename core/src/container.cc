@@ -402,9 +402,9 @@ bool Container::CopyItem(const Container& parent_container, const ContainerItem&
     return true;
 }
 
-bool Container::AddItem(const byte* key,
+bool Container::AddItem(const void* key,
     size_t key_size,
-    const byte* data,
+    const void* data,
     size_t data_size,
     bool is_indexed,
     Compression* comp) {
@@ -503,7 +503,7 @@ bool Container::AddItem(const byte* key,
     return true;
 }
 
-ContainerItem::ContainerItem(const byte* key, size_t key_size,
+ContainerItem::ContainerItem(const void* key, size_t key_size,
                              size_t offset,
                              size_t raw_size,
                              size_t item_size,

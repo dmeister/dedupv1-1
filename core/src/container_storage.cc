@@ -1896,10 +1896,7 @@ ContainerStorageSession::ContainerStorageSession(ContainerStorage* storage) {
     this->storage_ = storage;
 }
 
-bool ContainerStorageSession::WriteNew(const void* key, size_t key_size,
-                                       const void* data, size_t data_size,
-                                       bool is_indexed,
-                                       uint64_t* address,
+bool ContainerStorageSession::WriteNew(list<StorageRequest>* requests,
                                        ErrorContext* ec) {
     ContainerStorage* c = this->storage_;
     ProfileTimer timer(storage_->stats_.total_write_time_);
@@ -1913,7 +1910,7 @@ bool ContainerStorageSession::WriteNew(const void* key, size_t key_size,
     // TODO(fermat): We could send the size of the chunk here to get an open container, which can store the chunk, if there is one left.
     // This way we get a defragmentation.
     CHECK(this->storage_->write_cache_.GetNextWriteCacheContainer(&write_container, &write_container_lock),
-        "Failed to get write container: key " << Fingerprinter::DebugString((const byte *) key, key_size));
+        "Failed to get write container");
     CHECK(write_container, "Write container not set");
     CHECK(write_container_lock, "Write container lock not set");
     ScopedReadWriteLock scoped_write_container_lock(NULL);
@@ -1930,17 +1927,17 @@ bool ContainerStorageSession::WriteNew(const void* key, size_t key_size,
             return false;
         }
     }
-
-    CHECK(scoped_write_container_lock.IsHeldForWrites(),
+    DCHECK(scoped_write_container_lock.IsHeldForWrites(),
         "Thread doesn't holds write container: lock: " <<
-        ", lock " << scoped_write_container_lock.DebugString() <<
-        ", key " << Fingerprinter::DebugString((const byte *) key, key_size));
+        ", lock " << scoped_write_container_lock.DebugString());
 
-    if (write_container->IsFull(key_size, data_size)) {
-        TRACE("Container full: " << write_container->DebugString());
+    list<StorageRequest>::iterator request;
+    for (request = requests->begin(); request != requests->end(); request++) {
+        if (write_container->IsFull(request->key_size(), request->data_size())) {
+            TRACE("Container full: " << write_container->DebugString());
 
-        // we do not need to reset the container cache timeout, because it has been reseted a few moments ago (GetNextWriteCacheContainer)
-        CHECK(c->PrepareCommit(write_container),
+            // we do not need to reset the container cache timeout, because it has been reseted a few moments ago (GetNextWriteCacheContainer)
+            CHECK(c->PrepareCommit(write_container),
             "Failed to prepare commit: " << write_container->DebugString());
 
         // PrepareCommit has build a new container in cache, which is now an empty container
@@ -1954,29 +1951,32 @@ bool ContainerStorageSession::WriteNew(const void* key, size_t key_size,
                 }
                 return false;
             }
+            }
         }
-    }
-    CHECK(scoped_write_container_lock.IsHeldForWrites(), "Thread doesn't holds write container lock");
-    uint64_t container_id = write_container->primary_id();
-    CHECK(container_id != 0 && container_id != Storage::EMPTY_DATA_STORAGE_ADDRESS && container_id != Storage::ILLEGAL_STORAGE_ADDRESS,
+        uint64_t container_id = write_container->primary_id();
+        DCHECK(container_id != 0 && container_id != Storage::EMPTY_DATA_STORAGE_ADDRESS &&
+            container_id != Storage::ILLEGAL_STORAGE_ADDRESS,
         "Illegal container id: " << write_container->primary_id());
-    *address = container_id;
+        request->set_address(container_id);
 
-    TRACE("Write new key " << Fingerprinter::DebugString((byte *) key, key_size) << " to container " << container_id <<
-        ", data size " << data_size <<
-        ", active container data size " << write_container->active_data_size());
+        TRACE("Write new key " << Fingerprinter::DebugString(request->key(), request->key_size()) <<
+            ", container " << container_id <<
+          ", data size " << request->data_size() <<
+          ", active container data size " << write_container->active_data_size());
 
-    CHECK(!write_container->IsFull(key_size, data_size), "Free Space assertion failed: fp " << Fingerprinter::DebugString((const byte *) key, key_size) << ", data size " << data_size << ", write container " << write_container->DebugString());
-
-    // Scope for add timer
-    {
         ProfileTimer add_timer(this->storage_->stats_.add_time_);
-        CHECK(write_container->AddItem((byte *) key, key_size, (byte *) data, data_size,
-                is_indexed,
+        CHECK(write_container->AddItem(request->key(),
+              request->key_size(),
+              request->data(),
+              request->data_size(),
+              request->is_indexed(),
                 c->compression_),
-            "Cannot add item: fp " << Fingerprinter::DebugString((const byte *) key, key_size) << ", data size " << data_size << ", write container " << write_container->DebugString());
+            "Cannot add item: fp " << Fingerprinter::DebugString(request->key(), request->key_size()) <<
+            ", data size " << request->data_size() <<
+            ", write container " << write_container->DebugString());
+        add_timer.stop();
+
     }
-    DCHECK(write_container->primary_id() == container_id, "Container id changed illegally");
     CHECK(scoped_write_container_lock.ReleaseLock(), "Failed to release write container lock: " << scoped_write_container_lock.DebugString());
     return true;
 }

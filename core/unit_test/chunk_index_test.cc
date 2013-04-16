@@ -50,6 +50,7 @@
 #include <dedupv1_base.pb.h>
 #include <base/index.h>
 #include <signal.h>
+#include "container_test_helper.h"
 
 using std::string;
 using dedupv1::base::strutil::ToHexString;
@@ -57,6 +58,7 @@ using dedupv1::chunkstore::ContainerStorage;
 using dedupv1::chunkstore::ContainerGCStrategy;
 using dedupv1::chunkstore::StorageSession;
 using dedupv1::chunkstore::Storage;
+using dedupv1::chunkstore::StorageRequest;
 using dedupv1::chunkstore::ChunkStore;
 using dedupv1::base::LOOKUP_FOUND;
 using dedupv1::DedupSystem;
@@ -86,21 +88,16 @@ protected:
     dedupv1::base::Threadpool tp;
     DedupSystem* system;
 
-    uint64_t test_address[kTestDataCount];
-    uint64_t test_fp[kTestDataCount];
-    byte test_data[kTestDataCount][kTestDataSize];
+    ContainerTestHelper* container_helper;
 
     virtual void SetUp() {
+        container_helper = new ContainerTestHelper(kTestDataSize, kTestDataCount);
+        container_helper->SetUp();
+
         ASSERT_TRUE(tp.SetOption("size", "8"));
         ASSERT_TRUE(tp.Start());
 
         system = NULL;
-
-        for (int i = 0; i < kTestDataCount; i++) {
-            memset(test_data[i], i + 1, kTestDataSize);
-            test_fp[i] = i + 1;
-            test_address[i] = Storage::ILLEGAL_STORAGE_ADDRESS;
-        }
     }
 
     virtual void TearDown() {
@@ -109,27 +106,16 @@ protected:
             ASSERT_TRUE(system->Close());
             system = NULL;
         }
-    }
 
-    void WriteTestData(ChunkIndex* chunk_index, StorageSession* session) {
-        for (int i = 0; i < kTestDataCount; i++) {
-            ASSERT_TRUE(session->WriteNew(&test_fp[i],
-                    sizeof(test_fp[i]), test_data[i], kTestDataSize, true,
-                    &test_address[i], NO_EC))
-            << "Write " << i << " failed";
-
-            ChunkMapping mapping((byte *) &test_fp[i], sizeof(test_fp[i]));
-            mapping.set_data_address(test_address[i]);
-            ASSERT_TRUE(chunk_index->Put(mapping, NO_EC)) << "Write " << i << " failed";
-        }
+        delete container_helper;
     }
 
     void ValidateTestData(ChunkIndex* chunk_index) {
         for (int i = 0; i < kTestDataCount; i++) {
-            ChunkMapping mapping((byte *) &test_fp[i], sizeof(test_fp[i]));
+            ChunkMapping mapping(container_helper->fingerprint(i));
             ASSERT_EQ(chunk_index->Lookup(&mapping, false, NO_EC), LOOKUP_FOUND)
             << "Validate " << i << " failed";
-            ASSERT_EQ(test_address[i], mapping.data_address());
+            ASSERT_EQ(container_helper->data_address(i), mapping.data_address());
         }
     }
 };
@@ -148,11 +134,9 @@ TEST_P(ChunkIndexTest, Update) {
     system =  DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, false, false);
     ASSERT_TRUE(system);
 
-    StorageSession* session = system->chunk_store()->CreateSession();
-    WriteTestData(system->chunk_index(), session);
+    container_helper->WriteDefaultData(system, 0, kTestDataCount);
     ValidateTestData(system->chunk_index());
 
-    session->Close();
 }
 
 TEST_P(ChunkIndexTest, ContainerFailed) {
@@ -166,12 +150,10 @@ TEST_P(ChunkIndexTest, ContainerFailed) {
     ContainerStorage* storage = dynamic_cast<ContainerStorage*>(system->storage());
     ASSERT_TRUE(storage);
 
-    StorageSession* session = storage->CreateSession();
-    ASSERT_TRUE(session);
-    WriteTestData(system->chunk_index(), session);
+    container_helper->WriteDefaultData(system, 0, kTestDataCount);
 
-    ASSERT_TRUE(storage->FailWriteCacheContainer(test_address[kTestDataCount - 1]));
-    EXPECT_TRUE(session->Close());
+    ASSERT_TRUE(storage->FailWriteCacheContainer(
+          container_helper->data_address(kTestDataCount - 1)));
 }
 
 TEST_P(ChunkIndexTest, UsageCountUpdate) {
@@ -180,26 +162,16 @@ TEST_P(ChunkIndexTest, UsageCountUpdate) {
     ChunkIndex* chunk_index = system->chunk_index();
     ASSERT_TRUE(chunk_index);
 
-    StorageSession* session = system->chunk_store()->CreateSession();
-    EXPECT_TRUE(session->WriteNew(&test_fp[0],
-            sizeof(test_fp[0]), test_data[0], kTestDataSize, true,
-            &test_address[0], NO_EC))
-    << "Write failed";
-    EXPECT_TRUE(session->Close());
+    container_helper->WriteDefaultData(system, 0, 1);
 
-    ChunkMapping mapping((byte *) &test_fp[0], sizeof(test_fp[0]));
-    mapping.set_usage_count(10);
-    mapping.set_data_address(test_address[0]);
-    ASSERT_TRUE(chunk_index->Put(mapping, NO_EC));
-
-    ChunkMapping mapping2((byte *) &test_fp[0], sizeof(test_fp[0]));
+    ChunkMapping mapping2(container_helper->fingerprint(0));
     ASSERT_EQ(chunk_index->Lookup(&mapping2, false, NO_EC), LOOKUP_FOUND);
     ASSERT_EQ(mapping2.usage_count(), 10U);
 
     mapping2.set_usage_count(11);
     ASSERT_TRUE(chunk_index->PutOverwrite(mapping2, NO_EC));
 
-    ChunkMapping mapping3((byte *) &test_fp[0], sizeof(test_fp[0]));
+    ChunkMapping mapping3(container_helper->fingerprint(0).data());
     ASSERT_EQ(chunk_index->Lookup(&mapping3, false, NO_EC), LOOKUP_FOUND);
     ASSERT_EQ(mapping3.usage_count(), 11U);
 }
@@ -208,11 +180,8 @@ TEST_P(ChunkIndexTest, UpdateAfterClose) {
     system =  DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, false, false);
     ASSERT_TRUE(system);
 
-    StorageSession* session = system->chunk_store()->CreateSession();
-    WriteTestData(system->chunk_index(), session);
+    container_helper->WriteDefaultData(system, 0, kTestDataCount);
     ValidateTestData(system->chunk_index());
-
-    ASSERT_TRUE(session->Close());
 
     // Close and Restart
     ASSERT_TRUE(system->Stop(StopContext::FastStopContext()));
@@ -229,12 +198,10 @@ TEST_P(ChunkIndexTest, UpdateAfterSlowShutdown) {
 
     system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, false, false);
     ASSERT_TRUE(system);
-    StorageSession* session = system->chunk_store()->CreateSession();
-    WriteTestData(system->chunk_index(), session);
+
+    container_helper->WriteDefaultData(system, 0, kTestDataCount);
     ASSERT_TRUE(system->chunk_store()->Flush(NO_EC));
     ValidateTestData(system->chunk_index());
-
-    ASSERT_TRUE(session->Close());
 
     // Close and Restart
     ASSERT_TRUE(system->Stop(dedupv1::StopContext::WritebackStopContext()));
@@ -258,28 +225,25 @@ TEST_P(ChunkIndexTest, LogReplayAfterMerge) {
     ASSERT_TRUE(system->chunk_store());
 
     INFO("Write data");
-    StorageSession* session = system->chunk_store()->CreateSession();
-    ASSERT_TRUE(session);
-    for (int i = 0; i < kTestDataCount; i++) {
-        ASSERT_TRUE(session->WriteNew(&test_fp[i],
-                sizeof(test_fp[i]), test_data[i], 16 * 1024, true,
-                &test_address[i], NO_EC))
-        << "Write " << i << " failed";
-
-        ChunkMapping mapping((byte *) &test_fp[i], sizeof(test_fp[i]));
-        mapping.set_data_address(test_address[i]);
-        ASSERT_TRUE(system->chunk_index()->Put(mapping, NO_EC)) << "Write " << i << " failed";
-    }
+    container_helper->WriteDefaultData(system, 0, kTestDataCount);
 
     INFO("Delete data");
-    for (int i = 0; i < kTestDataCount; i += 3) {
-        ChunkMapping mapping((byte *) &test_fp[i], sizeof(test_fp[i]));
-        ASSERT_EQ(system->chunk_index()->Lookup(&mapping, false, NO_EC), LOOKUP_FOUND);
-        ASSERT_TRUE(session->Delete(mapping.data_address(), (byte *) &test_fp[i], sizeof(test_fp[i]), NO_EC));
+    StorageSession* session = system->storage()->CreateSession();
 
-        ChunkMapping mapping2((byte *) &test_fp[i + 1], sizeof(test_fp[i + 1]));
+    for (int i = 0; i < kTestDataCount; i += 3) {
+        ChunkMapping mapping(container_helper->fingerprint(i));
+        ASSERT_EQ(system->chunk_index()->Lookup(&mapping, false, NO_EC), LOOKUP_FOUND);
+        ASSERT_TRUE(session->Delete(mapping.data_address(),
+            container_helper->fingerprint(i).data(),
+            container_helper->fingerprint(i).size(),
+            NO_EC));
+
+        ChunkMapping mapping2(container_helper->fingerprint(i+1).data());
         ASSERT_EQ(system->chunk_index()->Lookup(&mapping2, false, NO_EC), LOOKUP_FOUND);
-        ASSERT_TRUE(session->Delete(mapping2.data_address(), (byte *) &test_fp[i + 1], sizeof(test_fp[i]), NO_EC));
+        ASSERT_TRUE(session->Delete(mapping2.data_address(),
+              container_helper->fingerprint(i+1).data(),
+              container_helper->fingerprint(i+1).size(),
+              NO_EC));
     }
     ASSERT_TRUE(session->Close());
 
@@ -305,10 +269,10 @@ TEST_P(ChunkIndexTest, LogReplayAfterMerge) {
     // we can only validate half of the entries
     INFO("Validate");
     for (int i = 2; i < kTestDataCount; i += 3) {
-        ChunkMapping mapping((byte *) &test_fp[i], sizeof(test_fp[i]));
+        ChunkMapping mapping(container_helper->fingerprint(i));
         ASSERT_EQ(system->chunk_index()->Lookup(&mapping, false, NO_EC), LOOKUP_FOUND)
-        << "Validate " << i << " failed: " << ToHexString(&test_fp[i], sizeof(test_fp[i]));
-        ASSERT_EQ(test_address[i], mapping.data_address());
+        << "Validate " << i << " failed";
+        ASSERT_EQ(container_helper->data_address(i), mapping.data_address());
     }
 }
 
@@ -347,7 +311,8 @@ TEST_P(ChunkIndexTest, WriteBack) {
     system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, false, false);
     ASSERT_TRUE(system);
     StorageSession* session = system->chunk_store()->CreateSession();
-    WriteTestData(system->chunk_index(), session);
+
+    container_helper->WriteDefaultData(system, 0, kTestDataCount);
 
     ASSERT_TRUE(system->storage()->Flush(NO_EC));
     ASSERT_TRUE(system->log()->WaitUntilDirectReplayQueueEmpty(10));

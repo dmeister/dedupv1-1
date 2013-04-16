@@ -39,6 +39,7 @@ using dedupv1::chunkindex::ChunkMapping;
 using dedupv1::chunkindex::ChunkIndex;
 using dedupv1::chunkstore::Storage;
 using dedupv1::chunkstore::StorageSession;
+using dedupv1::chunkstore::StorageRequest;
 using dedupv1::DedupSystem;
 
 LOGGER("ContainerTestHelper");
@@ -122,9 +123,10 @@ bool ContainerTestHelper::WriteDefaultData(StorageSession* s, ChunkIndex* chunk_
     for (int i = offset; i < (offset + count); i++) {
         byte* d = this->data(i);
         CHECK(d, "Date not set");
-        CHECK(s->WriteNew(&this->fp_[i], sizeof(this->fp_[i]), d, this->test_data_size_, true, &this->addresses_[i], NO_EC),
+        StorageRequest r(&this->fp_[i], sizeof(this->fp_[i]), d, this->test_data_size_, true);
+        CHECK(s->WriteNew(&r, NO_EC),
             "Write " << i << " failed");
-
+        addresses_[i] = r.address();
         if (chunk_index != NULL) {
             ChunkMapping mapping(
                 reinterpret_cast<const byte*>(&this->fp_[i]), sizeof(this->fp_[i]));

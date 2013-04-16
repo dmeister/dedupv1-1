@@ -42,6 +42,7 @@
 using std::string;
 using std::stringstream;
 using std::vector;
+using std::list;
 using dedupv1::base::ProfileTimer;
 using dedupv1::blockindex::BlockMappingItem;
 using dedupv1::log::Log;
@@ -121,33 +122,51 @@ bool ChunkStore::Close() {
     return true;
 }
 
-bool ChunkStore::WriteBlock(StorageSession* storage_session, ChunkMapping* chunk_mapping,
+bool ChunkStore::WriteBlock(StorageSession* storage_session,
+    vector<ChunkMapping>* chunk_mappings,
                             ErrorContext* ec) {
     ProfileTimer timer(this->stats_.time_);
 
     CHECK(storage_session, "Session not set");
-    CHECK(chunk_mapping, "Chunk mapping not set");
-    CHECK(chunk_mapping->chunk() != NULL,
-        "Chunk not set: " << chunk_mapping->DebugString());
 
-    if (!chunk_mapping->is_known_chunk() &&
-        chunk_mapping->data_address() == Storage::ILLEGAL_STORAGE_ADDRESS) {
+    list<StorageRequest> requests;
+
+    vector<ChunkMapping>::iterator i;
+    for (i = chunk_mappings->begin(); i != chunk_mappings->end(); i++) {
+        CHECK(i->chunk() != NULL,
+          "Chunk not set: " << i->DebugString());
+
+    if (!i->is_known_chunk() &&
+        i->data_address() == Storage::ILLEGAL_STORAGE_ADDRESS) {
         // write to storage if necessary
-        uint64_t new_address = Storage::ILLEGAL_STORAGE_ADDRESS;
-        CHECK(storage_session->WriteNew(chunk_mapping->fingerprint(),
-                chunk_mapping->fingerprint_size(), chunk_mapping->chunk()->data(),
-                chunk_mapping->chunk()->size(),
-                chunk_mapping->is_indexed(),
-                &new_address, ec),
-            "Storing of new chunk failed: chunk " << chunk_mapping->DebugString());
-        CHECK(new_address != Storage::ILLEGAL_STORAGE_ADDRESS, "Write failed: " <<
-            "Illegal storage address: " << new_address << ", chunk " << chunk_mapping->DebugString());
-        chunk_mapping->set_data_address(new_address);
+        requests.push_back(StorageRequest(i->fingerprint(),
+              i->fingerprint_size(),
+              i->chunk()->data(),
+              i->chunk()->size(),
+              i->is_indexed()));
         this->stats_.storage_real_writes_++;
-        this->stats_.storage_real_writes_bytes_ += chunk_mapping->chunk()->size();
-    }
+        this->stats_.storage_real_writes_bytes_ += i->chunk()->size();
+      }
     this->stats_.storage_total_writes_++;
-    this->stats_.storage_total_writes_bytes_ += chunk_mapping->chunk()->size();
+    this->stats_.storage_total_writes_bytes_ += i->chunk()->size();
+    }
+
+    if (!requests.empty()) {
+      CHECK(storage_session->WriteNew(&requests, ec),
+        "Storing of new chunk data failed");
+
+
+      list<StorageRequest>::iterator current_request = requests.begin();
+      for (i = chunk_mappings->begin(); i != chunk_mappings->end(); i++) {
+        if (!i->is_known_chunk() &&
+          i->data_address() == Storage::ILLEGAL_STORAGE_ADDRESS) {
+
+          i->set_data_address(current_request->address());
+          current_request++;
+        }
+        }
+    }
+
 
     return true;
 }

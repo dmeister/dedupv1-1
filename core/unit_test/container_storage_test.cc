@@ -1381,52 +1381,6 @@ TEST_P(ContainerStorageTest, CommitOnStorageClose) {
     ASSERT_TRUE(session->Close());
 }
 
-TEST_P(ContainerStorageTest, IsCommited) {
-    ASSERT_TRUE(storage->Start(StartContext(), &system));
-    ASSERT_TRUE(storage->Run());
-    StorageSession* session = storage->CreateSession();
-    ASSERT_TRUE(session);
-
-    WriteTestData(session);
-
-    ASSERT_EQ(STORAGE_ADDRESS_COMMITED, storage->IsCommitted(1));
-
-    ASSERT_EQ(STORAGE_ADDRESS_NOT_COMMITED, storage->IsCommitted(500));
-
-    ASSERT_TRUE(session->Close());
-}
-
-TEST_P(ContainerStorageTest, IsCommittedOnFlush) {
-    ASSERT_TRUE(storage->Start(StartContext(), &system));
-    ASSERT_TRUE(storage->Run());
-    struct StorageSession* session = storage->CreateSession();
-    ASSERT_TRUE(session);
-
-    ASSERT_TRUE(session->WriteNew(container_helper->fingerprint(0).data(),
-            container_helper->fingerprint(0).size(), container_helper->data(0), TEST_DATA_SIZE, true, container_helper->mutable_data_address(0), NO_EC))
-    << "Write " << 0 << " failed";
-    ASSERT_EQ(STORAGE_ADDRESS_NOT_COMMITED, storage->IsCommitted(1)) << "Container shouldn't be committed before flush";
-
-    ASSERT_TRUE(storage->Flush(NO_EC));
-    ASSERT_EQ(STORAGE_ADDRESS_COMMITED, storage->IsCommitted(1)) << "Container should be comitted after flush";
-
-    ASSERT_TRUE(session->Close());
-}
-
-TEST_P(ContainerStorageTest, IsCommittedWaitOnFlush) {
-    ASSERT_TRUE(storage->Start(StartContext(), &system));
-    ASSERT_TRUE(storage->Run());
-    struct StorageSession* session = storage->CreateSession();
-    ASSERT_TRUE(session);
-
-    ASSERT_TRUE(session->WriteNew(container_helper->fingerprint(0).data(),
-            container_helper->fingerprint(0).size(), container_helper->data(0), TEST_DATA_SIZE, true, container_helper->mutable_data_address(0), NO_EC))
-    << "Write " << 0 << " failed";
-    ASSERT_EQ(STORAGE_ADDRESS_COMMITED, storage->IsCommittedWait(1)) << "Container should be comitted after IsCommittedWait";
-
-    ASSERT_TRUE(session->Close());
-}
-
 TEST_P(ContainerStorageTest, Merge) {
     ASSERT_TRUE(storage->Start(StartContext(), &system));
     ASSERT_TRUE(storage->Run());

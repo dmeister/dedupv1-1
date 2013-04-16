@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include <map>
 #include <string>
+#include <list>
 
 #include <core/idle_detector.h>
 #include <core/log.h>
@@ -43,6 +44,57 @@ class DedupSystem;
  */
 namespace chunkstore {
 
+  class StorageRequest {
+  private:
+    const void* key_;
+    uint32_t key_size_;
+
+    const void* data_;
+    uint32_t data_size_;
+
+    bool is_indexed_;
+
+    uint64_t address_;
+  public:
+    StorageRequest(const void* key, uint32_t key_size,
+        const void* data, uint32_t data_size,
+        bool is_indexed) : key_(key),
+      key_size_(key_size),
+      data_(data),
+      data_size_(data_size),
+      is_indexed_(is_indexed),
+      address_(0) {
+      }
+
+    inline const void* key() const {
+      return key_;
+    }
+
+    inline uint32_t key_size() const {
+      return key_size_;
+    }
+
+    inline const void* data() const {
+      return data_;
+    }
+
+    inline uint32_t data_size() const {
+      return data_size_;
+    }
+
+    inline bool is_indexed() const {
+      return is_indexed_;
+    }
+
+    inline uint64_t address() const {
+      return address_;
+    }
+
+    inline void set_address(uint64_t a) {
+      address_ = a;
+    }
+};
+
 /**
  * A session can be accessed concurrently, but only by a single request
  */
@@ -55,12 +107,18 @@ class StorageSession {
         /**
      * @return true iff ok, otherwise an error has occurred
          */
-        virtual bool WriteNew(const void* key, size_t key_size, const void* data,
-                size_t data_size,
-                bool is_indexed,
-                uint64_t* address,
+        virtual bool WriteNew(
+            std::list<StorageRequest>* requests,
                 dedupv1::base::ErrorContext* ec) = 0;
 
+        bool WriteNew(StorageRequest* request,
+            dedupv1::base::ErrorContext* ec) {
+          std::list<StorageRequest> l;
+          l.push_back(*request);
+          bool r = WriteNew(&l, ec);
+          request->set_address(l.begin()->address());
+          return r;
+        }
         /**
      * @return true iff ok, otherwise an error has occurred
          */

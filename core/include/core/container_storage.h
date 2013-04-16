@@ -979,10 +979,8 @@ class ContainerStorageSession : public StorageSession {
          * @param ec error context (can be NULL)
          * @return
          */
-        virtual bool WriteNew(const void* key, size_t key_size, const void* data,
-                size_t data_size,
-                bool is_indexed,
-                uint64_t* address,
+        virtual bool WriteNew(
+            std::list<StorageRequest>* requests,
                 dedupv1::base::ErrorContext* ec);
 
         /**

@@ -711,15 +711,11 @@ bool ContentStorage::ProcessFilterChain(Session* session,
     }
 
     if (!failed) {
-        for (i = chunk_mappings->begin(); i != chunk_mappings->end(); i++) {
-            ChunkMapping* chunk_mapping = &(*i);
-            if (!this->chunk_store_->WriteBlock(session->storage_session(), chunk_mapping, ec)) {
+            if (!this->chunk_store_->WriteBlock(session->storage_session(), chunk_mappings, ec)) {
                 ERROR("Storing of chunk data failed: " <<
-                    "block mapping " << (block_mapping ? block_mapping->DebugString() : "<no block mapping>") <<
-                    ", chunk mapping " << chunk_mapping->DebugString());
+                    "block mapping " << (block_mapping ? block_mapping->DebugString() : "<no block mapping>"));
                 failed = true;
             }
-        }
     }
 
     if (likely(!failed)) {

@@ -241,7 +241,7 @@ string ContainerStorageWriteCache::PrintLockStatistics() {
 string ContainerStorageWriteCache::PrintProfile() {
     stringstream sstr;
     sstr << "{";
-    sstr << "\"write lock time\": " << this->stats_.cache_check_time_.GetSum() << "," << std::endl;
+    sstr << "\"cache check time\": " << this->stats_.cache_check_time_.GetSum() << "," << std::endl;
     sstr << "\"write lock time\": " << this->stats_.write_lock_wait_time_.GetSum() << std::endl;
     sstr << "}";
     return sstr.str();

@@ -100,7 +100,7 @@ class ContainerItem {
         /**
          * Constructor
          */
-        ContainerItem(const byte* key,
+        ContainerItem(const void* key,
             size_t key_size,
             size_t offset,
             size_t raw_size,
@@ -335,8 +335,8 @@ class Container {
         /**
      * @return true iff ok, otherwise an error has occurred
          */
-        bool AddItem(const byte* key, size_t key_size,
-                const byte* data, size_t data_size,
+        bool AddItem(const void* key, size_t key_size,
+                const void* data, size_t data_size,
                 bool is_indexed,
                 dedupv1::base::Compression* comp);
 
