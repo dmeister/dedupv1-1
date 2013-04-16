@@ -76,7 +76,7 @@ namespace dedupv1 {
  *
  */
 class ContentStorage : public dedupv1::StatisticProvider {
-    private:
+private:
 
     static const uint32_t kDefaultChecksumSize = 32;
 
@@ -114,66 +114,46 @@ class ContentStorage : public dedupv1::StatisticProvider {
      */
     dedupv1::base::ResourceManagement<Chunk>* chunk_management_;
 
-    /**
-     * if true, the filter chain for chunks of a request is executed in parallel
-     * thread pool jobs.
-     * If false, the filter chain for the chunks of a request are executed
-     * in order.
-     */
-    bool parallel_filter_chain_;
-
     class Statistics {
-        public:
-            Statistics();
+public:
+        Statistics();
 
-            tbb::atomic<uint64_t> reads_;
-            tbb::atomic<uint64_t> read_size_;
-            tbb::atomic<uint64_t> writes_;
-            tbb::atomic<uint64_t> write_size_;
-            tbb::atomic<uint64_t> sync_;
+        tbb::atomic<uint64_t> reads_;
+        tbb::atomic<uint64_t> read_size_;
+        tbb::atomic<uint64_t> writes_;
+        tbb::atomic<uint64_t> write_size_;
+        tbb::atomic<uint64_t> sync_;
 
-            /**
-             * Profiling data
-             */
-            dedupv1::base::Profile profiling_;
+        /**
+         * Profiling data
+         */
+        dedupv1::base::Profile profiling_;
 
-            dedupv1::base::Profile fingerprint_profiling_;
+        dedupv1::base::Profile fingerprint_profiling_;
 
-            dedupv1::base::Profile chunking_time_;
+        dedupv1::base::Profile chunking_time_;
 
-            dedupv1::base::Profile checksum_time_;
+        dedupv1::base::Profile checksum_time_;
 
-            tbb::atomic<uint64_t> threads_in_filter_chain_;
+        dedupv1::base::SimpleSlidingAverage average_write_block_latency_;
 
-            dedupv1::base::SimpleSlidingAverage average_write_block_latency_;
+        dedupv1::base::SimpleSlidingAverage average_processing_time_;
 
-            dedupv1::base::SimpleSlidingAverage average_processing_time_;
+        dedupv1::base::SimpleSlidingAverage average_filter_chain_time_;
 
-            dedupv1::base::SimpleSlidingAverage average_filter_chain_time_;
+        dedupv1::base::SimpleSlidingAverage average_chunking_latency_;
 
-            dedupv1::base::SimpleSlidingAverage average_chunking_latency_;
+        dedupv1::base::SimpleSlidingAverage average_fingerprint_latency_;
 
-            dedupv1::base::SimpleSlidingAverage average_fingerprint_latency_;
+        dedupv1::base::SimpleSlidingAverage average_chunk_store_latency_;
 
-            dedupv1::base::SimpleSlidingAverage average_chunk_store_latency_;
+        dedupv1::base::SimpleSlidingAverage average_block_read_latency_;
 
-            dedupv1::base::SimpleSlidingAverage average_block_read_latency_;
+        dedupv1::base::SimpleSlidingAverage average_sync_latency_;
 
-            dedupv1::base::SimpleSlidingAverage average_sync_latency_;
+        dedupv1::base::SimpleSlidingAverage average_open_request_handling_latency_;
 
-            dedupv1::base::SimpleSlidingAverage average_open_request_handling_latency_;
-
-            dedupv1::base::SimpleSlidingAverage average_block_storing_latency_;
-
-            dedupv1::base::SimpleSlidingAverage average_process_chunk_filter_chain_latency_;
-
-            dedupv1::base::SimpleSlidingAverage average_process_filter_chain_barrier_wait_latency_;
-
-            dedupv1::base::SimpleSlidingAverage average_process_chunk_filter_chain_read_chunk_info_latency_;
-
-            dedupv1::base::SimpleSlidingAverage average_process_chunk_filter_chain_write_block_latency_;
-
-            dedupv1::base::SimpleSlidingAverage average_process_chunk_filter_chain_store_chunk_info_latency_;
+        dedupv1::base::SimpleSlidingAverage average_block_storing_latency_;
     };
 
     /**
@@ -191,19 +171,14 @@ class ContentStorage : public dedupv1::StatisticProvider {
      */
     uint32_t block_size_;
 
-    /**
-     * Threadpool to use
-     */
-    dedupv1::base::Threadpool* tp_;
-
     tbb::atomic<bool> reported_full_block_index_before_;
 
     tbb::atomic<bool> reported_full_chunk_index_before_;
 
     tbb::atomic<bool> reported_full_storage_before_;
 
-	/**
-	 * Merged to chunk mappings into the current request.
+    /**
+     * Merged to chunk mappings into the current request.
      *
      * @param block_id block id of the current request
      * @param already_failed if true, the request already failed, but we should update the block mapping and
@@ -215,19 +190,19 @@ class ContentStorage : public dedupv1::StatisticProvider {
      * @param ec error context (may be NULL)
      */
     bool MergeChunksIntoCurrentRequest(
-            uint64_t block_id,
-            RequestStatistics* request_stats,
-            unsigned int block_offset,
-            unsigned long open_chunk_pos,
-            bool already_failed,
-            Session* session,
-            const dedupv1::blockindex::BlockMapping* original_block_mapping,
-            const dedupv1::blockindex::BlockMapping* updated_block_mapping,
-            std::vector<dedupv1::chunkindex::ChunkMapping>* chunk_mappings,
-            dedupv1::base::ErrorContext* ec);
+        uint64_t block_id,
+        RequestStatistics* request_stats,
+        unsigned int block_offset,
+        unsigned long open_chunk_pos,
+        bool already_failed,
+        Session* session,
+        const dedupv1::blockindex::BlockMapping* original_block_mapping,
+        const dedupv1::blockindex::BlockMapping* updated_block_mapping,
+        std::vector<dedupv1::chunkindex::ChunkMapping>* chunk_mappings,
+        dedupv1::base::ErrorContext* ec);
 
-	/**
-	 * Merged to chunk mappings into the open request and the current request.
+    /**
+     * Merged to chunk mappings into the open request and the current request.
      *
      * @param block_id block id of the current request
      * @param session session to use
@@ -239,14 +214,14 @@ class ContentStorage : public dedupv1::StatisticProvider {
      * @param ec error context (may be NULL)
      */
     bool MergeChunksIntoOpenRequests(
-            uint64_t block_id,
-            Session* session,
-            Request* request,
-            RequestStatistics* request_stats,
-            const dedupv1::blockindex::BlockMapping* original_block_mapping,
-            const dedupv1::blockindex::BlockMapping* updated_block_mapping,
-            std::vector<dedupv1::chunkindex::ChunkMapping>* chunk_mappings,
-            dedupv1::base::ErrorContext* ec);
+        uint64_t block_id,
+        Session* session,
+        Request* request,
+        RequestStatistics* request_stats,
+        const dedupv1::blockindex::BlockMapping* original_block_mapping,
+        const dedupv1::blockindex::BlockMapping* updated_block_mapping,
+        std::vector<dedupv1::chunkindex::ChunkMapping>* chunk_mappings,
+        dedupv1::base::ErrorContext* ec);
 
     /**
      * Runs through the filter chain for all chunk mappings.
@@ -261,11 +236,11 @@ class ContentStorage : public dedupv1::StatisticProvider {
      * @return true iff ok, otherwise an error has occurred
      */
     bool ProcessFilterChain(Session* session,
-            Request* request,
-            RequestStatistics* request_stats,
-            const dedupv1::blockindex::BlockMapping* block_mapping,
-            std::vector<dedupv1::chunkindex::ChunkMapping>* chunk_mappings,
-            dedupv1::base::ErrorContext* ec);
+                            Request* request,
+                            RequestStatistics* request_stats,
+                            const dedupv1::blockindex::BlockMapping* block_mapping,
+                            std::vector<dedupv1::chunkindex::ChunkMapping>* chunk_mappings,
+                            dedupv1::base::ErrorContext* ec);
 
     /**
      * Runs through the filter chain for a given chunk mappings.
@@ -275,11 +250,11 @@ class ContentStorage : public dedupv1::StatisticProvider {
      * @return true iff ok, otherwise an error has occurred
      */
     bool ProcessChunkFilterChain(std::tr1::tuple<Session*,
-            const dedupv1::blockindex::BlockMapping*,
-            dedupv1::chunkindex::ChunkMapping*,
-            dedupv1::base::MultiSignalCondition*,
-            tbb::atomic<bool>*,
-            dedupv1::base::ErrorContext*> t);
+                                                 const dedupv1::blockindex::BlockMapping*,
+                                                 dedupv1::chunkindex::ChunkMapping*,
+                                                 dedupv1::base::MultiSignalCondition*,
+                                                 tbb::atomic<bool>*,
+                                                 dedupv1::base::ErrorContext*> t);
 
     /**
      * Marks the given chunks as possible ophran chunks
@@ -291,7 +266,7 @@ class ContentStorage : public dedupv1::StatisticProvider {
      * @param chunk_mappings chunks that might be ophrans.
      */
     bool MarkChunksAsOphran(const std::vector<dedupv1::chunkindex::ChunkMapping>& chunk_mappings);
-    public:
+public:
 
     /**
      * Constructor
@@ -314,25 +289,23 @@ class ContentStorage : public dedupv1::StatisticProvider {
      * @param log log to use
      * @param block_locks block locks to use.
      * @param block_size block size to use
-     * @param tp thread pool to use
      * @return true iff ok, otherwise an error has occurred
      */
     bool Start(
-            dedupv1::base::Threadpool* tp,
-            dedupv1::blockindex::BlockIndex* block_index,
-            dedupv1::chunkindex::ChunkIndex* chunk_index,
-            dedupv1::chunkstore::ChunkStore* chunk_store,
-            dedupv1::filter::FilterChain* filter_chain,
-            dedupv1::base::ResourceManagement<Chunk>* chunk_management,
-            dedupv1::log::Log* log,
-            dedupv1::BlockLocks* block_locks,
-            uint32_t block_size);
+        dedupv1::blockindex::BlockIndex* block_index,
+        dedupv1::chunkindex::ChunkIndex* chunk_index,
+        dedupv1::chunkstore::ChunkStore* chunk_store,
+        dedupv1::filter::FilterChain* filter_chain,
+        dedupv1::base::ResourceManagement<Chunk>* chunk_management,
+        dedupv1::log::Log* log,
+        dedupv1::BlockLocks* block_locks,
+        uint32_t block_size);
 
     /**
      * Creates a new session object.
      */
     virtual Session* CreateSession(Chunker* chunker,
-            const std::set<std::string>* enabled_filter_names);
+                                   const std::set<std::string>* enabled_filter_names);
 
     /**
      * Configures the content storage.
@@ -363,10 +336,10 @@ class ContentStorage : public dedupv1::StatisticProvider {
      * @return false if an error occurred, otherwise true
      */
     bool WriteBlock(Session* session,
-            Request* request,
-            RequestStatistics* request_stats,
-            bool last_write,
-            dedupv1::base::ErrorContext* ec);
+                    Request* request,
+                    RequestStatistics* request_stats,
+                    bool last_write,
+                    dedupv1::base::ErrorContext* ec);
 
     /**
      * performs a fast copy operation from a given block in one volume to another block in possibly another volume
@@ -380,12 +353,12 @@ class ContentStorage : public dedupv1::StatisticProvider {
      * @return false if an error occurred, otherwise true
      */
     bool FastCopyBlock(
-            uint64_t src_block_id,
-            uint64_t src_offset,
-            uint64_t target_block_id,
-            uint64_t target_offset,
-            uint64_t size,
-            dedupv1::base::ErrorContext* ec);
+        uint64_t src_block_id,
+        uint64_t src_offset,
+        uint64_t target_block_id,
+        uint64_t target_offset,
+        uint64_t size,
+        dedupv1::base::ErrorContext* ec);
 
     /**
      * Reads the block with the given block_id.
@@ -397,9 +370,9 @@ class ContentStorage : public dedupv1::StatisticProvider {
      * @return false if an error occurred, otherwise true
      */
     bool ReadBlock(Session* session,
-            Request* request,
-            RequestStatistics* request_stats,
-            dedupv1::base::ErrorContext* ec);
+                   Request* request,
+                   RequestStatistics* request_stats,
+                   dedupv1::base::ErrorContext* ec);
 
     /**
      *
@@ -467,8 +440,7 @@ class ContentStorage : public dedupv1::StatisticProvider {
      * @return
      */
     static bool InitEmptyFingerprint(Chunker* chunker, Fingerprinter* fp_gen, bytestring* empty_fp);
-
-    private:
+private:
 
     /**
      * Handles the chunks for the current request.
@@ -492,17 +464,17 @@ class ContentStorage : public dedupv1::StatisticProvider {
      * @param ec error context (can be NULL)
      */
     bool HandleChunks(Session* session, Request* request,
-            RequestStatistics* request_stats,
-            const dedupv1::blockindex::BlockMapping* original_block_mapping,
-            const dedupv1::blockindex::BlockMapping* updated_block_mapping,
-            const std::list<Chunk*>& chunks,
-            dedupv1::base::ErrorContext* ec);
+                      RequestStatistics* request_stats,
+                      const dedupv1::blockindex::BlockMapping* original_block_mapping,
+                      const dedupv1::blockindex::BlockMapping* updated_block_mapping,
+                      const std::list<Chunk*>& chunks,
+                      dedupv1::base::ErrorContext* ec);
 
     /**
      * Computes the CRC checksum for a given block mapping.
      */
     bool ComputeCRCChecksum(std::string* checksum, Session* session,
-            dedupv1::blockindex::BlockMapping* block_mapping, dedupv1::base::ErrorContext* ec);
+                            dedupv1::blockindex::BlockMapping* block_mapping, dedupv1::base::ErrorContext* ec);
 
     /**
      * Reads data and computes the crc checksum for a block mapping item
@@ -516,10 +488,10 @@ class ContentStorage : public dedupv1::StatisticProvider {
      * @param ec error context (Can be NULL)
      */
     bool ReadDataForItem(dedupv1::blockindex::BlockMappingItem* item,
-            Session* session,
-            byte* data_buffer,
-            unsigned int data_pos, int count,
-            int offset, dedupv1::base::ErrorContext* ec);
+                         Session* session,
+                         byte* data_buffer,
+                         unsigned int data_pos, int count,
+                         int offset, dedupv1::base::ErrorContext* ec);
 
     /**
      * Fingerprint the given chunks.
@@ -533,13 +505,13 @@ class ContentStorage : public dedupv1::StatisticProvider {
      * @return
      */
     bool FingerprintChunks(
-            Session* session,
-            Request* request,
-            RequestStatistics* request_stats,
-            Fingerprinter* fingerprinter,
-            const std::list<Chunk*>& chunks,
-            std::vector<dedupv1::chunkindex::ChunkMapping>* chunk_mappings,
-            dedupv1::base::ErrorContext* ec);
+        Session* session,
+        Request* request,
+        RequestStatistics* request_stats,
+        Fingerprinter* fingerprinter,
+        const std::list<Chunk*>& chunks,
+        std::vector<dedupv1::chunkindex::ChunkMapping>* chunk_mappings,
+        dedupv1::base::ErrorContext* ec);
 
     DISALLOW_COPY_AND_ASSIGN(ContentStorage);
 };

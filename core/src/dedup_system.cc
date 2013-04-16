@@ -409,7 +409,6 @@ bool DedupSystem::Start(const StartContext& start_context,
 
     CHECK(this->content_storage_, "Content Storage not configured");
     CHECK(this->content_storage_->Start(
-            this->tp_,
             this->block_index_,
             this->chunk_index_,
             this->chunk_store_,

@@ -109,8 +109,6 @@ ContentStorage::ContentStorage() {
     block_locks_ = NULL;
     chunk_management_ = NULL;
     filter_chain_ = NULL;
-    tp_ = NULL;
-    parallel_filter_chain_ = true;
 
     log_ = 0;
     fingerprinter_name_ = "sha1";
@@ -134,18 +132,12 @@ ContentStorage::Statistics::Statistics() :
     average_block_read_latency_(256),
     average_sync_latency_(256),
     average_open_request_handling_latency_(256),
-    average_block_storing_latency_(256),
-    average_process_chunk_filter_chain_latency_(256),
-    average_process_filter_chain_barrier_wait_latency_(256),
-    average_process_chunk_filter_chain_read_chunk_info_latency_(256),
-    average_process_chunk_filter_chain_write_block_latency_(256),
-    average_process_chunk_filter_chain_store_chunk_info_latency_(256) {
+    average_block_storing_latency_(256) {
     reads_ = 0;
     read_size_ = 0;
     writes_ = 0;
     write_size_ = 0;
     sync_ = 0;
-    threads_in_filter_chain_ = 0;
 }
 
 bool ContentStorage::InitEmptyFingerprint(Chunker* chunker,
@@ -170,8 +162,7 @@ bool ContentStorage::InitEmptyFingerprint(Chunker* chunker,
     return !failed;
 }
 
-bool ContentStorage::Start(dedupv1::base::Threadpool* tp,
-                           dedupv1::blockindex::BlockIndex* block_index,
+bool ContentStorage::Start(dedupv1::blockindex::BlockIndex* block_index,
                            dedupv1::chunkindex::ChunkIndex* chunk_index,
                            ChunkStore* chunk_store,
                            FilterChain* filter_chain,
@@ -179,9 +170,6 @@ bool ContentStorage::Start(dedupv1::base::Threadpool* tp,
                            Log* log,
                            BlockLocks* block_locks,
                            uint32_t block_size) {
-    DCHECK(tp, "Threadpool not set");
-
-    this->tp_ = tp;
     this->block_index_ = block_index;
     this->chunk_index_ = chunk_index;
     this->filter_chain_ = filter_chain;
@@ -283,11 +271,6 @@ bool ContentStorage::SetOption(const string& option_name, const string& option) 
         fingerprint = Fingerprinter::Factory().Create(this->fingerprinter_name_);
         CHECK(fingerprint, "Invalid fingerprinter");
         fingerprint->Close();
-        return true;
-    }
-    if (option_name == "filter-chain.parallel") {
-        CHECK(To<bool>(option).valid(), "Illegal option");
-        this->parallel_filter_chain_ = To<bool>(option).value();
         return true;
     }
     if (option_name == "chunking") {
@@ -705,77 +688,6 @@ bool ContentStorage::FingerprintChunks(Session* session,
     return true;
 }
 
-bool ContentStorage::ProcessChunkFilterChain(std::tr1::tuple<Session*, const BlockMapping*, ChunkMapping*,
-                                                             MultiSignalCondition*, tbb::atomic<bool>*, ErrorContext*> t) {
-    SlidingAverageProfileTimer method_timer(this->stats_.average_process_chunk_filter_chain_latency_);
-    Session* session = std::tr1::get<0>(t);
-    const BlockMapping* block_mapping = std::tr1::get<1>(t);
-    ChunkMapping* chunk_mapping = std::tr1::get<2>(t);
-    MultiSignalCondition* barrier = std::tr1::get<3>(t);
-    tbb::atomic<bool>* filter_chain_failed = std::tr1::get<4>(t);
-    ErrorContext* ec = std::tr1::get<5>(t);
-
-    DCHECK(block_mapping, "Block mapping not set");
-
-    tbb::tick_count start_step_tick, end_step_tick;
-    NESTED_LOG_CONTEXT("block " + ToString(block_mapping->block_id()));
-
-    TRACE("Executing filter chain task: " << chunk_mapping->DebugString());
-
-    bool failed = false;
-    start_step_tick = tbb::tick_count::now();
-    if (!filter_chain_->ReadChunkInfo(session, block_mapping, chunk_mapping, ec)) {
-        ERROR("Reading of chunk infos failed: " << chunk_mapping->DebugString() <<
-            ", " << (ec ? ec->DebugString() : ""));
-        failed = true;
-    }
-    end_step_tick = tbb::tick_count::now();
-    this->stats_.average_process_chunk_filter_chain_read_chunk_info_latency_.Add(
-        (end_step_tick - start_step_tick).seconds() * 1000);
-
-    // Write data to data storage for every chunk with an unknown data address
-    FAULT_POINT("content-storage.handle.pre-chunk-store");
-    if (likely(!failed)) {
-        SlidingAverageProfileTimer method_timer2(
-            this->stats_.average_process_chunk_filter_chain_write_block_latency_);
-        if (!this->chunk_store_->WriteBlock(session->storage_session(), chunk_mapping, ec)) {
-            ERROR("Storing of chunk data failed: " <<
-                "block mapping " << (block_mapping ? block_mapping->DebugString() : "<no block mapping>") <<
-                ", chunk mapping " << chunk_mapping->DebugString());
-            failed = true;
-        }
-    }
-
-    if (likely(!failed)) {
-        SlidingAverageProfileTimer method_timer2(
-            this->stats_.average_process_chunk_filter_chain_store_chunk_info_latency_);
-        // Store the chunks
-        FAULT_POINT("content-storage.handle.pre-filter-update");
-        if (!filter_chain_->StoreChunkInfo(session,
-                block_mapping,
-                chunk_mapping,
-                ec)) {
-            ERROR("Storing of chunk failed: " << chunk_mapping->DebugString());
-            failed = true;
-        }
-        FAULT_POINT("content-storage.handle.post-filter-update");
-
-    } else {
-        if (!filter_chain_->AbortChunkInfo(session, block_mapping, chunk_mapping, ec)) {
-            ERROR("Failed to abort chunk mapping filter: " << chunk_mapping->DebugString());
-            // failed already set to true
-        }
-    }
-    if (failed && filter_chain_failed) {
-        filter_chain_failed->compare_and_swap(true, false); // mark as failed
-    }
-    if (barrier) {
-        barrier->Signal();
-    }
-    TRACE("Finished filter chain task: " << chunk_mapping->DebugString() << ", failed " << ToString(failed));
-    return !failed;
-}
-
 bool ContentStorage::ProcessFilterChain(Session* session,
                                         Request* request,
                                         RequestStatistics* request_stats,
@@ -784,46 +696,52 @@ bool ContentStorage::ProcessFilterChain(Session* session,
                                         ErrorContext* ec) {
     DCHECK(chunk_mappings, "Chunk mappings not set");
 
-    stats_.threads_in_filter_chain_++;
     bool failed = false;
     REQUEST_STATS_START(request_stats, RequestStatistics::FILTER_CHAIN);
     vector<ChunkMapping>::iterator i;
 
-    if (parallel_filter_chain_) {
-        tbb::atomic<bool> filter_chain_failed;
-        filter_chain_failed = false;
-        MultiSignalCondition barrier(chunk_mappings->size());
+    // Check
+    for (i = chunk_mappings->begin(); i != chunk_mappings->end(); i++) {
+        ChunkMapping* chunk_mapping = &(*i);
+        if (!filter_chain_->ReadChunkInfo(session, block_mapping, chunk_mapping, ec)) {
+            ERROR("Reading of chunk infos failed: " << chunk_mapping->DebugString() <<
+                ", " << (ec ? ec->DebugString() : ""));
+            failed = true;
+        }
+    }
+
+    if (!failed) {
         for (i = chunk_mappings->begin(); i != chunk_mappings->end(); i++) {
             ChunkMapping* chunk_mapping = &(*i);
-            DCHECK(chunk_mapping, "Chunk mapping not set");
-
-            TRACE("Create task for chunk: " << chunk_mapping->DebugString());
-            Runnable<bool>* t = NewRunnable(this, &ContentStorage::ProcessChunkFilterChain, make_tuple(session,
-                    block_mapping, chunk_mapping, &barrier, &filter_chain_failed, ec));
-            tp_->SubmitNoFuture(t, Threadpool::HIGH_PRIORITY, Threadpool::CALLER_RUNS);
+            if (!this->chunk_store_->WriteBlock(session->storage_session(), chunk_mapping, ec)) {
+                ERROR("Storing of chunk data failed: " <<
+                    "block mapping " << (block_mapping ? block_mapping->DebugString() : "<no block mapping>") <<
+                    ", chunk mapping " << chunk_mapping->DebugString());
+                failed = true;
+            }
         }
+    }
 
-        {
-            SlidingAverageProfileTimer timer(this->stats_.average_process_filter_chain_barrier_wait_latency_);
-            CHECK(barrier.Wait(), "Failed to wait for filter chain chunks");
-        }
-
-        if (filter_chain_failed) {
-            // the error was reported (and better) before this
-            failed = true;
+    if (likely(!failed)) {
+        for (i = chunk_mappings->begin(); i != chunk_mappings->end(); i++) {
+            ChunkMapping* chunk_mapping = &(*i);
+            // Store the chunks
+            FAULT_POINT("content-storage.handle.pre-filter-update");
+            if (!filter_chain_->StoreChunkInfo(session,
+                    block_mapping,
+                    chunk_mapping,
+                    ec)) {
+                ERROR("Storing of chunk failed: " << chunk_mapping->DebugString());
+                failed = true;
+            }
+            FAULT_POINT("content-storage.handle.post-filter-update");
         }
     } else {
         for (i = chunk_mappings->begin(); i != chunk_mappings->end(); i++) {
             ChunkMapping* chunk_mapping = &(*i);
-            DCHECK(chunk_mapping, "Chunk mapping not set");
-            bool r = ProcessChunkFilterChain(make_tuple(session,
-                    block_mapping,
-                    chunk_mapping,
-                    (MultiSignalCondition *) NULL,
-                    (tbb::atomic<bool>*)NULL, ec));
-            if (!r) {
-                failed = true;
-                break;
+            if (!filter_chain_->AbortChunkInfo(session, block_mapping, chunk_mapping, ec)) {
+                ERROR("Failed to abort chunk mapping filter: " << chunk_mapping->DebugString());
+                // failed already set to true
             }
         }
     }
@@ -832,7 +750,6 @@ bool ContentStorage::ProcessFilterChain(Session* session,
     if (request_stats) {
         stats_.average_filter_chain_time_.Add(request_stats->latency(RequestStatistics::FILTER_CHAIN));
     }
-    stats_.threads_in_filter_chain_--;
     return !failed;
 }
 
@@ -1131,7 +1048,6 @@ string ContentStorage::PrintLockStatistics() {
 string ContentStorage::PrintTrace() {
     stringstream sstr;
     sstr << "{";
-    sstr << "\"threads in filter chain\": " << this->stats_.threads_in_filter_chain_ << "" << std::endl;
     sstr << "}";
     return sstr.str();
 }
@@ -1157,18 +1073,6 @@ string ContentStorage::PrintProfile() {
     sstr << "\"average write request processing latency\": " << this->stats_.average_processing_time_.GetAverage()
          << "," << std::endl;
     sstr << "\"average filter chain latency\": " << this->stats_.average_filter_chain_time_.GetAverage() << ","
-         << std::endl;
-    sstr << "\"average process filter chain latency\": "
-         << this->stats_.average_process_chunk_filter_chain_latency_.GetAverage() << "," << std::endl;
-    sstr << "\"average process filter chain barrier wait latency\": "
-         << this->stats_.average_process_filter_chain_barrier_wait_latency_.GetAverage() << "," << std::endl;
-    sstr << "\"average process filter chain read chunk info latency\": "
-         << this->stats_.average_process_chunk_filter_chain_read_chunk_info_latency_.GetAverage() << ","
-         << std::endl;
-    sstr << "\"average process filter chain write block latency\": "
-         << this->stats_.average_process_chunk_filter_chain_write_block_latency_.GetAverage() << "," << std::endl;
-    sstr << "\"average process filter chain store chunk info latency\": "
-         << this->stats_.average_process_chunk_filter_chain_store_chunk_info_latency_.GetAverage() << ","
          << std::endl;
     sstr << "\"average chunk store latency\": " << this->stats_.average_chunk_store_latency_.GetAverage() << ","
          << std::endl;
