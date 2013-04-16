@@ -93,24 +93,22 @@ volume.threads=16
             self.assertExitcode(0)
 
 class Dedupv1PerformanceSystemTest(Dedupv1BaseRemoteSystemTest):
-"""
+    """
     The performance test try to establish fixed and good test cases
     to evaluate the performance of dedupv1 and to observe
     performance regressions.
-"""
-    def test_basic_performance(self):
     """
+    def test_basic_performance(self):
+        """
         test_basic_performance
 
         The basic performance tests copies 128 GB backup files from a different
         computer to dedupv1 using iSCSI.
         It replays the log and restarts the system after each backup generation.
-    """
+        """
         test_data_dir = self.configuration["test data dir"]
-        iscsi_target_name = self.configuration.get("test iscsi target name",
-            "iqn.2005-03.de.jgu.dedupv1:special")
-        iscsi_target_ip = self.configuration.get("test iscsi target ip",
-            "192.168.165.4")
+        iscsi_target_name = self.configuration["test iscsi target name"]
+        iscsi_target_ip = self.configuration["test iscsi target ip"]
         performance_test_files = self.configuration.get("performance test files", [])
         self.start_default_system()
         self.sys.rm_scst_local()
@@ -145,8 +143,7 @@ class Dedupv1PerformanceSystemTest(Dedupv1BaseRemoteSystemTest):
                 self.data.copy_raw(file,
                     count=128 * 1024,
                     seek=2 * 128 * 1024 * (generation_count - 1))
-                copy_images(files, file_offset)
-                file_offset += 1
+                generation_count += 1
 
                 self.client_sys.clear_cache()
 
@@ -158,8 +155,8 @@ class Dedupv1PerformanceSystemTest(Dedupv1BaseRemoteSystemTest):
                 self.dedupv1.monitor("trace")
                 self.dedupv1.monitor("stats")
             finally:
-                self.open_iscsi.disconnect(server="192.168.176.5",
-                    name="iqn.2005-03.de.jgu.dedupv1:special")
+                self.open_iscsi.disconnect(server=iscsi_target_ip,
+                    name=iscsi_target_name)
 
             self.dedupv1.monitor("idle", "force-idle=true")
 
