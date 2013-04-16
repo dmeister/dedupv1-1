@@ -635,7 +635,6 @@ bool ContainerStorage::CommitContainer(Container* container, const ContainerStor
 
     if (!this->WriteContainer(container, address)) {
         ERROR("Failed to write container: " << container->DebugString());
-        this->meta_data_cache_.Unstick(container_id);
 
         CHECK(MarkContainerCommitAsFailed(container),
             "Failed to mark container commit as failed: " << container->DebugString());
@@ -660,11 +659,7 @@ bool ContainerStorage::CommitContainer(Container* container, const ContainerStor
         if (event_log_id != 0) {
             // if the log id is set in case or an error, the event has been written to disk.
             // it is therefore committed
-            CHECK(this->meta_data_cache_.Update(container_id, STORAGE_ADDRESS_COMMITED),
-                "Failed to update the meta data cache: container " << container->DebugString());
         } else {
-            CHECK(this->meta_data_cache_.Unstick(container_id),
-                "Failed to unstick the meta data cache: container " << container->DebugString());
             ContainerCommitFailedEventData failed_data;
             failed_data.set_container_id(container_id);
             CHECK(log_->CommitEvent(EVENT_TYPE_CONTAINER_COMMIT_FAILED, &failed_data, NULL, this, NO_EC),
@@ -738,7 +733,6 @@ bool ContainerStorage::LogAck(event_type event_type, const Message* log_message,
         CHECK(this->meta_data_index_->Put(&container_id, sizeof(uint64_t), event_data.address()),
             "Meta data update failed: " << container_id <<
             ", address " << DebugString(event_data.address()));
-        CHECK(this->meta_data_cache_.Update(container_id, STORAGE_ADDRESS_COMMITED), "Failed to update cache");
 
         CHECK(scoped_lock.ReleaseLock(), "Failed to release meta data lock");
 
@@ -827,7 +821,6 @@ bool ContainerStorage::LogAck(event_type event_type, const Message* log_message,
             uint64_t id = event_data.unused_ids(i);
             TRACE("Delete unused container id: container " << id);
             CHECK(this->meta_data_index_->Delete(&id, sizeof(id)), "Cannot delete unused container address: container id " << id);
-            CHECK(this->meta_data_cache_.Delete(id), "Failed to delete unused container address from meta data cache: container id " << id);
             FAULT_POINT("container-storage.ack.container-merge-middle");
         }
 
@@ -891,7 +884,6 @@ bool ContainerStorage::LogAck(event_type event_type, const Message* log_message,
             uint64_t id = *i;
             TRACE("Delete unused container id: container " << id);
             CHECK(this->meta_data_index_->Delete(&id, sizeof(id)), "Cannot delete unused container address: container id " << id);
-            CHECK(this->meta_data_cache_.Delete(id), "Failed to delete unused container address from meta data cache: container id " << id);
             FAULT_POINT("container-storage.ack.container-delete-middle");
         }
 
@@ -977,7 +969,7 @@ Storage* ContainerStorage::CreateStorage() {
     return storage;
 }
 
-ContainerStorage::ContainerStorage() : meta_data_cache_(this),
+ContainerStorage::ContainerStorage() :
     timeout_seconds_(kTimeoutSecondsDefault),
     cache_(this),
     write_cache_(this) {
@@ -2563,18 +2555,11 @@ storage_commit_state ContainerStorage::IsCommittedWait(uint64_t address) {
         return STORAGE_ADDRESS_COMMITED;
     }
 
-    // the cache might be stale when the container is currently processed
-    // therefore we ignore the cache state when the address was open before
-    // TODO (dmeister): A better solution is the ensure a cache consistency or
-    // to check if the meta data cache can be removed.
-    bool ignore_cache = false;
-
     // wait if a) currently open
     {
         // We wait here, if the container is opened but not committed. While commiting it, it will be removed from address_map.
         tbb::concurrent_hash_map<uint64_t, ContainerStorageAddressData>::const_accessor a;
         while (address_map.find(a, address)) {
-            ignore_cache = true;
             TRACE("Address still in address map: container id " << address <<
                 ", address " << a->second.ShortDebugString());
             a.release();
@@ -2586,7 +2571,6 @@ storage_commit_state ContainerStorage::IsCommittedWait(uint64_t address) {
     // container not in the write cache, but in the background committer
     Option<bool> is_processed = this->background_committer_.IsCurrentlyProcessedContainerId(address);
     while (is_processed.valid() && is_processed.value()) {
-        ignore_cache = true;
         TRACE("Wait until currently processed container is committed: container id " << address);
         dedupv1::base::timed_bool b = this->background_committer_.CommitFinishedConditionWaitTimeout(1);
         CHECK_RETURN(b != TIMED_FALSE, STORAGE_ADDRESS_ERROR, "Failed to wait for commit");
@@ -2599,15 +2583,6 @@ storage_commit_state ContainerStorage::IsCommittedWait(uint64_t address) {
 
     enum storage_commit_state commit_state;
     bool found = false;
-    if (!ignore_cache) {
-        CHECK_RETURN(this->meta_data_cache_.Lookup(address, &found, &commit_state),
-            STORAGE_ADDRESS_ERROR, "Failed to lookup the meta data cache");
-        if (found) {
-            TRACE("Checked commit state: container id " << address << ", result " << commit_state << ", source cache");
-            return commit_state;
-        }
-    }
-    // not found in cache
 
     lookup_result r = this->meta_data_index_->Lookup(&address, sizeof(uint64_t), NULL);
     CHECK_RETURN(r != LOOKUP_ERROR, STORAGE_ADDRESS_ERROR, "Meta data index lookup error for container id " << address);
@@ -2621,8 +2596,6 @@ storage_commit_state ContainerStorage::IsCommittedWait(uint64_t address) {
         commit_state = STORAGE_ADDRESS_COMMITED;
     }
 
-    CHECK_RETURN(this->meta_data_cache_.Update(address, commit_state),
-        STORAGE_ADDRESS_ERROR, "Failed to update the meta data cache");
     if (commit_state == STORAGE_ADDRESS_COMMITED) {
         TRACE("Checked commit state: container id " << address << ", result " << commit_state << ", source index");
     }
@@ -2638,20 +2611,6 @@ storage_commit_state ContainerStorage::IsCommitted(uint64_t address) {
 
     enum storage_commit_state commit_state;
     bool found = false;
-    CHECK_RETURN(this->meta_data_cache_.Lookup(address, &found, &commit_state),
-        STORAGE_ADDRESS_ERROR, "Failed to lookup the meta data cache");
-    if (found) {
-        TRACE("Checked commit state: container id " << address << ", result " << commit_state << ", source cache");
-        if (commit_state != STORAGE_ADDRESS_COMMITED) {
-            if (address <= this->initial_given_container_id_) {
-                commit_state = STORAGE_ADDRESS_WILL_NEVER_COMMITTED;
-            } else {
-                commit_state = STORAGE_ADDRESS_NOT_COMMITED;
-            }
-        }
-        return commit_state;
-    } else {
-        // not found in cache
 
         lookup_result r = this->meta_data_index_->Lookup(&address, sizeof(uint64_t), NULL);
         CHECK_RETURN(r != LOOKUP_ERROR, STORAGE_ADDRESS_ERROR, "Meta data index lookup error for container id " << address);
@@ -2664,9 +2623,6 @@ storage_commit_state ContainerStorage::IsCommitted(uint64_t address) {
         } else {
             commit_state = STORAGE_ADDRESS_COMMITED;
         }
-    }
-    CHECK_RETURN(this->meta_data_cache_.Update(address, commit_state),
-        STORAGE_ADDRESS_ERROR, "Failed to update the meta data cache");
     if (commit_state == STORAGE_ADDRESS_COMMITED) {
         TRACE("Checked commit state: container id " << address << ", result " << commit_state << ", source index");
     }
@@ -2737,7 +2693,6 @@ bool ContainerStorage::LogReplay(dedupv1::log::event_type event_type,
             CHECK(meta_data_index_->Put(&container_id, sizeof(container_id), updated_address),
                 "Failed to update meta data index data: container id " << container_id <<
                 ", address " << updated_address.ShortDebugString());
-            CHECK(this->meta_data_cache_.Update(container_id, STORAGE_ADDRESS_COMMITED), "Failed to update cache");
 
             CHECK(scoped_lock.ReleaseLock(), "Failed to release meta data lock");
         } else {
@@ -2885,7 +2840,6 @@ bool ContainerStorage::LogReplay(dedupv1::log::event_type event_type,
             uint64_t id = *i;
             TRACE("Delete unused container id: container " << id);
             CHECK(this->meta_data_index_->Delete(&id, sizeof(id)), "Cannot delete unused container address: container id " << id);
-            CHECK(this->meta_data_cache_.Delete(id), "Failed to delete unused container address from meta data cache: container id " << id);
             FAULT_POINT("container-storage.ack.container-delete-middle");
         }
 
@@ -3378,86 +3332,6 @@ void ContainerStorage::ClearData() {
     this->info_store_ = NULL;
 }
 #endif
-
-ContainerStorageMetadataCache::ContainerStorageMetadataCache(ContainerStorage* storage) {
-    this->storage_  = storage;
-    this->cache_size_ = kDefaultCacheSize;
-}
-
-bool ContainerStorageMetadataCache::Lookup(uint64_t address, bool* found, storage_commit_state* state) {
-    CHECK(storage_, "Storage not set");
-    CHECK(found, "Found not set");
-    CHECK(state, "State not set");
-
-    tbb::spin_mutex::scoped_lock scoped_lock(mutex_);
-
-    std::map<uint64_t, storage_commit_state>::iterator i = commit_state_map_.find(address);
-    if (i == commit_state_map_.end()) {
-        *found = false;
-    } else {
-        *found = true;
-        *state = i->second;
-        CHECK(this->cache_strategy_.Touch(address), "Failed to touch cache");
-    }
-    return true;
-}
-
-bool ContainerStorageMetadataCache::Delete(uint64_t address) {
-    CHECK(storage_, "Storage not set");
-    tbb::spin_mutex::scoped_lock scoped_lock(mutex_);
-
-    std::map<uint64_t, storage_commit_state>::iterator i = commit_state_map_.find(address);
-    if (i == commit_state_map_.end()) {
-        return true;
-    }
-    TRACE("Erase cache entry: container id " << address);
-    commit_state_map_.erase(i);
-    CHECK(this->cache_strategy_.Delete(address), "Failed to delete from cache");
-
-    return true;
-}
-
-bool ContainerStorageMetadataCache::Unstick(uint64_t address) {
-    CHECK(storage_, "Storage not set");
-    tbb::spin_mutex::scoped_lock scoped_lock(mutex_);
-
-    std::map<uint64_t, storage_commit_state>::iterator i = commit_state_map_.find(address);
-    if (i != commit_state_map_.end()) {
-        CHECK(this->cache_strategy_.Touch(address), "Failed to touch cache");
-    }
-    return true;
-}
-
-bool ContainerStorageMetadataCache::Update(uint64_t address, storage_commit_state state, bool sticky) {
-    CHECK(storage_, "Storage not set");
-    tbb::spin_mutex::scoped_lock scoped_lock(mutex_);
-
-    std::map<uint64_t, storage_commit_state>::iterator i = commit_state_map_.find(address);
-    bool is_new = false;
-    if (i == commit_state_map_.end()) {
-        // new
-        is_new = true;
-    }
-    commit_state_map_[address] = state;
-
-    if (!sticky) {
-        // do we have to throw out an entry?
-        if (is_new && commit_state_map_.size() > cache_size_) {
-            uint64_t replacement_address;
-            CHECK(this->cache_strategy_.Replace(&replacement_address), "Failed to replace cache item: cache size " << this->cache_strategy_.size());
-
-            TRACE("Erase cache entry: container id " << replacement_address);
-            commit_state_map_.erase(replacement_address);
-        }
-        CHECK(this->cache_strategy_.Touch(address), "Failed to touch cache");
-    } else if (sticky && !is_new) {
-        // we remove sticky and old entries to avoid that they are removed from the cache
-        CHECK(this->cache_strategy_.Delete(address), "Failed to delete entry from cache");
-    }
-    // we do tell the cache strategy about sticky items. Therefore they cannot be removed from the cache
-    // However, we should be sure that every sticky item is either unsticked very fast or overwritten.
-    return true;
-}
 
 ContainerStorage::ContainerFile::ContainerFile() {
     file_ = NULL;

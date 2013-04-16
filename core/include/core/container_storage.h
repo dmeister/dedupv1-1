@@ -69,72 +69,6 @@ class ContainerStorageAllocator;
 class ContainerStorageReadCache;
 class ContainerStorageWriteCache;
 
-class ContainerStorageMetadataCache;
-
-/**
- * Cache state stores the commit state of container ids.
- * This is used to increase the performance the IsCommit calls
- */
-class ContainerStorageMetadataCache {
-    private:
-        static const size_t kDefaultCacheSize = 1024;
-
-        /**
-         * Reference to the storage system
-         */
-        ContainerStorage* storage_;
-
-        /**
-         * Mutex to protect the members
-         */
-        tbb::spin_mutex mutex_;
-
-        /**
-         * map from a container id to the most recently checked commit state
-         */
-        std::map<uint64_t, enum storage_commit_state> commit_state_map_;
-
-        /**
-         * replacement strategy
-         */
-        dedupv1::base::LRUCacheStrategy<uint64_t> cache_strategy_;
-
-        /**
-         * size of the cache
-         */
-        size_t cache_size_;
-    public:
-        /**
-         * Constructor
-         * @param storage
-         * @return
-         */
-        explicit ContainerStorageMetadataCache(ContainerStorage* storage);
-
-        /**
-         * @return true iff ok, otherwise an error has occurred
-         */
-        bool Lookup(uint64_t address, bool* found, enum storage_commit_state* state);
-
-        /**
-         * @param sticky if sticky is true, the cache item should not removed from the cache until
-         * it is unstick.
-         *
-         * @return true iff ok, otherwise an error has occurred
-         */
-        bool Update(uint64_t address, enum storage_commit_state state, bool sticky = false);
-
-        /**
-         * @return true iff ok, otherwise an error has occurred
-         */
-        bool Unstick(uint64_t);
-
-        /**
-         * @return true iff ok, otherwise an error has occurred
-         */
-        bool Delete(uint64_t address);
-};
-
 /**
  * The container storage is a storage implementation that
  * collects a lot of chunk data in memory and only writes them
@@ -330,11 +264,6 @@ public dedupv1::log::LogAckConsumer {
      * to acquire the correct container lock.
      */
     dedupv1::base::ReadWriteLock meta_data_lock_;
-
-    /**
-     * container meta data cache
-     */
-    ContainerStorageMetadataCache meta_data_cache_;
 
     /**
      * Global lock used to secure central shared data structured like the read cache entry (
