@@ -312,7 +312,6 @@ message OphranChunksEventData {
 
 message BlockIndexLogfileData {
     // 3 is deleted
-    optional ContainerTrackerData container_tracker = 2;
 }
 
 message ChunkIndexLogfileData {

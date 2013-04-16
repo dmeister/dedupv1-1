@@ -13,7 +13,6 @@ message ChunkIndexStatsData {
 message BlockIndexStatsData {
     optional uint64 index_read_count = 1;
     optional uint64 index_write_count = 2;
-    optional uint64 index_real_write_count = 3;
     optional uint64 imported_block_count = 4;
     optional uint64 failed_block_write_count = 5;
 }

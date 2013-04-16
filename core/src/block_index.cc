@@ -50,7 +50,6 @@
 #include <core/container_storage.h>
 #include <core/dedup_system.h>
 #include <core/chunk_store.h>
-#include <core/volatile_block_store.h>
 #include <core/dedup_system.h>
 #include <core/chunk_store.h>
 #include <core/container_storage.h>
@@ -98,7 +97,6 @@ using dedupv1::base::ScopedRunnable;
 using dedupv1::base::NewRunnable;
 using dedupv1::base::Thread;
 using dedupv1::base::ThreadUtil;
-using dedupv1::base::Callback1;
 using dedupv1::chunkstore::Storage;
 using dedupv1::chunkstore::storage_commit_state;
 using dedupv1::chunkstore::STORAGE_ADDRESS_NOT_COMMITED;
@@ -169,7 +167,6 @@ BlockIndex::BlockIndex()
 BlockIndex::Statistics::Statistics() : import_latency_(1024) {
     this->index_reads_ = 0;
     this->index_writes_ = 0;
-    this->index_real_writes_ = 0;
     this->imported_block_count_ = 0;
     this->ready_map_lock_free_ = 0;
     this->ready_map_lock_busy_ = 0;
@@ -335,12 +332,6 @@ bool BlockIndex::Stop(dedupv1::StopContext stop_context) {
             // everything is imported
             this->ready_queue_.clear();
         }
-        if (this->volatile_blocks_.GetContainerCount() > 0) {
-            WARNING("Still " << this->volatile_blocks_.GetContainerCount() << " open containers in volatile block store");
-        }
-        if (this->volatile_blocks_.GetBlockCount() > 0) {
-            WARNING("Still " << this->volatile_blocks_.GetBlockCount() << " open blocks in volatile block store");
-        }
         if (this->open_new_block_count_ > 0) {
             WARNING("Still " << this->open_new_block_count_ << " open new blocks");
         }
@@ -370,15 +361,6 @@ bool BlockIndex::Close() {
         this->failed_block_write_index_ = NULL;
     }
 
-    if (!this->volatile_blocks_.Clear()) {
-        WARNING("Error clearing volatile block store");
-    }
-
-    Callback1<Option<bool>, uint64_t>* commit_state_callback =
-        dirty_volatile_blocks_.set_commit_state_check_callback(NULL);
-    if (commit_state_callback) {
-        delete commit_state_callback;
-    }
     if (this->auxiliary_block_index_) {
         if (!this->auxiliary_block_index_->Close()) {
             WARNING("Error closing auxiliary block index");
@@ -402,9 +384,6 @@ bool BlockIndex::DumpMetaInfo() {
     DCHECK(info_store_, "Info store not set");
 
     BlockIndexLogfileData logfile_data;
-    CHECK(this->volatile_blocks_.GetContainerTracker()->SerializeTo(logfile_data.mutable_container_tracker()),
-        "Failed to serialize container tracker");
-
     CHECK(info_store_->PersistInfo("block-index", logfile_data), "Failed to persist info: " << logfile_data.ShortDebugString());
     return true;
 }
@@ -429,7 +408,6 @@ void BlockIndex::ClearData() {
         log_->UnregisterConsumer("block-index");
         log_ = NULL;
     }
-    volatile_blocks_.ClearData();
     this->ready_queue_.clear();
     this->open_new_block_count_ = 0;
 }
@@ -443,10 +421,6 @@ lookup_result BlockIndex::ReadMetaInfo() {
     CHECK_RETURN(lr != LOOKUP_ERROR, LOOKUP_ERROR, "Failed to restore block index info");
     if (lr == LOOKUP_NOT_FOUND) {
         return lr;
-    }
-    if (logfile_data.has_container_tracker()) {
-        CHECK_RETURN(this->volatile_blocks_.GetContainerTracker()->ParseFrom(logfile_data.container_tracker()),
-            LOOKUP_ERROR, "Failed to parse container tracker: " << logfile_data.ShortDebugString());
     }
     return LOOKUP_FOUND;
 }
@@ -505,8 +479,6 @@ bool BlockIndex::Start(const StartContext& start_context, DedupSystem* system) {
         CHECK(DumpMetaInfo(), "Failed to dump info");
     }
 
-    dirty_volatile_blocks_.set_commit_state_check_callback(NewCallback(this, &BlockIndex::CheckContainerAddress));
-
     CHECK(this->bg_committer_.Start(import_thread_count_),
         "Failed to start bg committer");
     CHECK(log_->RegisterConsumer("block-index", this), "Cannot register block index");
@@ -518,13 +490,6 @@ bool BlockIndex::Start(const StartContext& start_context, DedupSystem* system) {
 bool BlockIndex::Run() {
     CHECK(this->state_ == STARTED, "Illegal state: " << state_);
     CHECK(this->bg_committer_.Run(), "Failed to run bg committer");
-
-    // do not need the dirty volatile store anymore
-    Callback1<Option<bool>, uint64_t>* commit_state_callback =
-        dirty_volatile_blocks_.set_commit_state_check_callback(NULL);
-    if (commit_state_callback) {
-        delete commit_state_callback;
-    }
 
     DEBUG("Run block index");
 
@@ -764,59 +729,6 @@ bool BlockIndex::MarkBlockWriteAsFailed(const BlockMappingPair& mapping_pair, Op
     return true;
 }
 
-Option<bool> BlockIndex::CheckContainerAddress(uint64_t container_id) {
-    DCHECK(storage_, "Storage not set");
-
-    enum storage_commit_state commit_check_result = storage_->IsCommitted(container_id);
-    CHECK(commit_check_result != STORAGE_ADDRESS_ERROR, "Failed to check commit state: container id " << container_id);
-
-    return make_option(commit_check_result == STORAGE_ADDRESS_COMMITED);
-}
-
-namespace {
-bool BlockMappingItemStorageCheck(set<uint64_t>* checked_addresses, set<uint64_t>* uncommitted_address_set,
-                                  Storage* storage, const BlockMappingItem& item) {
-    uint64_t data_address = item.data_address();
-    CHECK(Storage::IsValidAddress(data_address, true),
-        "Data address of mapping not set: " << item.DebugString());
-
-    // there is no need to check the same address multiple times
-    if (checked_addresses->find(data_address) != checked_addresses->end()) {
-        return true;
-    }
-    enum storage_commit_state commit_check_result = storage->IsCommittedWait(data_address);
-    CHECK(commit_check_result != STORAGE_ADDRESS_ERROR, "Cannot check commit state");
-    if (commit_check_result == STORAGE_ADDRESS_NOT_COMMITED) {
-        uncommitted_address_set->insert(data_address);
-    } else if (commit_check_result == STORAGE_ADDRESS_WILL_NEVER_COMMITTED) {
-        uncommitted_address_set->insert(data_address);
-        TRACE("Block mapping references a never committing container: " << item.DebugString() << ", container " << data_address);
-    } else if (commit_check_result == STORAGE_ADDRESS_COMMITED) {
-        // normal case => skip
-    } else {
-        ERROR("Illegal commit check result: " << commit_check_result);
-        return false;
-    }
-    checked_addresses->insert(data_address);
-    return true;
-}
-}
-
-bool BlockIndex::BlockMappingStorageCheck(const BlockMapping& modified_block_mapping, set<uint64_t>* address_set) {
-    CHECK(address_set, "Address set not set");
-    ProfileTimer timer(this->stats_.check_time_);
-
-    set<uint64_t> checked_addresses;
-    for (list<BlockMappingItem>::const_iterator i = modified_block_mapping.items().begin();
-         i != modified_block_mapping.items().end();
-         i++) {
-        if (!BlockMappingItemStorageCheck(&checked_addresses, address_set, this->storage_, *i)) {
-            return false;
-        }
-    }
-    return true;
-}
-
 bool BlockIndex::CheckIfFullWith(const BlockMapping& previous_block_mapping, const BlockMapping& updated_block_mapping) {
     if (previous_block_mapping.version() == 0 && updated_block_mapping.version() == 1) {
         // here we have a new block
@@ -894,21 +806,6 @@ bool BlockIndex::StoreBlock(const BlockMapping& previous_block_mapping,
         }
     }
 
-    // gather all containers
-    set<uint64_t> container_id_set;
-    for (list<BlockMappingItem>::const_iterator i = updated_block_mapping.items().begin();
-         i != updated_block_mapping.items().end();
-         i++) {
-        container_id_set.insert(i->data_address());
-    }
-
-    BlockMappingData block_mapping_data;
-    CHECK(updated_block_mapping.SerializeTo(&block_mapping_data, false, true), "Cannot serialize block mapping: " <<
-        updated_block_mapping.DebugString());
-
-    put_result result = this->auxiliary_block_index_->Put(&block_id, sizeof(uint64_t), block_mapping_data);
-    CHECK(result != PUT_ERROR, "Cannot put block mapping: " << updated_block_mapping.DebugString());
-
     // We have to make sure that no data is gc'ed based on the this event before it is replayed
     // TODO (dmeister): Here we in-combat simply to much. It would be ok only to mark fp with a negative usage count modifier
     for (list<BlockMappingItem>::const_iterator i = previous_block_mapping.items().begin();
@@ -932,35 +829,26 @@ bool BlockIndex::StoreBlock(const BlockMapping& previous_block_mapping,
             return false;
         }
     }
-    // we can call "AddBlock" also if there are not open containers
-    if (!this->volatile_blocks_.AddBlock(previous_block_mapping,
-            updated_block_mapping,
-            NULL,
-            container_id_set,
-            event_log_id,
-            this)) {
-        WARNING("Cannot add block as uncommitted: " << previous_block_mapping.DebugString() << ", "
-                                                    << updated_block_mapping.DebugString());
-    }
+
+    BlockMappingData block_mapping_data;
+    CHECK(updated_block_mapping.SerializeTo(&block_mapping_data, false, true), "Cannot serialize block mapping: " <<
+        updated_block_mapping.DebugString());
+    block_mapping_data.set_event_log_id(event_log_id);
+
+    put_result result = this->auxiliary_block_index_->Put(&block_id, sizeof(uint64_t), block_mapping_data);
+    CHECK(result != PUT_ERROR, "Cannot put block mapping: " << updated_block_mapping.DebugString());
+
+            this->ready_queue_.push(std::tr1::make_tuple(
+                    updated_block_mapping.block_id(),
+                    updated_block_mapping.version()));
 
     this->stats_.index_writes_++;
-    if (result != PUT_KEEP) {
-        this->stats_.index_real_writes_++;
-    }
     return true;
 }
 
 delete_result BlockIndex::DeleteBlockInfo(uint64_t block_id,
                                           dedupv1::base::ErrorContext* ec) {
     DEBUG("Delete block info: block id " << block_id);
-
-    Option<bool> is_volatile = this->volatile_blocks_.IsVolatileBlock(block_id);
-    CHECK_RETURN(is_volatile.valid(),
-        DELETE_ERROR, "Failed to check volatile state of block: block id " << block_id);
-    // We avoid deleting block info for block ids that are currently
-    // volatile as it is very, very hard to do it right.
-    CHECK_RETURN(!is_volatile.value(), DELETE_ERROR,
-        "Cannot delete block infos about a volatile block: block id " << block_id);
 
     BlockMapping block_mapping(block_id, this->block_size_);
     read_result r = this->ReadBlockInfoFromIndex(&block_mapping);
@@ -1009,8 +897,7 @@ string BlockIndex::PrintLockStatistics() {
     sstr << "\"ready map busy\": " << this->stats_.ready_map_lock_busy_ << "," << std::endl;
     sstr << "\"index\": " << (block_index_ ? this->block_index_->PrintLockStatistics() : "null") << "," << std::endl;
     sstr << "\"auxiliary index\": " <<
-    (this->auxiliary_block_index_ ? this->auxiliary_block_index_->PrintLockStatistics() : "null") << "," << std::endl;
-    sstr << "\"volatile block store\": " << this->volatile_blocks_.PrintLockStatistics() << std::endl;
+    (this->auxiliary_block_index_ ? this->auxiliary_block_index_->PrintLockStatistics() : "null") << std::endl;
     sstr << "}";
     return sstr.str();
 }
@@ -1037,8 +924,7 @@ string BlockIndex::PrintTrace() {
     (auxiliary_block_index_ ? ToString(this->auxiliary_block_index_->GetMemorySize()) : "null") <<
     ", " << std::endl;
     sstr << "\"persistent index size\": " << (block_index_ ?
-                                              ToString(this->block_index_->GetPersistentSize()) : "null") << "," << std::endl;
-    sstr << "\"volatile block store\": " << this->volatile_blocks_.PrintTrace() << std::endl;
+                                              ToString(this->block_index_->GetPersistentSize()) : "null") << std::endl;
     sstr << "}";
     return sstr.str();
 }
@@ -1047,13 +933,9 @@ bool BlockIndex::PersistStatistics(std::string prefix, dedupv1::PersistStatistic
     BlockIndexStatsData data;
     data.set_index_read_count(this->stats_.index_reads_);
     data.set_index_write_count(this->stats_.index_writes_);
-    data.set_index_real_write_count(this->stats_.index_real_writes_);
     data.set_imported_block_count(this->stats_.imported_block_count_);
     data.set_failed_block_write_count(this->stats_.failed_block_write_count_);
     CHECK(ps->Persist(prefix, data), "Failed to persist block index stats");
-
-    CHECK(this->volatile_blocks_.PersistStatistics(prefix + ".volatile", ps),
-        "Failed to persist volatile block store");
 
     return true;
 }
@@ -1063,15 +945,8 @@ bool BlockIndex::RestoreStatistics(std::string prefix, dedupv1::PersistStatistic
     CHECK(ps->Restore(prefix, &data), "Failed to restore block index stats");
     this->stats_.index_reads_ = data.index_read_count();
     this->stats_.index_writes_ = data.index_write_count();
-    this->stats_.index_real_writes_ = data.index_real_write_count();
     this->stats_.imported_block_count_ = data.imported_block_count();
-
-    if (data.has_failed_block_write_count()) {
         this->stats_.failed_block_write_count_ = data.failed_block_write_count();
-    }
-    CHECK(this->volatile_blocks_.RestoreStatistics(prefix + ".volatile", ps),
-        "Failed to restore volatile block store");
-
     return true;
 }
 
@@ -1084,7 +959,6 @@ string BlockIndex::PrintStatistics() {
     sstr << "{";
     sstr << "\"index reads\": " << this->stats_.index_reads_ << "," << std::endl;
     sstr << "\"index writes\": " << this->stats_.index_writes_ << "," << std::endl;
-    sstr << "\"index real writes\": " << this->stats_.index_real_writes_ << "," << std::endl;
     sstr << "\"imported block count\": " << this->stats_.imported_block_count_ << "," << std::endl;
     sstr << "\"failed block write count\": " << this->stats_.failed_block_write_count_ << "," << std::endl;
 
@@ -1100,12 +974,11 @@ string BlockIndex::PrintStatistics() {
 
     if (block_index_ && this->block_index_->GetEstimatedMaxItemCount()) {
         double main_fill_ratio = (1.0 * this->block_index_->GetItemCount() + this->open_new_block_count_) / this->block_index_->GetEstimatedMaxItemCount();
-        sstr << "\"index fill ratio\": " << main_fill_ratio << "," << std::endl;
+        sstr << "\"index fill ratio\": " << main_fill_ratio << std::endl;
     } else {
-        sstr << "\"index fill ratio\": null," << std::endl;
+        sstr << "\"index fill ratio\": null" << std::endl;
     }
 
-    sstr << "\"volatile block store\": " << this->volatile_blocks_.PrintStatistics() << std::endl;
     sstr << "}";
     return sstr.str();
 }
@@ -1121,7 +994,6 @@ string BlockIndex::PrintProfile() {
     sstr << "\"check time\": " << this->stats_.check_time_.GetSum() << "," << std::endl;
     sstr << "\"throttle time\": " << this->stats_.throttle_time_.GetSum() << "," << std::endl;
     sstr << "\"index\": " << (block_index_ ? this->block_index_->PrintProfile() : "null") << "," << std::endl;
-    sstr << "\"volatile block store\": " << this->volatile_blocks_.PrintProfile()  << "," << std::endl;
     sstr << "\"failed write index\": " << (failed_block_write_index_ ? this->failed_block_write_index_->PrintProfile() : "null") << ", " << std::endl;
     sstr << "\"auxiliary index\": " << (auxiliary_block_index_ ? this->auxiliary_block_index_->PrintProfile() : "null") << std::endl;
     sstr << "}";
@@ -1371,8 +1243,6 @@ bool BlockIndex::ImportModifiedBlockMappings(const list<tuple<uint64_t, uint32_t
             }
         }
 
-        this->stats_.index_writes_++;
-        this->stats_.index_real_writes_++;
         this->stats_.imported_block_count_.fetch_and_increment();
     } // end loop over all elements
 
@@ -1403,167 +1273,6 @@ bool BlockIndex::ImportModifiedBlockMappings(const list<tuple<uint64_t, uint32_t
     }
 
     CHECK(block_locks_->WriteUnlocks(locked_block_list, LOCK_LOCATION_INFO), "Failed to release locks for block list");
-    return !failed;
-}
-
-bool BlockIndex::FailVolatileBlock(const BlockMapping& original_mapping,
-                                   const BlockMapping& modified_mapping,
-                                   const google::protobuf::Message* extra_message,
-                                   int64_t block_mapping_written_event_log_id
-                                   ) {
-    if (state_ == STARTED) {
-        return true; // dirty
-    }
-    uint64_t block_id = original_mapping.block_id();
-
-    DEBUG("Fail volatile block mapping " << original_mapping.DebugString() << " => " << modified_mapping.DebugString());
-
-    BlockMapping aux_mapping(block_id, this->block_size_);
-    lookup_result aux_lr = this->ReadBlockInfoFromIndex(this->auxiliary_block_index_, &aux_mapping);
-    CHECK(aux_lr != LOOKUP_ERROR, "Cannot read block info: " << aux_mapping.DebugString());
-    if (aux_lr == LOOKUP_NOT_FOUND) {
-        // There is not wrong state that we need to correct
-        // This does e.g. happen when this is a block change from V1 to V2 where V1 is still volatile. When
-        // V1 fails, the entry is deleted because an deleted entry is equal to an stored entry with V0.
-        return true;
-    }
-    // aux_lr == LOOKUP_FOUND
-
-    // if the block in the auxiliary index is newer, we are fine
-    if (aux_mapping.version() == modified_mapping.version()) {
-        BlockMappingData block_mapping_data;
-        CHECK(original_mapping.SerializeTo(&block_mapping_data, false, true),
-            "Cannot serialize block mapping: " << original_mapping.DebugString());
-
-        TRACE("Revert block mapping " << original_mapping.block_id() << " in auxiliary index:\n" <<
-            original_mapping.DebugString());
-
-        if (original_mapping.version() > 0) {
-            put_result result = this->auxiliary_block_index_->Put(&block_id, sizeof(uint64_t), block_mapping_data);
-            CHECK(result != PUT_ERROR, "Cannot put block mapping: " << original_mapping.DebugString());
-            result = this->block_index_->Put(&block_id, sizeof(uint64_t), block_mapping_data);
-            CHECK(result != PUT_ERROR, "Cannot put block mapping: " << original_mapping.DebugString());
-        } else {
-            // when the original version is zero, then we delete the entry instead of overwritting it
-            delete_result aux_result = this->auxiliary_block_index_->Delete(&block_id, sizeof(uint64_t));
-            CHECK(aux_result != DELETE_ERROR, "Failed to delete block mapping: " << block_id);
-            delete_result pers_result = this->block_index_->Delete(&block_id, sizeof(uint64_t));
-            CHECK(pers_result != DELETE_ERROR, "Failed to delete block mapping: " << block_id);
-
-            if (aux_result == DELETE_OK) {
-                open_new_block_count_--;
-                TRACE("Reduce open block count: count " << open_new_block_count_);
-            }
-        }
-    } else {
-        TRACE("Skip processing failed block: " <<
-            original_mapping.DebugString() << " => " << modified_mapping.DebugString() <<
-            ", auxiliary " << aux_mapping.DebugString());
-    }
-    return true;
-}
-
-bool BlockIndex::ProcessCommittedBlockWrite(const BlockMapping& original_mapping,
-                                            const BlockMapping& modified_mapping,
-                                            int64_t block_mapping_written_event_log_id) {
-    // block lock is held
-    // the method is called in the volatile block store callback
-
-    uint64_t block_id = modified_mapping.block_id();
-    BlockMapping aux_mapping(block_id, this->block_size_);
-    lookup_result aux_lr = this->ReadBlockInfoFromIndex(this->auxiliary_block_index_, &aux_mapping);
-    CHECK(aux_lr != LOOKUP_ERROR, "Cannot read block info: " << original_mapping.DebugString() << " => " << modified_mapping.DebugString());
-
-    if (aux_lr == LOOKUP_NOT_FOUND) {
-        // This happens in strange situations where
-        // a block 0 is replayed with an lower version no
-        // and the most current version is completely committed, but this version was not committable
-        // up to now. However, because the higher version is committable, there is not need to process this
-        // block
-        TRACE("Skipping ready queue: " << original_mapping.DebugString() << " => " << aux_mapping.DebugString() <<
-            ", event log id " << block_mapping_written_event_log_id <<
-            ", aux mapping not found");
-    } else if (aux_mapping.version() == modified_mapping.version()) {
-        BlockMapping modified_aux_mapping(block_id, this->block_size_);
-        modified_aux_mapping.CopyFrom(aux_mapping);
-        modified_aux_mapping.set_event_log_id(block_mapping_written_event_log_id);
-
-        BlockMappingData aux_block_mapping_data;
-        CHECK(aux_mapping.SerializeTo(&aux_block_mapping_data, false, true),
-            "Cannot serialize block mapping: " << aux_mapping.DebugString());
-        BlockMappingData modified_aux_block_mapping_data;
-        CHECK(modified_aux_mapping.SerializeTo(&modified_aux_block_mapping_data, false, true),
-            "Cannot serialize block mapping: " << modified_aux_mapping.DebugString());
-
-        BlockMappingData result_block_mapping_data;
-        put_result result = this->auxiliary_block_index_->CompareAndSwap(&block_id, sizeof(block_id),
-            modified_aux_block_mapping_data, aux_block_mapping_data, &result_block_mapping_data);
-        CHECK(result != PUT_ERROR, "Failed to update auxiliary block mapping after commit: " <<
-            aux_mapping.DebugString());
-        if (result == PUT_OK) {
-            TRACE("Add to ready queue: " << original_mapping.DebugString() << " => " << aux_mapping.DebugString() <<
-                ", event log id " << block_mapping_written_event_log_id);
-
-            this->ready_queue_.push(std::tr1::make_tuple(
-                    aux_mapping.block_id(),
-                    aux_mapping.version()));
-        } else {
-            INFO("Skipping ready queue: " <<
-                "auxiliary mapping already changed: expected: " << aux_block_mapping_data.ShortDebugString() <<
-                ", target " << modified_aux_block_mapping_data.ShortDebugString() <<
-                ", was " << result_block_mapping_data.ShortDebugString());
-        }
-    } else {
-        TRACE("Skipping ready queue: " << original_mapping.DebugString() << " => " << aux_mapping.DebugString() <<
-            ", event log id " << block_mapping_written_event_log_id <<
-            ", aux mapping " << aux_mapping.DebugString());
-    }
-    return true;
-}
-
-bool BlockIndex::CommitVolatileBlock(const BlockMapping& original_mapping,
-                                     const BlockMapping& modified_mapping,
-                                     const google::protobuf::Message* extra_message,
-                                     int64_t block_mapping_written_event_log_id,
-                                     bool direct) {
-    bool failed = false;
-    if (state_ == STARTED) {
-        // dirty
-        CHECK(extra_message, "Extra message not set");
-        DEBUG("Commit volatile block (dirty): " <<
-            original_mapping.DebugString() << " => " << modified_mapping.DebugString() <<
-            ", event id " << block_mapping_written_event_log_id);
-
-        this->ready_queue_.push(std::tr1::make_tuple(
-                modified_mapping.block_id(),
-                modified_mapping.version()));
-
-        // bring the non-imported data back to the auxiliary index
-        uint64_t block_id = modified_mapping.block_id();
-
-        BlockMapping aux_mapping(block_id, this->block_size_);
-        lookup_result aux_lr = this->ReadBlockInfoFromIndex(this->auxiliary_block_index_, &aux_mapping);
-        CHECK(aux_lr != LOOKUP_ERROR, "Cannot read block info");
-
-        if (aux_lr == LOOKUP_NOT_FOUND || aux_mapping.version() < modified_mapping.version()) {
-            BlockMappingData mapping_value;
-            CHECK(modified_mapping.SerializeTo(&mapping_value, false, true), "Failed to serialize block mapping: " << modified_mapping.DebugString());
-            enum put_result result = this->auxiliary_block_index_->Put(&block_id, sizeof(uint64_t), mapping_value);
-            CHECK(result != PUT_ERROR, "Update of auxiliary block index failed: " << modified_mapping.DebugString());
-        }
-    } else {
-        // normal
-        CHECK(auxiliary_block_index_, "Auxiliary index not set");
-        DEBUG("Commit volatile block (direct): " <<
-            original_mapping.DebugString() << " => " << modified_mapping.DebugString() <<
-            ", event id " << block_mapping_written_event_log_id);
-
-        if (!ProcessCommittedBlockWrite(original_mapping, modified_mapping, block_mapping_written_event_log_id)) {
-            ERROR("Failed to process committed block write: " <<
-                original_mapping.DebugString() << " => " << modified_mapping.DebugString());
-            failed = true;
-        }
-    }
     return !failed;
 }
 
@@ -1718,30 +1427,23 @@ bool BlockIndex::LogReplayBlockMappingWrittenDirty(dedupv1::log::replay_mode rep
         this->open_new_block_count_++;
     }
 
-    // gather all containers
-    set<uint64_t> container_id_set;
-    for (list<BlockMappingItem>::const_iterator i = stored_mapping.items().begin();
-         i != stored_mapping.items().end();
-         i++) {
-        container_id_set.insert(i->data_address());
-    }
-
-    BlockMappingPairData* extra_message = new BlockMappingPairData();
-    CHECK(extra_message, "Failed to allocate extra message");
-    extra_message->CopyFrom(event_data.mapping_pair());
-
     // we can call "AddBlock" also if there are not open containers
     Option<bool> failed_state = IsKnownAsFailedBlock(stored_mapping.block_id(), stored_mapping.version());
     CHECK(failed_state.valid(), "Failed to check failed block write state: " << stored_mapping.DebugString());
     if (failed_state.value()) {
         DEBUG("Block is known to be failed: " << stored_mapping.DebugString());
     } else {
-        CHECK(this->dirty_volatile_blocks_.AddBlock(stored_mapping,
-                stored_mapping,
-                extra_message,
-                container_id_set,
-                context.log_id(),
-                this), "Cannot add block as uncommitted: " << mapping_pair.DebugString());
+    BlockMappingData block_mapping_data;
+    CHECK(stored_mapping.SerializeTo(&block_mapping_data, false, true), "Cannot serialize block mapping: " <<
+        stored_mapping.DebugString());
+
+        uint64_t block_id = stored_mapping.block_id();
+        put_result result = this->auxiliary_block_index_->Put(&block_id, sizeof(uint64_t), block_mapping_data);
+        CHECK(result != PUT_ERROR, "Cannot put block mapping: " << stored_mapping.DebugString());
+
+            this->ready_queue_.push(std::tr1::make_tuple(
+                    stored_mapping.block_id(),
+                    stored_mapping.version()));
     }
     FAULT_POINT("block-index.log-replay.post");
     return true;
@@ -1880,37 +1582,13 @@ bool BlockIndex::LogReplayBlockMappingWrittenBackground(dedupv1::log::replay_mod
     }
 
     BlockMapping* import_mapping = &stored_mapping;
-    set<uint64_t> commit_check_result;
-    CHECK(this->BlockMappingStorageCheck(*import_mapping, &commit_check_result),
-        "Failed to check storage state: " <<
-        import_mapping->DebugString());
-    if (commit_check_result.size() > 0) {
-        DEBUG("Mapping has open containers that cannot be recovered: " <<
-            "block mapping " << import_mapping->DebugString() <<
-            ", open containers " <<
-            "[" << Join(commit_check_result.begin(), commit_check_result.end(), ", ") + "]");
-        INFO("Unrecoverable block write: block " << import_mapping->block_id() << ", version " << import_mapping->version());
-        // skip the block
-
-        Option<int64_t> write_event_log_id = make_option(context.log_id());
-        CHECK(MarkBlockWriteAsFailed(mapping_pair, write_event_log_id, NO_EC),
-            "Failed to mark block as failed: " <<
-            "open containers [" << Join(commit_check_result.begin(), commit_check_result.end(), ", ") + "]" <<
-            ", mapping pair " << mapping_pair.DebugString() <<
-            ", imported " << import_mapping->DebugString());
-        return true;
-    }
-
     bool delete_from_aux = true;
     // here we set the event log id to be used if the stored version is imported.
     // will be overwritten if the auxiliary version is used.
     import_mapping->set_event_log_id(context.log_id());
     if (aux_lr == LOOKUP_FOUND && aux_mapping.version() > stored_mapping.version()) {
         // there is a auxiliary version that is newer than the replayed one
-        if (aux_mapping.event_log_id() == 0) {
-            // auxiliary version is volatile
-            delete_from_aux = false;
-        } else {
+        CHECK(aux_mapping.event_log_id() != 0, "Illegal event log id");
             // auxiliary version is not volatile and can be imported.
             import_mapping = &aux_mapping;
 
@@ -1921,7 +1599,6 @@ bool BlockIndex::LogReplayBlockMappingWrittenBackground(dedupv1::log::replay_mod
                 "event log id " << context.log_id() <<
                 ", stored " << stored_mapping.DebugString() <<
                 ", auxiliary " << aux_mapping.DebugString());
-        }
     }
 
     // all containers are committed
@@ -1954,126 +1631,9 @@ bool BlockIndex::LogReplayBlockMappingWrittenBackground(dedupv1::log::replay_mod
             "Cannot delete committed block from aux index: block id " << block_id);
     }
     this->stats_.index_writes_++;
-    if (result != PUT_KEEP) {
-        this->stats_.index_real_writes_++;
-    }
     this->stats_.imported_block_count_.fetch_and_increment();
 
     FAULT_POINT("block-index.log-replay.post");
-    return true;
-}
-
-bool BlockIndex::FinishDirtyLogReplay() {
-    DEBUG("Finish dirty log replay");
-
-    // there is no need to maintain this data
-
-    std::multimap<uint64_t, UncommitedBlockEntry>::const_iterator i;
-    for (i = dirty_volatile_blocks_.uncommited_block_map().begin();
-         i != dirty_volatile_blocks_.uncommited_block_map().end(); i++) {
-        const BlockMapping original_mapping(i->second.original_mapping());
-        const BlockMapping modified_mapping(i->second.modified_mapping());
-        const google::protobuf::Message* extra_message = i->second.extra_message();
-        uint64_t open_container_count = i->second.open_container_count();
-        uint32_t open_predecessor_count = i->second.open_predecessor_count();
-
-        DCHECK(original_mapping.block_id() == modified_mapping.block_id(), "Illegal uncommit block entry: " << i->second.DebugString());
-        DCHECK(modified_mapping.event_log_id() > 0, "Log id should be set: " << modified_mapping.DebugString());
-        DCHECK(extra_message, "Extra message not set");
-        int64_t log_id = modified_mapping.event_log_id();
-
-        BlockMapping aux_mapping(modified_mapping.block_id(), this->block_size_);
-        lookup_result aux_lr = this->ReadBlockInfoFromIndex(this->auxiliary_block_index_, &aux_mapping);
-        CHECK(aux_lr != LOOKUP_ERROR, "Cannot read block info")
-
-        BlockMapping pers_mapping(modified_mapping.block_id(), this->block_size_);
-        lookup_result pers_lr = this->ReadBlockInfoFromIndex(this->block_index_, &pers_mapping);
-        CHECK(pers_lr != LOOKUP_ERROR, "Cannot read block info")
-
-        TRACE("Finish restore of block mapping: " <<
-            "" << original_mapping.DebugString() << " => " << modified_mapping.DebugString()  <<
-            ", mapping pair " << extra_message->DebugString() <<
-            ", auxiliary index data " << (aux_lr == LOOKUP_FOUND ? aux_mapping.DebugString() : "<not found>"));
-
-        set<uint64_t> container_id_set;
-        for (list<BlockMappingItem>::const_iterator j = modified_mapping.items().begin();
-             j != modified_mapping.items().end();
-             j++) {
-            container_id_set.insert(j->data_address());
-        }
-        set<uint64_t> unrecoverable_container_id_set;
-        for (set<uint64_t>::iterator j = container_id_set.begin(); j != container_id_set.end(); j++) {
-            TRACE("Check container: container id " << *j);
-            enum storage_commit_state commit_check_result = storage_->IsCommitted(*j);
-            CHECK(commit_check_result != STORAGE_ADDRESS_ERROR, "Cannot check commit state");
-            if (commit_check_result != STORAGE_ADDRESS_COMMITED) {
-                TRACE("Container not committed: contaienr id " << *j);
-                unrecoverable_container_id_set.insert(*j);
-            }
-        }
-        DCHECK(unrecoverable_container_id_set.size() == open_container_count,
-            "Open container mismatch: expected open container count: " << open_container_count <<
-            ", open containers " << "[" << Join(unrecoverable_container_id_set.begin(), unrecoverable_container_id_set.end(), ", ") + "]");
-
-        Option<bool> failed_state = IsKnownAsFailedBlock(modified_mapping.block_id(), modified_mapping.version());
-        CHECK(failed_state.valid(), "Failed to check failed write state: " << modified_mapping.DebugString());
-        bool already_marked_as_failed = failed_state.value();
-
-        DEBUG("Block mapping cannot be restored: " <<
-            "open containers " << "[" << Join(unrecoverable_container_id_set.begin(), unrecoverable_container_id_set.end(), ", ") + "]" <<
-            ", open predecessor count " << open_predecessor_count <<
-            ", already marked as failed " << ToString(already_marked_as_failed) <<
-            ", " << original_mapping.DebugString() << " => " << modified_mapping.DebugString()  <<
-            ", auxiliary index data " << (aux_lr == LOOKUP_FOUND ? aux_mapping.DebugString() : "<not found>") <<
-            ", persistent index data " << (pers_lr == LOOKUP_FOUND ? pers_mapping.DebugString() : "<not found>"));
-
-        uint64_t block_id = modified_mapping.block_id();
-
-        bool need_update = false;
-        BlockMapping* import_mapping = NULL;
-        if (aux_lr == LOOKUP_FOUND && aux_mapping.version() < modified_mapping.version()) {
-            need_update = true;
-            import_mapping = &aux_mapping;
-        } else if (aux_lr == LOOKUP_NOT_FOUND && pers_lr == LOOKUP_FOUND && pers_mapping.version() < modified_mapping.version()) {
-            need_update = true;
-            import_mapping = &pers_mapping;
-        } else if (aux_lr == LOOKUP_NOT_FOUND && pers_lr == LOOKUP_NOT_FOUND) {
-            need_update = true;
-            aux_mapping.FillEmptyBlockMapping();
-            import_mapping = &aux_mapping;
-        }
-        if (need_update) {
-            // aka this version is newer then what we had stored before
-            // Note here that the aux_mapping/pers_mapping version is 0 if they are not found
-
-            this->ready_queue_.push(std::tr1::make_tuple(modified_mapping.block_id(), modified_mapping.version()));
-            import_mapping->set_version(modified_mapping.version()); // we update the version in any case, but we use
-            // the old mapping data.
-            import_mapping->set_event_log_id(i->second.block_mapping_written_event_log_id());
-
-            DEBUG("Update auxiliary index with failed version: " << import_mapping->DebugString());
-
-            BlockMappingData mapping_value;
-            CHECK(import_mapping->SerializeTo(&mapping_value, false, true),
-                "Failed to serialize block mapping: " << import_mapping->DebugString());
-            enum put_result result = this->auxiliary_block_index_->Put(&block_id, sizeof(uint64_t), mapping_value);
-            CHECK(result != PUT_ERROR, "Update of auxiliary block index failed: " << import_mapping->DebugString());
-        }
-
-        if (!already_marked_as_failed) {
-            // TODO (dmeister): Can this still happen, when we remove all failed versions before?
-            BlockMappingPairData mapping_pair_data;
-            mapping_pair_data.CopyFrom(*extra_message);
-
-            BlockMappingPair mapping_pair(block_size_);
-            CHECK(mapping_pair.CopyFrom(mapping_pair_data), "Failed to copy from data: " << mapping_pair_data.ShortDebugString())
-
-            CHECK(MarkBlockWriteAsFailed(mapping_pair, make_option(log_id),NO_EC),
-                "Failed to mark mapping as failed: " << original_mapping.DebugString() << " => " << modified_mapping.DebugString());
-        }
-    }
-
-    dirty_volatile_blocks_.Clear();
     return true;
 }
 
@@ -2099,32 +1659,6 @@ bool BlockIndex::LogReplay(dedupv1::log::event_type event_type,
     } else if (event_type == dedupv1::log::EVENT_TYPE_BLOCK_MAPPING_WRITE_FAILED &&
                context.replay_mode() == EVENT_REPLAY_MODE_REPLAY_BG) {
         return LogReplayBlockMappingWriteFailedBackground(context.replay_mode(), event_value, context);
-    } else if (event_type == dedupv1::log::EVENT_TYPE_CONTAINER_COMMITED &&
-               context.replay_mode() == EVENT_REPLAY_MODE_DIRECT) {
-        // Direct Container Commit
-        ContainerCommittedEventData event_data = event_value.container_committed_event();
-
-        CHECK(this->volatile_blocks_.Commit(event_data.container_id(),  this),
-            "Cannot process container commit: " << event_data.ShortDebugString());
-    } else if (event_type == dedupv1::log::EVENT_TYPE_CONTAINER_COMMITED &&
-               context.replay_mode() == EVENT_REPLAY_MODE_DIRTY_START) {
-        // Direct Container Commit
-        ContainerCommittedEventData event_data = event_value.container_committed_event();
-
-        DEBUG("Replay container commit: container id " << event_data.container_id());
-
-        CHECK(this->dirty_volatile_blocks_.Commit(event_data.container_id(),  this),
-            "Cannot process container commit (dirty): " << event_data.ShortDebugString());
-    } else if (event_type == dedupv1::log::EVENT_TYPE_CONTAINER_COMMIT_FAILED &&
-               context.replay_mode() == EVENT_REPLAY_MODE_DIRECT) {
-        ContainerCommitFailedEventData event_data = event_value.container_commit_failed_event();
-
-        // Direct Container Commit Failed
-        CHECK(this->volatile_blocks_.Abort(event_data.container_id(), this),
-            "Failed to abort container id " << event_data.container_id());
-    } else if (event_type == dedupv1::log::EVENT_TYPE_LOG_EMPTY &&
-               context.replay_mode() == dedupv1::log::EVENT_REPLAY_MODE_DIRECT) {
-        this->volatile_blocks_.ResetTracker();
     } else if (event_type == dedupv1::log::EVENT_TYPE_REPLAY_STARTED &&
                context.replay_mode() == dedupv1::log::EVENT_REPLAY_MODE_DIRECT) {
         is_replaying_ = true;
@@ -2134,12 +1668,6 @@ bool BlockIndex::LogReplay(dedupv1::log::event_type event_type,
     }  else if (event_type == dedupv1::log::EVENT_TYPE_REPLAY_STOPPED &&
                 context.replay_mode() == dedupv1::log::EVENT_REPLAY_MODE_DIRECT) {
         is_replaying_ = false;
-
-        ReplayStopEventData event_data = event_value.replay_stop_event();
-
-        if (event_data.replay_type() == dedupv1::log::EVENT_REPLAY_MODE_DIRTY_START) {
-            return FinishDirtyLogReplay();
-        }
     }
     return true;
 }

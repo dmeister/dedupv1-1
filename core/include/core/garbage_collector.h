@@ -24,7 +24,6 @@
 #include <core/container_storage.h>
 #include <core/statistics.h>
 #include <core/block_index.h>
-#include <core/volatile_block_store.h>
 #include <base/thread.h>
 #include <base/locks.h>
 #include <base/profile.h>
