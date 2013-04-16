@@ -1904,6 +1904,8 @@ bool ContainerStorageSession::WriteNew(list<StorageRequest>* requests,
     CHECK(c->state_ == ContainerStorage::RUNNING, "Illegal state to write new data: " << c->state_);
     CHECK(!this->storage_->start_context_.readonly(), "Container storage is in readonly mode");
 
+    std::set<uint64_t> container_id_set;
+
     // Select write container
     Container* write_container = NULL;
     ReadWriteLock* write_container_lock = NULL;
@@ -1954,6 +1956,7 @@ bool ContainerStorageSession::WriteNew(list<StorageRequest>* requests,
             }
         }
         uint64_t container_id = write_container->primary_id();
+        container_id_set.insert(container_id);
         DCHECK(container_id != 0 && container_id != Storage::EMPTY_DATA_STORAGE_ADDRESS &&
             container_id != Storage::ILLEGAL_STORAGE_ADDRESS,
         "Illegal container id: " << write_container->primary_id());
@@ -1978,7 +1981,73 @@ bool ContainerStorageSession::WriteNew(list<StorageRequest>* requests,
 
     }
     CHECK(scoped_write_container_lock.ReleaseLock(), "Failed to release write container lock: " << scoped_write_container_lock.DebugString());
+
+    // give other threads the oppertunity to add data to the containers
+    ThreadUtil::Sleep(10, ThreadUtil::MILLISECONDS);
+
+    for (std::set<uint64_t>::iterator i = container_id_set.begin();
+        i != container_id_set.end();
+        i++) {
+          if (c->EnsureCommitted(*i) != STORAGE_ADDRESS_COMMITED) {
+            return false;
+          }
+    }
     return true;
+}
+
+storage_commit_state ContainerStorage::EnsureCommitted(uint64_t container_id) {
+    if (container_id == Storage::EMPTY_DATA_STORAGE_ADDRESS) {
+        // This should not happen, but would also not be a problem.
+        return STORAGE_ADDRESS_COMMITED;
+    }
+
+    Container* write_container = NULL;
+    ReadWriteLock* write_container_lock = NULL;
+    lookup_result r = write_cache_.GetWriteCacheContainer(container_id, &write_container,
+        &write_container_lock, true);
+    CHECK_RETURN(r != LOOKUP_ERROR, STORAGE_ADDRESS_ERROR,
+        "Failed to get write cache container");
+    if (r == LOOKUP_FOUND) {
+      if (!PrepareCommit(write_container)) {
+        ERROR("Failed to prepare commit of container");
+        write_container_lock->ReleaseLock();
+        return STORAGE_ADDRESS_ERROR;
+      }
+      write_container_lock->ReleaseLock();
+    }
+
+    // container not in the write cache, but in the background committer
+    Option<bool> is_processed = this->background_committer_.IsCurrentlyProcessedContainerId(container_id);
+    while (is_processed.valid() && is_processed.value()) {
+        TRACE("Wait until currently processed container is committed: container id " << container_id);
+        dedupv1::base::timed_bool b = this->background_committer_.CommitFinishedConditionWaitTimeout(1);
+        CHECK_RETURN(b != TIMED_FALSE, STORAGE_ADDRESS_ERROR, "Failed to wait for commit");
+        if (b == TIMED_TIMEOUT) {
+            TRACE("Wait for container commit timeout: container id " << container_id);
+        }
+
+        is_processed = this->background_committer_.IsCurrentlyProcessedContainerId(container_id);
+    }
+
+    enum storage_commit_state commit_state;
+    r = this->meta_data_index_->Lookup(&container_id, sizeof(uint64_t), NULL);
+    CHECK_RETURN(r != LOOKUP_ERROR, STORAGE_ADDRESS_ERROR,
+        "Meta data index lookup error for container id " << container_id);
+    if (r == LOOKUP_NOT_FOUND) {
+        if (container_id <= this->initial_given_container_id_) {
+            commit_state = STORAGE_ADDRESS_WILL_NEVER_COMMITTED;
+        } else {
+            commit_state = STORAGE_ADDRESS_NOT_COMMITED;
+        }
+    } else {
+        commit_state = STORAGE_ADDRESS_COMMITED;
+    }
+
+    if (commit_state == STORAGE_ADDRESS_COMMITED) {
+        TRACE("Checked commit state: container id " << container_id <<
+            ", result " << commit_state << ", source index");
+    }
+    return commit_state;
 }
 
 bool ContainerStorage::PersistStatistics(std::string prefix, dedupv1::PersistStatistics* ps) {
@@ -2582,8 +2651,6 @@ storage_commit_state ContainerStorage::IsCommittedWait(uint64_t address) {
     }
 
     enum storage_commit_state commit_state;
-    bool found = false;
-
     lookup_result r = this->meta_data_index_->Lookup(&address, sizeof(uint64_t), NULL);
     CHECK_RETURN(r != LOOKUP_ERROR, STORAGE_ADDRESS_ERROR, "Meta data index lookup error for container id " << address);
     if (r == LOOKUP_NOT_FOUND) {
@@ -2610,8 +2677,6 @@ storage_commit_state ContainerStorage::IsCommitted(uint64_t address) {
     }
 
     enum storage_commit_state commit_state;
-    bool found = false;
-
         lookup_result r = this->meta_data_index_->Lookup(&address, sizeof(uint64_t), NULL);
         CHECK_RETURN(r != LOOKUP_ERROR, STORAGE_ADDRESS_ERROR, "Meta data index lookup error for container id " << address);
         if (r == LOOKUP_NOT_FOUND) {

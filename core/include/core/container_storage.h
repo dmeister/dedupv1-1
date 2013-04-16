@@ -522,6 +522,7 @@ public dedupv1::log::LogAckConsumer {
 
     bool FinishDirtyLogReplay();
 
+    storage_commit_state EnsureCommitted(uint64_t container_id);
     public:
     /**
      * Constructor
@@ -600,6 +601,7 @@ public dedupv1::log::LogAckConsumer {
      * @return
      */
     virtual StorageSession* CreateSession();
+
 
     /**
      * Waits if the container is currently in the write cache or in the bg committer
