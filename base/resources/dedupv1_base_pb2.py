@@ -14,7 +14,7 @@ from google.protobuf import descriptor_pb2
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='dedupv1_base.proto',
   package='',
-  serialized_pb='\n\x12\x64\x65\x64upv1_base.proto\"d\n\x18\x44iskHashIndexLogfileData\x12\x11\n\tpage_size\x18\x02 \x01(\r\x12\x0c\n\x04size\x18\x03 \x01(\x04\x12\x10\n\x08\x66ilename\x18\x04 \x03(\t\x12\x15\n\roverflow_area\x18\x05 \x01(\x08\"M\n\x10\x44iskHashPageData\x12\x0b\n\x03\x63rc\x18\x02 \x01(\x07\x12\x13\n\x0b\x65ntry_count\x18\x03 \x01(\r\x12\x17\n\x08overflow\x18\x04 \x01(\x08:\x05\x66\x61lse\"\x92\x01\n\x1b\x44iskHashTransactionPageData\x12\x11\n\tbucket_id\x18\x01 \x01(\x04\x12\x14\n\x0coriginal_crc\x18\x02 \x01(\x07\x12\x17\n\x0ftransaction_crc\x18\x03 \x01(\x07\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\x0c\x12\x12\n\nitem_count\x18\x05 \x01(\x04\x12\x0f\n\x07version\x18\x06 \x01(\x04\"E\n\x12\x46ixedIndexMetaData\x12\r\n\x05width\x18\x01 \x01(\x04\x12\x0c\n\x04size\x18\x02 \x01(\x04\x12\x12\n\nfile_count\x18\x03 \x01(\x04\"|\n\x14\x46ixedIndexBucketData\x12\x0b\n\x03key\x18\x04 \x01(\x03\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x12)\n\x05state\x18\x02 \x01(\x0e\x32\x1a.FixedIndexBucketStateData\x12\x11\n\tcrc_bytes\x18\x03 \x01(\x0c\x12\x0b\n\x03\x63rc\x18\x05 \x01(\x07\"\x14\n\x07IntData\x12\t\n\x01i\x18\x01 \x01(\x04\"N\n\nBitmapData\x12\x0c\n\x04size\x18\x01 \x01(\x04\x12\x12\n\nclean_bits\x18\x02 \x01(\x04\x12\x11\n\tpage_size\x18\x03 \x01(\x04\x12\x0b\n\x03\x63rc\x18\x04 \x01(\r\"+\n\x0e\x42itmapPageData\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x12\x0b\n\x03\x63rc\x18\x02 \x01(\r\" \n\x0bRawByteData\x12\x11\n\traw_value\x18\x01 \x01(\t*W\n\x19\x46ixedIndexBucketStateData\x12\x1b\n\x17\x46IXED_INDEX_STATE_VALID\x10\x00\x12\x1d\n\x19\x46IXED_INDEX_STATE_INVALID\x10\x01')
+  serialized_pb='\n\x12\x64\x65\x64upv1_base.proto\"d\n\x18\x44iskHashIndexLogfileData\x12\x11\n\tpage_size\x18\x01 \x01(\r\x12\x0c\n\x04size\x18\x02 \x01(\x04\x12\x10\n\x08\x66ilename\x18\x03 \x03(\t\x12\x15\n\roverflow_area\x18\x04 \x01(\x08\"M\n\x10\x44iskHashPageData\x12\x0b\n\x03\x63rc\x18\x01 \x01(\x07\x12\x13\n\x0b\x65ntry_count\x18\x02 \x01(\r\x12\x17\n\x08overflow\x18\x03 \x01(\x08:\x05\x66\x61lse\"\x92\x01\n\x1b\x44iskHashTransactionPageData\x12\x11\n\tbucket_id\x18\x01 \x01(\x04\x12\x14\n\x0coriginal_crc\x18\x02 \x01(\x07\x12\x17\n\x0ftransaction_crc\x18\x03 \x01(\x07\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\x0c\x12\x12\n\nitem_count\x18\x05 \x01(\x04\x12\x0f\n\x07version\x18\x06 \x01(\x04\"E\n\x12\x46ixedIndexMetaData\x12\r\n\x05width\x18\x01 \x01(\x04\x12\x0c\n\x04size\x18\x02 \x01(\x04\x12\x12\n\nfile_count\x18\x03 \x01(\x04\"i\n\x14\x46ixedIndexBucketData\x12\x0b\n\x03key\x18\x01 \x01(\x03\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\x12)\n\x05state\x18\x03 \x01(\x0e\x32\x1a.FixedIndexBucketStateData\x12\x0b\n\x03\x63rc\x18\x04 \x01(\x07\"\x14\n\x07IntData\x12\t\n\x01i\x18\x01 \x01(\x04\"N\n\nBitmapData\x12\x0c\n\x04size\x18\x01 \x01(\x04\x12\x12\n\nclean_bits\x18\x02 \x01(\x04\x12\x11\n\tpage_size\x18\x03 \x01(\x04\x12\x0b\n\x03\x63rc\x18\x04 \x01(\r\"+\n\x0e\x42itmapPageData\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x12\x0b\n\x03\x63rc\x18\x02 \x01(\r\" \n\x0bRawByteData\x12\x11\n\traw_value\x18\x01 \x01(\t*W\n\x19\x46ixedIndexBucketStateData\x12\x1b\n\x17\x46IXED_INDEX_STATE_VALID\x10\x00\x12\x1d\n\x19\x46IXED_INDEX_STATE_INVALID\x10\x01')
 
 _FIXEDINDEXBUCKETSTATEDATA = _descriptor.EnumDescriptor(
   name='FixedIndexBucketStateData',
@@ -33,8 +33,8 @@ _FIXEDINDEXBUCKETSTATEDATA = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=730,
-  serialized_end=817,
+  serialized_start=711,
+  serialized_end=798,
 )
 
 FixedIndexBucketStateData = enum_type_wrapper.EnumTypeWrapper(_FIXEDINDEXBUCKETSTATEDATA)
@@ -52,28 +52,28 @@ _DISKHASHINDEXLOGFILEDATA = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='page_size', full_name='DiskHashIndexLogfileData.page_size', index=0,
-      number=2, type=13, cpp_type=3, label=1,
+      number=1, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
       name='size', full_name='DiskHashIndexLogfileData.size', index=1,
-      number=3, type=4, cpp_type=4, label=1,
+      number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
       name='filename', full_name='DiskHashIndexLogfileData.filename', index=2,
-      number=4, type=9, cpp_type=9, label=3,
+      number=3, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
       name='overflow_area', full_name='DiskHashIndexLogfileData.overflow_area', index=3,
-      number=5, type=8, cpp_type=7, label=1,
+      number=4, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -101,21 +101,21 @@ _DISKHASHPAGEDATA = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='crc', full_name='DiskHashPageData.crc', index=0,
-      number=2, type=7, cpp_type=3, label=1,
+      number=1, type=7, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
       name='entry_count', full_name='DiskHashPageData.entry_count', index=1,
-      number=3, type=13, cpp_type=3, label=1,
+      number=2, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
       name='overflow', full_name='DiskHashPageData.overflow', index=2,
-      number=4, type=8, cpp_type=7, label=1,
+      number=3, type=8, cpp_type=7, label=1,
       has_default_value=True, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -248,35 +248,28 @@ _FIXEDINDEXBUCKETDATA = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='key', full_name='FixedIndexBucketData.key', index=0,
-      number=4, type=3, cpp_type=2, label=1,
+      number=1, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
       name='data', full_name='FixedIndexBucketData.data', index=1,
-      number=1, type=12, cpp_type=9, label=1,
+      number=2, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value="",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
       name='state', full_name='FixedIndexBucketData.state', index=2,
-      number=2, type=14, cpp_type=8, label=1,
+      number=3, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='crc_bytes', full_name='FixedIndexBucketData.crc_bytes', index=3,
-      number=3, type=12, cpp_type=9, label=1,
-      has_default_value=False, default_value="",
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    _descriptor.FieldDescriptor(
-      name='crc', full_name='FixedIndexBucketData.crc', index=4,
-      number=5, type=7, cpp_type=3, label=1,
+      name='crc', full_name='FixedIndexBucketData.crc', index=3,
+      number=4, type=7, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -291,7 +284,7 @@ _FIXEDINDEXBUCKETDATA = _descriptor.Descriptor(
   is_extendable=False,
   extension_ranges=[],
   serialized_start=423,
-  serialized_end=547,
+  serialized_end=528,
 )
 
 
@@ -318,8 +311,8 @@ _INTDATA = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=549,
-  serialized_end=569,
+  serialized_start=530,
+  serialized_end=550,
 )
 
 
@@ -367,8 +360,8 @@ _BITMAPDATA = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=571,
-  serialized_end=649,
+  serialized_start=552,
+  serialized_end=630,
 )
 
 
@@ -402,8 +395,8 @@ _BITMAPPAGEDATA = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=651,
-  serialized_end=694,
+  serialized_start=632,
+  serialized_end=675,
 )
 
 
@@ -430,8 +423,8 @@ _RAWBYTEDATA = _descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=696,
-  serialized_end=728,
+  serialized_start=677,
+  serialized_end=709,
 )
 
 _FIXEDINDEXBUCKETDATA.fields_by_name['state'].enum_type = _FIXEDINDEXBUCKETSTATEDATA

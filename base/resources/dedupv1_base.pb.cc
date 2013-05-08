@@ -129,11 +129,10 @@ void protobuf_AssignDesc_dedupv1_5fbase_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(FixedIndexMetaData));
   FixedIndexBucketData_descriptor_ = file->message_type(4);
-  static const int FixedIndexBucketData_offsets_[5] = {
+  static const int FixedIndexBucketData_offsets_[4] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(FixedIndexBucketData, key_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(FixedIndexBucketData, data_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(FixedIndexBucketData, state_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(FixedIndexBucketData, crc_bytes_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(FixedIndexBucketData, crc_),
   };
   FixedIndexBucketData_reflection_ =
@@ -275,26 +274,25 @@ void protobuf_AddDesc_dedupv1_5fbase_2eproto() {
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
     "\n\022dedupv1_base.proto\"d\n\030DiskHashIndexLog"
-    "fileData\022\021\n\tpage_size\030\002 \001(\r\022\014\n\004size\030\003 \001("
-    "\004\022\020\n\010filename\030\004 \003(\t\022\025\n\roverflow_area\030\005 \001"
-    "(\010\"M\n\020DiskHashPageData\022\013\n\003crc\030\002 \001(\007\022\023\n\013e"
-    "ntry_count\030\003 \001(\r\022\027\n\010overflow\030\004 \001(\010:\005fals"
+    "fileData\022\021\n\tpage_size\030\001 \001(\r\022\014\n\004size\030\002 \001("
+    "\004\022\020\n\010filename\030\003 \003(\t\022\025\n\roverflow_area\030\004 \001"
+    "(\010\"M\n\020DiskHashPageData\022\013\n\003crc\030\001 \001(\007\022\023\n\013e"
+    "ntry_count\030\002 \001(\r\022\027\n\010overflow\030\003 \001(\010:\005fals"
     "e\"\222\001\n\033DiskHashTransactionPageData\022\021\n\tbuc"
     "ket_id\030\001 \001(\004\022\024\n\014original_crc\030\002 \001(\007\022\027\n\017tr"
     "ansaction_crc\030\003 \001(\007\022\014\n\004data\030\004 \001(\014\022\022\n\nite"
     "m_count\030\005 \001(\004\022\017\n\007version\030\006 \001(\004\"E\n\022FixedI"
     "ndexMetaData\022\r\n\005width\030\001 \001(\004\022\014\n\004size\030\002 \001("
-    "\004\022\022\n\nfile_count\030\003 \001(\004\"|\n\024FixedIndexBucke"
-    "tData\022\013\n\003key\030\004 \001(\003\022\014\n\004data\030\001 \001(\014\022)\n\005stat"
-    "e\030\002 \001(\0162\032.FixedIndexBucketStateData\022\021\n\tc"
-    "rc_bytes\030\003 \001(\014\022\013\n\003crc\030\005 \001(\007\"\024\n\007IntData\022\t"
-    "\n\001i\030\001 \001(\004\"N\n\nBitmapData\022\014\n\004size\030\001 \001(\004\022\022\n"
-    "\nclean_bits\030\002 \001(\004\022\021\n\tpage_size\030\003 \001(\004\022\013\n\003"
-    "crc\030\004 \001(\r\"+\n\016BitmapPageData\022\014\n\004data\030\001 \001("
-    "\014\022\013\n\003crc\030\002 \001(\r\" \n\013RawByteData\022\021\n\traw_val"
-    "ue\030\001 \001(\t*W\n\031FixedIndexBucketStateData\022\033\n"
-    "\027FIXED_INDEX_STATE_VALID\020\000\022\035\n\031FIXED_INDE"
-    "X_STATE_INVALID\020\001", 817);
+    "\004\022\022\n\nfile_count\030\003 \001(\004\"i\n\024FixedIndexBucke"
+    "tData\022\013\n\003key\030\001 \001(\003\022\014\n\004data\030\002 \001(\014\022)\n\005stat"
+    "e\030\003 \001(\0162\032.FixedIndexBucketStateData\022\013\n\003c"
+    "rc\030\004 \001(\007\"\024\n\007IntData\022\t\n\001i\030\001 \001(\004\"N\n\nBitmap"
+    "Data\022\014\n\004size\030\001 \001(\004\022\022\n\nclean_bits\030\002 \001(\004\022\021"
+    "\n\tpage_size\030\003 \001(\004\022\013\n\003crc\030\004 \001(\r\"+\n\016Bitmap"
+    "PageData\022\014\n\004data\030\001 \001(\014\022\013\n\003crc\030\002 \001(\r\" \n\013R"
+    "awByteData\022\021\n\traw_value\030\001 \001(\t*W\n\031FixedIn"
+    "dexBucketStateData\022\033\n\027FIXED_INDEX_STATE_"
+    "VALID\020\000\022\035\n\031FIXED_INDEX_STATE_INVALID\020\001", 798);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "dedupv1_base.proto", &protobuf_RegisterTypes);
   DiskHashIndexLogfileData::default_instance_ = new DiskHashIndexLogfileData();
@@ -417,8 +415,8 @@ bool DiskHashIndexLogfileData::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional uint32 page_size = 2;
-      case 2: {
+      // optional uint32 page_size = 1;
+      case 1: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
@@ -428,12 +426,12 @@ bool DiskHashIndexLogfileData::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(24)) goto parse_size;
+        if (input->ExpectTag(16)) goto parse_size;
         break;
       }
 
-      // optional uint64 size = 3;
-      case 3: {
+      // optional uint64 size = 2;
+      case 2: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_size:
@@ -444,12 +442,12 @@ bool DiskHashIndexLogfileData::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(34)) goto parse_filename;
+        if (input->ExpectTag(26)) goto parse_filename;
         break;
       }
 
-      // repeated string filename = 4;
-      case 4: {
+      // repeated string filename = 3;
+      case 3: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_filename:
@@ -462,13 +460,13 @@ bool DiskHashIndexLogfileData::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(34)) goto parse_filename;
-        if (input->ExpectTag(40)) goto parse_overflow_area;
+        if (input->ExpectTag(26)) goto parse_filename;
+        if (input->ExpectTag(32)) goto parse_overflow_area;
         break;
       }
 
-      // optional bool overflow_area = 5;
-      case 5: {
+      // optional bool overflow_area = 4;
+      case 4: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_overflow_area:
@@ -501,28 +499,28 @@ bool DiskHashIndexLogfileData::MergePartialFromCodedStream(
 
 void DiskHashIndexLogfileData::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // optional uint32 page_size = 2;
+  // optional uint32 page_size = 1;
   if (has_page_size()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32(2, this->page_size(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(1, this->page_size(), output);
   }
 
-  // optional uint64 size = 3;
+  // optional uint64 size = 2;
   if (has_size()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt64(3, this->size(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(2, this->size(), output);
   }
 
-  // repeated string filename = 4;
+  // repeated string filename = 3;
   for (int i = 0; i < this->filename_size(); i++) {
   ::google::protobuf::internal::WireFormat::VerifyUTF8String(
     this->filename(i).data(), this->filename(i).length(),
     ::google::protobuf::internal::WireFormat::SERIALIZE);
     ::google::protobuf::internal::WireFormatLite::WriteString(
-      4, this->filename(i), output);
+      3, this->filename(i), output);
   }
 
-  // optional bool overflow_area = 5;
+  // optional bool overflow_area = 4;
   if (has_overflow_area()) {
-    ::google::protobuf::internal::WireFormatLite::WriteBool(5, this->overflow_area(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteBool(4, this->overflow_area(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -533,28 +531,28 @@ void DiskHashIndexLogfileData::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* DiskHashIndexLogfileData::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // optional uint32 page_size = 2;
+  // optional uint32 page_size = 1;
   if (has_page_size()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(2, this->page_size(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(1, this->page_size(), target);
   }
 
-  // optional uint64 size = 3;
+  // optional uint64 size = 2;
   if (has_size()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(3, this->size(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(2, this->size(), target);
   }
 
-  // repeated string filename = 4;
+  // repeated string filename = 3;
   for (int i = 0; i < this->filename_size(); i++) {
     ::google::protobuf::internal::WireFormat::VerifyUTF8String(
       this->filename(i).data(), this->filename(i).length(),
       ::google::protobuf::internal::WireFormat::SERIALIZE);
     target = ::google::protobuf::internal::WireFormatLite::
-      WriteStringToArray(4, this->filename(i), target);
+      WriteStringToArray(3, this->filename(i), target);
   }
 
-  // optional bool overflow_area = 5;
+  // optional bool overflow_area = 4;
   if (has_overflow_area()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(5, this->overflow_area(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(4, this->overflow_area(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -568,27 +566,27 @@ int DiskHashIndexLogfileData::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // optional uint32 page_size = 2;
+    // optional uint32 page_size = 1;
     if (has_page_size()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::UInt32Size(
           this->page_size());
     }
 
-    // optional uint64 size = 3;
+    // optional uint64 size = 2;
     if (has_size()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::UInt64Size(
           this->size());
     }
 
-    // optional bool overflow_area = 5;
+    // optional bool overflow_area = 4;
     if (has_overflow_area()) {
       total_size += 1 + 1;
     }
 
   }
-  // repeated string filename = 4;
+  // repeated string filename = 3;
   total_size += 1 * this->filename_size();
   for (int i = 0; i < this->filename_size(); i++) {
     total_size += ::google::protobuf::internal::WireFormatLite::StringSize(
@@ -749,8 +747,8 @@ bool DiskHashPageData::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional fixed32 crc = 2;
-      case 2: {
+      // optional fixed32 crc = 1;
+      case 1: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
@@ -760,12 +758,12 @@ bool DiskHashPageData::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(24)) goto parse_entry_count;
+        if (input->ExpectTag(16)) goto parse_entry_count;
         break;
       }
 
-      // optional uint32 entry_count = 3;
-      case 3: {
+      // optional uint32 entry_count = 2;
+      case 2: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_entry_count:
@@ -776,12 +774,12 @@ bool DiskHashPageData::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(32)) goto parse_overflow;
+        if (input->ExpectTag(24)) goto parse_overflow;
         break;
       }
 
-      // optional bool overflow = 4 [default = false];
-      case 4: {
+      // optional bool overflow = 3 [default = false];
+      case 3: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_overflow:
@@ -814,19 +812,19 @@ bool DiskHashPageData::MergePartialFromCodedStream(
 
 void DiskHashPageData::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // optional fixed32 crc = 2;
+  // optional fixed32 crc = 1;
   if (has_crc()) {
-    ::google::protobuf::internal::WireFormatLite::WriteFixed32(2, this->crc(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteFixed32(1, this->crc(), output);
   }
 
-  // optional uint32 entry_count = 3;
+  // optional uint32 entry_count = 2;
   if (has_entry_count()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32(3, this->entry_count(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(2, this->entry_count(), output);
   }
 
-  // optional bool overflow = 4 [default = false];
+  // optional bool overflow = 3 [default = false];
   if (has_overflow()) {
-    ::google::protobuf::internal::WireFormatLite::WriteBool(4, this->overflow(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteBool(3, this->overflow(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -837,19 +835,19 @@ void DiskHashPageData::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* DiskHashPageData::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // optional fixed32 crc = 2;
+  // optional fixed32 crc = 1;
   if (has_crc()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteFixed32ToArray(2, this->crc(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteFixed32ToArray(1, this->crc(), target);
   }
 
-  // optional uint32 entry_count = 3;
+  // optional uint32 entry_count = 2;
   if (has_entry_count()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(3, this->entry_count(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(2, this->entry_count(), target);
   }
 
-  // optional bool overflow = 4 [default = false];
+  // optional bool overflow = 3 [default = false];
   if (has_overflow()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(4, this->overflow(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(3, this->overflow(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -863,19 +861,19 @@ int DiskHashPageData::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // optional fixed32 crc = 2;
+    // optional fixed32 crc = 1;
     if (has_crc()) {
       total_size += 1 + 4;
     }
 
-    // optional uint32 entry_count = 3;
+    // optional uint32 entry_count = 2;
     if (has_entry_count()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::UInt32Size(
           this->entry_count());
     }
 
-    // optional bool overflow = 4 [default = false];
+    // optional bool overflow = 3 [default = false];
     if (has_overflow()) {
       total_size += 1 + 1;
     }
@@ -1663,7 +1661,6 @@ void FixedIndexMetaData::Swap(FixedIndexMetaData* other) {
 const int FixedIndexBucketData::kKeyFieldNumber;
 const int FixedIndexBucketData::kDataFieldNumber;
 const int FixedIndexBucketData::kStateFieldNumber;
-const int FixedIndexBucketData::kCrcBytesFieldNumber;
 const int FixedIndexBucketData::kCrcFieldNumber;
 #endif  // !_MSC_VER
 
@@ -1686,7 +1683,6 @@ void FixedIndexBucketData::SharedCtor() {
   key_ = GOOGLE_LONGLONG(0);
   data_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   state_ = 0;
-  crc_bytes_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   crc_ = 0u;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
@@ -1698,9 +1694,6 @@ FixedIndexBucketData::~FixedIndexBucketData() {
 void FixedIndexBucketData::SharedDtor() {
   if (data_ != &::google::protobuf::internal::kEmptyString) {
     delete data_;
-  }
-  if (crc_bytes_ != &::google::protobuf::internal::kEmptyString) {
-    delete crc_bytes_;
   }
   if (this != default_instance_) {
   }
@@ -1736,11 +1729,6 @@ void FixedIndexBucketData::Clear() {
       }
     }
     state_ = 0;
-    if (has_crc_bytes()) {
-      if (crc_bytes_ != &::google::protobuf::internal::kEmptyString) {
-        crc_bytes_->clear();
-      }
-    }
     crc_ = 0u;
   }
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
@@ -1753,21 +1741,37 @@ bool FixedIndexBucketData::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional bytes data = 1;
+      // optional int64 key = 1;
       case 1: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int64, ::google::protobuf::internal::WireFormatLite::TYPE_INT64>(
+                 input, &key_)));
+          set_has_key();
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(18)) goto parse_data;
+        break;
+      }
+
+      // optional bytes data = 2;
+      case 2: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+         parse_data:
           DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->mutable_data()));
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(16)) goto parse_state;
+        if (input->ExpectTag(24)) goto parse_state;
         break;
       }
 
-      // optional .FixedIndexBucketStateData state = 2;
-      case 2: {
+      // optional .FixedIndexBucketStateData state = 3;
+      case 3: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_state:
@@ -1778,47 +1782,17 @@ bool FixedIndexBucketData::MergePartialFromCodedStream(
           if (::FixedIndexBucketStateData_IsValid(value)) {
             set_state(static_cast< ::FixedIndexBucketStateData >(value));
           } else {
-            mutable_unknown_fields()->AddVarint(2, value);
+            mutable_unknown_fields()->AddVarint(3, value);
           }
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(26)) goto parse_crc_bytes;
+        if (input->ExpectTag(37)) goto parse_crc;
         break;
       }
 
-      // optional bytes crc_bytes = 3;
-      case 3: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
-         parse_crc_bytes:
-          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
-                input, this->mutable_crc_bytes()));
-        } else {
-          goto handle_uninterpreted;
-        }
-        if (input->ExpectTag(32)) goto parse_key;
-        break;
-      }
-
-      // optional int64 key = 4;
+      // optional fixed32 crc = 4;
       case 4: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
-         parse_key:
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int64, ::google::protobuf::internal::WireFormatLite::TYPE_INT64>(
-                 input, &key_)));
-          set_has_key();
-        } else {
-          goto handle_uninterpreted;
-        }
-        if (input->ExpectTag(45)) goto parse_crc;
-        break;
-      }
-
-      // optional fixed32 crc = 5;
-      case 5: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED32) {
          parse_crc:
@@ -1851,32 +1825,26 @@ bool FixedIndexBucketData::MergePartialFromCodedStream(
 
 void FixedIndexBucketData::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // optional bytes data = 1;
+  // optional int64 key = 1;
+  if (has_key()) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt64(1, this->key(), output);
+  }
+
+  // optional bytes data = 2;
   if (has_data()) {
     ::google::protobuf::internal::WireFormatLite::WriteBytes(
-      1, this->data(), output);
+      2, this->data(), output);
   }
 
-  // optional .FixedIndexBucketStateData state = 2;
+  // optional .FixedIndexBucketStateData state = 3;
   if (has_state()) {
     ::google::protobuf::internal::WireFormatLite::WriteEnum(
-      2, this->state(), output);
+      3, this->state(), output);
   }
 
-  // optional bytes crc_bytes = 3;
-  if (has_crc_bytes()) {
-    ::google::protobuf::internal::WireFormatLite::WriteBytes(
-      3, this->crc_bytes(), output);
-  }
-
-  // optional int64 key = 4;
-  if (has_key()) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt64(4, this->key(), output);
-  }
-
-  // optional fixed32 crc = 5;
+  // optional fixed32 crc = 4;
   if (has_crc()) {
-    ::google::protobuf::internal::WireFormatLite::WriteFixed32(5, this->crc(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteFixed32(4, this->crc(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -1887,34 +1855,27 @@ void FixedIndexBucketData::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* FixedIndexBucketData::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // optional bytes data = 1;
+  // optional int64 key = 1;
+  if (has_key()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt64ToArray(1, this->key(), target);
+  }
+
+  // optional bytes data = 2;
   if (has_data()) {
     target =
       ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
-        1, this->data(), target);
+        2, this->data(), target);
   }
 
-  // optional .FixedIndexBucketStateData state = 2;
+  // optional .FixedIndexBucketStateData state = 3;
   if (has_state()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
-      2, this->state(), target);
+      3, this->state(), target);
   }
 
-  // optional bytes crc_bytes = 3;
-  if (has_crc_bytes()) {
-    target =
-      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
-        3, this->crc_bytes(), target);
-  }
-
-  // optional int64 key = 4;
-  if (has_key()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt64ToArray(4, this->key(), target);
-  }
-
-  // optional fixed32 crc = 5;
+  // optional fixed32 crc = 4;
   if (has_crc()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteFixed32ToArray(5, this->crc(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteFixed32ToArray(4, this->crc(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -1928,34 +1889,27 @@ int FixedIndexBucketData::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // optional int64 key = 4;
+    // optional int64 key = 1;
     if (has_key()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::Int64Size(
           this->key());
     }
 
-    // optional bytes data = 1;
+    // optional bytes data = 2;
     if (has_data()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::BytesSize(
           this->data());
     }
 
-    // optional .FixedIndexBucketStateData state = 2;
+    // optional .FixedIndexBucketStateData state = 3;
     if (has_state()) {
       total_size += 1 +
         ::google::protobuf::internal::WireFormatLite::EnumSize(this->state());
     }
 
-    // optional bytes crc_bytes = 3;
-    if (has_crc_bytes()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::BytesSize(
-          this->crc_bytes());
-    }
-
-    // optional fixed32 crc = 5;
+    // optional fixed32 crc = 4;
     if (has_crc()) {
       total_size += 1 + 4;
     }
@@ -1996,9 +1950,6 @@ void FixedIndexBucketData::MergeFrom(const FixedIndexBucketData& from) {
     if (from.has_state()) {
       set_state(from.state());
     }
-    if (from.has_crc_bytes()) {
-      set_crc_bytes(from.crc_bytes());
-    }
     if (from.has_crc()) {
       set_crc(from.crc());
     }
@@ -2028,7 +1979,6 @@ void FixedIndexBucketData::Swap(FixedIndexBucketData* other) {
     std::swap(key_, other->key_);
     std::swap(data_, other->data_);
     std::swap(state_, other->state_);
-    std::swap(crc_bytes_, other->crc_bytes_);
     std::swap(crc_, other->crc_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);

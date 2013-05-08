@@ -117,24 +117,24 @@ class DiskHashIndexLogfileData : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional uint32 page_size = 2;
+  // optional uint32 page_size = 1;
   inline bool has_page_size() const;
   inline void clear_page_size();
-  static const int kPageSizeFieldNumber = 2;
+  static const int kPageSizeFieldNumber = 1;
   inline ::google::protobuf::uint32 page_size() const;
   inline void set_page_size(::google::protobuf::uint32 value);
 
-  // optional uint64 size = 3;
+  // optional uint64 size = 2;
   inline bool has_size() const;
   inline void clear_size();
-  static const int kSizeFieldNumber = 3;
+  static const int kSizeFieldNumber = 2;
   inline ::google::protobuf::uint64 size() const;
   inline void set_size(::google::protobuf::uint64 value);
 
-  // repeated string filename = 4;
+  // repeated string filename = 3;
   inline int filename_size() const;
   inline void clear_filename();
-  static const int kFilenameFieldNumber = 4;
+  static const int kFilenameFieldNumber = 3;
   inline const ::std::string& filename(int index) const;
   inline ::std::string* mutable_filename(int index);
   inline void set_filename(int index, const ::std::string& value);
@@ -147,10 +147,10 @@ class DiskHashIndexLogfileData : public ::google::protobuf::Message {
   inline const ::google::protobuf::RepeatedPtrField< ::std::string>& filename() const;
   inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_filename();
 
-  // optional bool overflow_area = 5;
+  // optional bool overflow_area = 4;
   inline bool has_overflow_area() const;
   inline void clear_overflow_area();
-  static const int kOverflowAreaFieldNumber = 5;
+  static const int kOverflowAreaFieldNumber = 4;
   inline bool overflow_area() const;
   inline void set_overflow_area(bool value);
 
@@ -236,24 +236,24 @@ class DiskHashPageData : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional fixed32 crc = 2;
+  // optional fixed32 crc = 1;
   inline bool has_crc() const;
   inline void clear_crc();
-  static const int kCrcFieldNumber = 2;
+  static const int kCrcFieldNumber = 1;
   inline ::google::protobuf::uint32 crc() const;
   inline void set_crc(::google::protobuf::uint32 value);
 
-  // optional uint32 entry_count = 3;
+  // optional uint32 entry_count = 2;
   inline bool has_entry_count() const;
   inline void clear_entry_count();
-  static const int kEntryCountFieldNumber = 3;
+  static const int kEntryCountFieldNumber = 2;
   inline ::google::protobuf::uint32 entry_count() const;
   inline void set_entry_count(::google::protobuf::uint32 value);
 
-  // optional bool overflow = 4 [default = false];
+  // optional bool overflow = 3 [default = false];
   inline bool has_overflow() const;
   inline void clear_overflow();
-  static const int kOverflowFieldNumber = 4;
+  static const int kOverflowFieldNumber = 3;
   inline bool overflow() const;
   inline void set_overflow(bool value);
 
@@ -577,17 +577,17 @@ class FixedIndexBucketData : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional int64 key = 4;
+  // optional int64 key = 1;
   inline bool has_key() const;
   inline void clear_key();
-  static const int kKeyFieldNumber = 4;
+  static const int kKeyFieldNumber = 1;
   inline ::google::protobuf::int64 key() const;
   inline void set_key(::google::protobuf::int64 value);
 
-  // optional bytes data = 1;
+  // optional bytes data = 2;
   inline bool has_data() const;
   inline void clear_data();
-  static const int kDataFieldNumber = 1;
+  static const int kDataFieldNumber = 2;
   inline const ::std::string& data() const;
   inline void set_data(const ::std::string& value);
   inline void set_data(const char* value);
@@ -596,29 +596,17 @@ class FixedIndexBucketData : public ::google::protobuf::Message {
   inline ::std::string* release_data();
   inline void set_allocated_data(::std::string* data);
 
-  // optional .FixedIndexBucketStateData state = 2;
+  // optional .FixedIndexBucketStateData state = 3;
   inline bool has_state() const;
   inline void clear_state();
-  static const int kStateFieldNumber = 2;
+  static const int kStateFieldNumber = 3;
   inline ::FixedIndexBucketStateData state() const;
   inline void set_state(::FixedIndexBucketStateData value);
 
-  // optional bytes crc_bytes = 3;
-  inline bool has_crc_bytes() const;
-  inline void clear_crc_bytes();
-  static const int kCrcBytesFieldNumber = 3;
-  inline const ::std::string& crc_bytes() const;
-  inline void set_crc_bytes(const ::std::string& value);
-  inline void set_crc_bytes(const char* value);
-  inline void set_crc_bytes(const void* value, size_t size);
-  inline ::std::string* mutable_crc_bytes();
-  inline ::std::string* release_crc_bytes();
-  inline void set_allocated_crc_bytes(::std::string* crc_bytes);
-
-  // optional fixed32 crc = 5;
+  // optional fixed32 crc = 4;
   inline bool has_crc() const;
   inline void clear_crc();
-  static const int kCrcFieldNumber = 5;
+  static const int kCrcFieldNumber = 4;
   inline ::google::protobuf::uint32 crc() const;
   inline void set_crc(::google::protobuf::uint32 value);
 
@@ -630,8 +618,6 @@ class FixedIndexBucketData : public ::google::protobuf::Message {
   inline void clear_has_data();
   inline void set_has_state();
   inline void clear_has_state();
-  inline void set_has_crc_bytes();
-  inline void clear_has_crc_bytes();
   inline void set_has_crc();
   inline void clear_has_crc();
 
@@ -639,12 +625,11 @@ class FixedIndexBucketData : public ::google::protobuf::Message {
 
   ::google::protobuf::int64 key_;
   ::std::string* data_;
-  ::std::string* crc_bytes_;
   int state_;
   ::google::protobuf::uint32 crc_;
 
   mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(5 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
 
   friend void  protobuf_AddDesc_dedupv1_5fbase_2eproto();
   friend void protobuf_AssignDesc_dedupv1_5fbase_2eproto();
@@ -1038,7 +1023,7 @@ class RawByteData : public ::google::protobuf::Message {
 
 // DiskHashIndexLogfileData
 
-// optional uint32 page_size = 2;
+// optional uint32 page_size = 1;
 inline bool DiskHashIndexLogfileData::has_page_size() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -1060,7 +1045,7 @@ inline void DiskHashIndexLogfileData::set_page_size(::google::protobuf::uint32 v
   page_size_ = value;
 }
 
-// optional uint64 size = 3;
+// optional uint64 size = 2;
 inline bool DiskHashIndexLogfileData::has_size() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
@@ -1082,7 +1067,7 @@ inline void DiskHashIndexLogfileData::set_size(::google::protobuf::uint64 value)
   size_ = value;
 }
 
-// repeated string filename = 4;
+// repeated string filename = 3;
 inline int DiskHashIndexLogfileData::filename_size() const {
   return filename_.size();
 }
@@ -1126,7 +1111,7 @@ DiskHashIndexLogfileData::mutable_filename() {
   return &filename_;
 }
 
-// optional bool overflow_area = 5;
+// optional bool overflow_area = 4;
 inline bool DiskHashIndexLogfileData::has_overflow_area() const {
   return (_has_bits_[0] & 0x00000008u) != 0;
 }
@@ -1152,7 +1137,7 @@ inline void DiskHashIndexLogfileData::set_overflow_area(bool value) {
 
 // DiskHashPageData
 
-// optional fixed32 crc = 2;
+// optional fixed32 crc = 1;
 inline bool DiskHashPageData::has_crc() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -1174,7 +1159,7 @@ inline void DiskHashPageData::set_crc(::google::protobuf::uint32 value) {
   crc_ = value;
 }
 
-// optional uint32 entry_count = 3;
+// optional uint32 entry_count = 2;
 inline bool DiskHashPageData::has_entry_count() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
@@ -1196,7 +1181,7 @@ inline void DiskHashPageData::set_entry_count(::google::protobuf::uint32 value) 
   entry_count_ = value;
 }
 
-// optional bool overflow = 4 [default = false];
+// optional bool overflow = 3 [default = false];
 inline bool DiskHashPageData::has_overflow() const {
   return (_has_bits_[0] & 0x00000004u) != 0;
 }
@@ -1476,7 +1461,7 @@ inline void FixedIndexMetaData::set_file_count(::google::protobuf::uint64 value)
 
 // FixedIndexBucketData
 
-// optional int64 key = 4;
+// optional int64 key = 1;
 inline bool FixedIndexBucketData::has_key() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -1498,7 +1483,7 @@ inline void FixedIndexBucketData::set_key(::google::protobuf::int64 value) {
   key_ = value;
 }
 
-// optional bytes data = 1;
+// optional bytes data = 2;
 inline bool FixedIndexBucketData::has_data() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
@@ -1568,7 +1553,7 @@ inline void FixedIndexBucketData::set_allocated_data(::std::string* data) {
   }
 }
 
-// optional .FixedIndexBucketStateData state = 2;
+// optional .FixedIndexBucketStateData state = 3;
 inline bool FixedIndexBucketData::has_state() const {
   return (_has_bits_[0] & 0x00000004u) != 0;
 }
@@ -1591,85 +1576,15 @@ inline void FixedIndexBucketData::set_state(::FixedIndexBucketStateData value) {
   state_ = value;
 }
 
-// optional bytes crc_bytes = 3;
-inline bool FixedIndexBucketData::has_crc_bytes() const {
+// optional fixed32 crc = 4;
+inline bool FixedIndexBucketData::has_crc() const {
   return (_has_bits_[0] & 0x00000008u) != 0;
 }
-inline void FixedIndexBucketData::set_has_crc_bytes() {
+inline void FixedIndexBucketData::set_has_crc() {
   _has_bits_[0] |= 0x00000008u;
 }
-inline void FixedIndexBucketData::clear_has_crc_bytes() {
-  _has_bits_[0] &= ~0x00000008u;
-}
-inline void FixedIndexBucketData::clear_crc_bytes() {
-  if (crc_bytes_ != &::google::protobuf::internal::kEmptyString) {
-    crc_bytes_->clear();
-  }
-  clear_has_crc_bytes();
-}
-inline const ::std::string& FixedIndexBucketData::crc_bytes() const {
-  return *crc_bytes_;
-}
-inline void FixedIndexBucketData::set_crc_bytes(const ::std::string& value) {
-  set_has_crc_bytes();
-  if (crc_bytes_ == &::google::protobuf::internal::kEmptyString) {
-    crc_bytes_ = new ::std::string;
-  }
-  crc_bytes_->assign(value);
-}
-inline void FixedIndexBucketData::set_crc_bytes(const char* value) {
-  set_has_crc_bytes();
-  if (crc_bytes_ == &::google::protobuf::internal::kEmptyString) {
-    crc_bytes_ = new ::std::string;
-  }
-  crc_bytes_->assign(value);
-}
-inline void FixedIndexBucketData::set_crc_bytes(const void* value, size_t size) {
-  set_has_crc_bytes();
-  if (crc_bytes_ == &::google::protobuf::internal::kEmptyString) {
-    crc_bytes_ = new ::std::string;
-  }
-  crc_bytes_->assign(reinterpret_cast<const char*>(value), size);
-}
-inline ::std::string* FixedIndexBucketData::mutable_crc_bytes() {
-  set_has_crc_bytes();
-  if (crc_bytes_ == &::google::protobuf::internal::kEmptyString) {
-    crc_bytes_ = new ::std::string;
-  }
-  return crc_bytes_;
-}
-inline ::std::string* FixedIndexBucketData::release_crc_bytes() {
-  clear_has_crc_bytes();
-  if (crc_bytes_ == &::google::protobuf::internal::kEmptyString) {
-    return NULL;
-  } else {
-    ::std::string* temp = crc_bytes_;
-    crc_bytes_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-    return temp;
-  }
-}
-inline void FixedIndexBucketData::set_allocated_crc_bytes(::std::string* crc_bytes) {
-  if (crc_bytes_ != &::google::protobuf::internal::kEmptyString) {
-    delete crc_bytes_;
-  }
-  if (crc_bytes) {
-    set_has_crc_bytes();
-    crc_bytes_ = crc_bytes;
-  } else {
-    clear_has_crc_bytes();
-    crc_bytes_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-  }
-}
-
-// optional fixed32 crc = 5;
-inline bool FixedIndexBucketData::has_crc() const {
-  return (_has_bits_[0] & 0x00000010u) != 0;
-}
-inline void FixedIndexBucketData::set_has_crc() {
-  _has_bits_[0] |= 0x00000010u;
-}
 inline void FixedIndexBucketData::clear_has_crc() {
-  _has_bits_[0] &= ~0x00000010u;
+  _has_bits_[0] &= ~0x00000008u;
 }
 inline void FixedIndexBucketData::clear_crc() {
   crc_ = 0u;
