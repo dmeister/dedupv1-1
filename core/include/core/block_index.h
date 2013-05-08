@@ -23,7 +23,6 @@
 
 #include <core/dedup.h>
 #include <core/log.h>
-#include <core/volatile_block_store.h>
 #include <base/index.h>
 #include <core/container_tracker.h>
 #include <core/block_index_bg.h>
@@ -31,12 +30,11 @@
 #include <base/fileutil.h>
 #include <core/storage.h>
 #include <core/session.h>
-#include <core/chunk_index_in_combat.h>
 #include <core/info_store.h>
 #include <base/sliding_average.h>
 #include <base/startup.h>
 #include <core/throttle_helper.h>
-#include <core/block_mapping_pair.h>
+#include <core/block_mapping.h>
 
 #include <list>
 #include <string>
@@ -85,7 +83,7 @@ class BlockIndexBackgroundCommitter;
  * Be careful about deadlocks.
  *
  */
-class BlockIndex : public dedupv1::log::LogConsumer, public VolatileBlockCommitCallback, public dedupv1::StatisticProvider {
+class BlockIndex : public dedupv1::log::LogConsumer, public dedupv1::StatisticProvider {
     DISALLOW_COPY_AND_ASSIGN(BlockIndex);
     friend class BlockIndexBackgroundCommitter;
 
@@ -113,7 +111,6 @@ class BlockIndex : public dedupv1::log::LogConsumer, public VolatileBlockCommitC
              * Number of block index writes
              */
             tbb::atomic<uint64_t> index_writes_;
-            tbb::atomic<uint64_t> index_real_writes_;
 
             tbb::atomic<uint32_t> ready_map_lock_free_;
             tbb::atomic<uint32_t> ready_map_lock_busy_;
@@ -192,8 +189,6 @@ class BlockIndex : public dedupv1::log::LogConsumer, public VolatileBlockCommitC
     };
     private:
 
-    dedupv1::chunkindex::ChunkIndexInCombats* chunk_in_combats_;
-
     /**
      * Normal persistent block index.
      *
@@ -201,17 +196,6 @@ class BlockIndex : public dedupv1::log::LogConsumer, public VolatileBlockCommitC
      * main block index, must be persisted by the chunk index and in the storage.
      */
     dedupv1::base::PersistentIndex* block_index_;
-
-    /**
-     * Persistent index containing an entry for all block/version pairs that are failed, but whose
-     * failed event is not yet replayed (in the background).
-     *
-     * The key is a 12-byte combination of the block id and the version. The value
-     * is an instance of BlockWriteFailedData.
-     *
-     * The index is only requested and updated to handle errors.
-     */
-    dedupv1::base::PersistentIndex* failed_block_write_index_;
 
     /**
      * In-Memory block index with non-confirmed blocks and for blocks that are confirmed, but not yet
@@ -224,8 +208,6 @@ class BlockIndex : public dedupv1::log::LogConsumer, public VolatileBlockCommitC
      * - When ImportModifiedBlockMapping is called with the version that is currently
      *   in the auxiliary index. ImportModifiedBlockMapping is called in the background and
      *   when the block index is shutdown.
-     * - When a volatile block fails and the version in the auxiliary index is the same
-     *   version as of the failed block.
      * - When LogReplayBlockMappingDeleted is called and the log event id is less than
      *   of the deleted block.
      * - When a block mapping write event is replayed
@@ -264,20 +246,6 @@ class BlockIndex : public dedupv1::log::LogConsumer, public VolatileBlockCommitC
      * Reference to the storage system.
      */
     dedupv1::chunkstore::Storage* storage_;
-
-    /**
-     * Helper structure that manages all uncommitted block mappings.
-     */
-    VolatileBlockStore volatile_blocks_;
-
-    /**
-     * Helper structure that manages all uncommitted block mappings during a dirty replay.
-     * We cannot know for sure if a container has been committed, when the block mapping is replayed in
-     * dirty mode. The problem is that the container metadata is not consistent at the time of the
-     * block mapping written event.
-     * If should be noted that we use the same callback method
-     */
-    VolatileBlockStore dirty_volatile_blocks_;
 
     /**
      * Contains all block id than can be imported from the auxiliary index to the persistent index.
@@ -416,6 +384,8 @@ class BlockIndex : public dedupv1::log::LogConsumer, public VolatileBlockCommitC
      */
     enum read_result ReadBlockInfoFromIndex(BlockMapping* block_mappings);
 
+    virtual bool LogReplayStateChange(const dedupv1::log::LogReplayStateChange& change);
+
     /**
      * Replays a log event.
      * - Block mapping written events are observed during background
@@ -459,13 +429,10 @@ class BlockIndex : public dedupv1::log::LogConsumer, public VolatileBlockCommitC
      * Writes a block mapping deleted event entry.
      *
      * @param previous_block_mapping
-     * @param event_log_id out parameter that contains the event log id of the block mapping
-     * deleted event that is written.
      * @param ec optional error context whose values are set, e.g. if the log is full.
      * @return true iff ok, otherwise an error has occurred
      */
     bool WriteDeleteLogEntry(const BlockMapping& previous_block_mapping,
-            int64_t* event_log_id,
             dedupv1::base::ErrorContext* ec);
 
     /**
@@ -479,19 +446,8 @@ class BlockIndex : public dedupv1::log::LogConsumer, public VolatileBlockCommitC
      * @param ec optional error context whose values are set, e.g. if the log is full.
      * @return true iff ok, otherwise an error has occurred
      */
-    bool WriteLogEntry(const BlockMapping& previous_block_mapping,
-            const BlockMapping& updated_block_mapping,
-            int64_t* event_log_id,
+    dedupv1::base::Option<int64_t> WriteLogEvent(const BlockMapping& updated_block_mapping,
             dedupv1::base::ErrorContext* ec);
-
-    /**
-     * Returns a set of used containers that are not committed.
-     * We check the original block mapping and the modified block mapping to ensure that no chunk that might
-     * be checked during the gc goes to disk. Neither in the modified block mapping nor in the original block mapping.
-     * @return true iff ok, otherwise an error has occurred
-     */
-    bool BlockMappingStorageCheck(const BlockMapping& modified_block_mapping,
-            std::set<uint64_t>* address_set);
 
     /**
      * Imports the next ready batch of blocks.
@@ -514,39 +470,6 @@ class BlockIndex : public dedupv1::log::LogConsumer, public VolatileBlockCommitC
      */
     bool ImportModifiedBlockMappings(const std::list<std::tr1::tuple<uint64_t, uint32_t> >& ready_infos,
             std::list<std::tr1::tuple<uint64_t, uint32_t> >* unimported_ready_infos);
-
-    /**
-     * Callback of the volatile block store called when a container used by
-     * a volatile block mapping is marked as failed.
-     *
-     * The callback is also called if block mappings of the same but an earlier version
-     * are marked as failed.
-     *
-     * @param original_mapping
-     * @param modified_mapping
-     * @return true iff ok, otherwise an error has occurred
-     */
-    virtual bool FailVolatileBlock(const BlockMapping& original_mapping,
-            const BlockMapping& modified_mapping,
-            const google::protobuf::Message* extra_message,
-            int64_t block_mapping_written_event_log_id);
-
-    /**
-     * Callback of the volatile store called when the last container referenced by a updates block mapping item
-     * is committed (that means the block mapping item can be imported into the main index).
-     *
-     * This should be notes that the calling thread might hold a block index lock (including the
-     * block index lock of the modified mapping).
-     *
-     * @param original_mapping original block mapping
-     * @param modified_mapping changed block mapping
-     * @return true iff ok, otherwise an error has occurred
-     */
-    virtual bool CommitVolatileBlock(const BlockMapping& original_mapping,
-            const BlockMapping& modified_mapping,
-            const google::protobuf::Message* extra_message,
-            int64_t event_log_id,
-            bool direct);
 
     /**
      * Called when a block mapping deleted event is replayed.
@@ -598,19 +521,6 @@ class BlockIndex : public dedupv1::log::LogConsumer, public VolatileBlockCommitC
     dedupv1::base::lookup_result ReadBlockInfoFromIndex(dedupv1::base::Index* index, BlockMapping* block_mappings);
 
     /**
-     * Called in the volatile block store callback
-     * @return true iff ok, otherwise an error has occurred
-     */
-    bool ProcessCommittedBlockWrite(const BlockMapping& original_mapping, const BlockMapping& modified_mapping, int64_t event_log_id);
-
-    /**
-     * Called when a dirty log replay finishes.
-     * Here we look at all blocks that are still in the volatile block store. These blocks cannot be recovered because
-     * they reference lost containers. We mark these blocks as failed (if this has not been done before)
-     */
-    bool FinishDirtyLogReplay();
-
-    /**
      * Replays a block mapping written event during background replay.
      */
     bool LogReplayBlockMappingWrittenBackground(dedupv1::log::replay_mode replay_mode,
@@ -623,16 +533,6 @@ class BlockIndex : public dedupv1::log::LogConsumer, public VolatileBlockCommitC
     bool LogReplayBlockMappingWrittenDirty(dedupv1::log::replay_mode replay_mode,
                                                    const LogEventData& event_value,
                                                    const dedupv1::log::LogReplayContext& context);
-
-    bool LogReplayBlockMappingWriteFailedDirty(dedupv1::log::replay_mode replay_mode,
-                                                    const LogEventData& event_value,
-                                                    const dedupv1::log::LogReplayContext& context);
-
-    bool LogReplayBlockMappingWriteFailedBackground(dedupv1::log::replay_mode replay_mode,
-                                                    const LogEventData& event_value,
-                                                    const dedupv1::log::LogReplayContext& context);
-
-    dedupv1::base::Option<bool> IsKnownAsFailedBlock(uint64_t block_id, uint32_t version);
 
     /**
      * Checks if the given container is is committed.
@@ -718,15 +618,6 @@ class BlockIndex : public dedupv1::log::LogConsumer, public VolatileBlockCommitC
             dedupv1::base::ErrorContext* ec);
 
     /**
-     * When in doubt, the method should return false.
-     *
-     * @param previous_block_mapping
-     * @param updated_block_mapping
-     * @return
-     */
-    virtual bool CheckIfFullWith(const BlockMapping& previous_block_mapping, const BlockMapping& updated_block_mapping);
-
-    /**
      * Reads the block info of the given mapping (id of the mapping)
      * from
      * a) the cache
@@ -758,11 +649,6 @@ class BlockIndex : public dedupv1::log::LogConsumer, public VolatileBlockCommitC
      * The caller has to ensure that no concurrent operations operate on that block id.
      * The only good reason to call this method, is after the volume of that block has been detached.
      *
-     * We avoid deleting block info for block ids that are currently
-     * volatile as it is very, very hard to do it right. You cannot
-     * simply write a BLOCK_MAPPING_DELETE event with the new block mapping has
-     * the previous is not logged, and other problems and race conditions. The call
-     * fails if the block is volatile.
      *
      * @param block_id
      * @param ec Error context that can be filled if case of special errors
@@ -780,21 +666,6 @@ class BlockIndex : public dedupv1::log::LogConsumer, public VolatileBlockCommitC
      * Restores the statistics of the block index
      */
     virtual bool RestoreStatistics(std::string prefix, dedupv1::PersistStatistics* ps);
-
-    /**
-     * See also the comments in dedupv1.proto
-     */
-    virtual bool MarkBlockWriteAsFailed(const BlockMapping& previous_block_mapping,
-            const BlockMapping& updated_block_mapping,
-            dedupv1::base::Option<int64_t> write_event_log_id,
-            dedupv1::base::ErrorContext* ec);
-
-    /**
-     * See also the comments in dedupv1.proto
-     */
-    virtual bool MarkBlockWriteAsFailed(const BlockMappingPair& mapping_pair,
-            dedupv1::base::Option<int64_t> write_event_log_id,
-            dedupv1::base::ErrorContext* ec);
 
     /**
      * Prints statistics about the locks used by the block index.
@@ -824,11 +695,6 @@ class BlockIndex : public dedupv1::log::LogConsumer, public VolatileBlockCommitC
      * (Or more accurately: The returned index is not thread safe)
      */
     inline dedupv1::base::PersistentIndex* persistent_block_index();
-
-    /**
-     * Returns the volatile block store.
-     */
-    inline VolatileBlockStore* volatile_blocks();
 
     /**
      * Returns the current state of the block index
@@ -903,10 +769,6 @@ size_t BlockIndex::ready_queue_size() const {
 
 dedupv1::base::PersistentIndex* BlockIndex::persistent_block_index() {
     return block_index_;
-}
-
-VolatileBlockStore* BlockIndex::volatile_blocks() {
-    return &volatile_blocks_;
 }
 
 uint32_t BlockIndex::block_size() const {

@@ -56,7 +56,7 @@ bool BlockIndexBackgroundCommitter::Loop(int thread_id) {
         // do not wait in stop mode
         if (!this->block_index_->TryImportBlock(!stop_mode_).valid()) {
             WARNING("Failed to import ready block");
-            ThreadUtil::Sleep(10);
+            ThreadUtil::Sleep(10, dedupv1::base::timeunit::SECONDS);
         }
         if (imported != import_state) {
             if (imported) {

@@ -15,7 +15,8 @@
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with dedupv1. If not, see http://www.gnu.org/licenses/.
+ * You should have received a copy of the GNU General Public License along with dedupv1. If not, see
+ ***http://www.gnu.org/licenses/.
  */
 
 #include "block_mapping_test.h"
@@ -36,7 +37,6 @@
 #include <core/chunk_store.h>
 #include <core/container_storage.h>
 #include <core/chunk_index.h>
-#include <core/block_mapping_pair.h>
 
 #include "block_mapping_test.h"
 #include "dedup_system_test.h"
@@ -62,7 +62,8 @@ namespace blockindex {
 
 /**
  * Tests mainly focused on the block index
- * However, these are not classical unit test as also the correct integration with the other component is validated.
+ * However, these are not classical unit test as also the correct integration with the other
+ ***component is validated.
  */
 class BlockIndexTest : public testing::TestWithParam<const char*> {
 protected:
@@ -70,16 +71,12 @@ protected:
 
     DedupSystem* system;
     dedupv1::MemoryInfoStore info_store;
-    dedupv1::base::Threadpool tp;
 
     ContainerTestHelper* container_test_helper;
 
     virtual void SetUp() {
         system = NULL;
         container_test_helper = NULL;
-
-        ASSERT_TRUE(tp.SetOption("size", "8"));
-        ASSERT_TRUE(tp.Start());
 
         container_test_helper = new ContainerTestHelper(64 * 1024, 16);
         ASSERT_TRUE(container_test_helper);
@@ -94,17 +91,17 @@ protected:
         }
         delete container_test_helper;
     }
+
 };
 
 INSTANTIATE_TEST_CASE_P(BlockIndex,
     BlockIndexTest,
     ::testing::Values(
-        "data/dedupv1_test.conf", // 0
-        "data/dedupv1_sqlite_test.conf" // 2
+        "data/dedupv1_test.conf"
         ));
 
 TEST_P(BlockIndexTest, Init) {
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, false);
+    system = DedupSystemTest::CreateDefaultSystemWithOptions(GetParam(), &info_store, false);
     ASSERT_TRUE(system);
     dedupv1::blockindex::BlockIndex* block_index = system->block_index();
     ASSERT_TRUE(block_index);
@@ -113,7 +110,7 @@ TEST_P(BlockIndexTest, Init) {
 TEST_P(BlockIndexTest, DoubleStart) {
     EXPECT_LOGGING(dedupv1::test::ERROR).Once();
 
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
     BlockIndex* block_index = system->block_index();
     ASSERT_TRUE(block_index);
@@ -123,17 +120,18 @@ TEST_P(BlockIndexTest, DoubleStart) {
 TEST_P(BlockIndexTest, ConfigurationAfterStart) {
     EXPECT_LOGGING(dedupv1::test::ERROR).Once();
 
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
     BlockIndex* block_index = system->block_index();
     ASSERT_TRUE(block_index);
-    ASSERT_FALSE(block_index->SetOption("import-thread-count", "4")) << "Set options after start should fail";
+    ASSERT_FALSE(block_index->SetOption("import-thread-count",
+            "4")) << "Set options after start should fail";
 }
 
 TEST_P(BlockIndexTest, StartWithoutSystem) {
     EXPECT_LOGGING(dedupv1::test::ERROR).Once();
 
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, false);
+    system = DedupSystemTest::CreateDefaultSystemWithOptions(GetParam(), &info_store, false);
     ASSERT_TRUE(system);
     BlockIndex* block_index = system->block_index();
     ASSERT_TRUE(block_index);
@@ -162,7 +160,7 @@ TEST_P(BlockIndexTest, GetActiveBlockCountBeforeStart) {
 }
 
 TEST_P(BlockIndexTest, Start) {
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
     dedupv1::blockindex::BlockIndex* block_index = system->block_index();
     ASSERT_TRUE(block_index);
@@ -171,18 +169,18 @@ TEST_P(BlockIndexTest, Start) {
 TEST_P(BlockIndexTest, IllegalSoftLimitHardLimit) {
     EXPECT_LOGGING(dedupv1::test::WARN).Once();
 
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, false);
+    system = DedupSystemTest::CreateDefaultSystemWithOptions(GetParam(), &info_store, false);
     ASSERT_TRUE(system);
     BlockIndex* block_index = system->block_index();
     ASSERT_TRUE(block_index);
     ASSERT_TRUE(block_index->SetOption("max-auxiliary-size", "32K"));
     ASSERT_TRUE(block_index->SetOption("auxiliary-size-hard-limit", "32K"));
 
-    ASSERT_TRUE(system->Start(StartContext(), &info_store, &tp)) << "Start should fail";
+    ASSERT_TRUE(system->Start(StartContext(), &info_store)) << "Start should fail";
 }
 
 TEST_P(BlockIndexTest, ReadWrite) {
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
 
     DEBUG("Write data");
@@ -215,7 +213,7 @@ TEST_P(BlockIndexTest, ReadWrite) {
 }
 
 TEST_P(BlockIndexTest, ReadWriteAfterClose) {
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
 
     ASSERT_TRUE(container_test_helper->WriteDefaultData(system, 0, 16));
@@ -234,7 +232,7 @@ TEST_P(BlockIndexTest, ReadWriteAfterClose) {
 
     ASSERT_TRUE(system->Stop(StopContext::FastStopContext()));
     delete system;
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, true);
+    system = DedupSystemTest::CreateDefaultSystemWithOptions(GetParam(), &info_store, true, true);
     ASSERT_TRUE(system);
 
     block_index = system->block_index();
@@ -250,7 +248,7 @@ TEST_P(BlockIndexTest, ReadWriteAfterClose) {
 }
 
 TEST_P(BlockIndexTest, ReadWriteWithFullyCommittedData) {
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
 
     container_test_helper->WriteDefaultData(system, 0, 16);
@@ -277,7 +275,7 @@ TEST_P(BlockIndexTest, ReadWriteWithFullyCommittedData) {
 
     ASSERT_TRUE(system->Stop(StopContext::FastStopContext()));
     delete system;
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, true);
+    system = DedupSystemTest::CreateDefaultSystemWithOptions(GetParam(), &info_store, true, true);
     ASSERT_TRUE(system);
 
     block_index = system->block_index();
@@ -292,12 +290,14 @@ TEST_P(BlockIndexTest, ReadWriteWithFullyCommittedData) {
 }
 
 /**
- * This test ensures a correct behavor when all containers have correctly been written, but the system crashes
- * directly after the commit. Especially this tests the situation where the COMMIT event is written, but the meta data index
+ * This test ensures a correct behavor when all containers have correctly been written, but the
+ ***system crashes
+ * directly after the commit. Especially this tests the situation where the COMMIT event is written,
+ ***but the meta data index
  * is not updated
  */
 TEST_P(BlockIndexTest, ReadWriteWithCrashAfterCommit) {
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
 
     dedupv1::blockindex::BlockIndex* block_index = system->block_index();
@@ -335,7 +335,7 @@ TEST_P(BlockIndexTest, ReadWriteWithCrashAfterCommit) {
 
     ASSERT_TRUE(system->Stop(StopContext::FastStopContext()));
     delete system;
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, true);
+    system = DedupSystemTest::CreateDefaultSystemWithOptions(GetParam(), &info_store, true, true);
     ASSERT_TRUE(system);
 
     block_index = system->block_index();
@@ -350,10 +350,11 @@ TEST_P(BlockIndexTest, ReadWriteWithCrashAfterCommit) {
 }
 
 /**
- * This test ensures a correct behavior when all containers have correctly been written in a startup before.
+ * This test ensures a correct behavior when all containers have correctly been written in a startup
+ ***before.
  */
 TEST_P(BlockIndexTest, ReadWriteWithPrecommittedData) {
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
 
     DEBUG("Write data");
@@ -362,8 +363,8 @@ TEST_P(BlockIndexTest, ReadWriteWithPrecommittedData) {
     DEBUG("Restart");
     ASSERT_TRUE(system->Stop(StopContext::FastStopContext()));
     delete system;
-
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, true, true);
+    system = DedupSystemTest::CreateDefaultSystemWithOptions(
+        GetParam(), &info_store, true, true, true);
     ASSERT_TRUE(system);
 
     dedupv1::blockindex::BlockIndex* block_index = system->block_index();
@@ -387,8 +388,8 @@ TEST_P(BlockIndexTest, ReadWriteWithPrecommittedData) {
 
     ASSERT_TRUE(system->Stop(StopContext::FastStopContext()));
     delete system;
-
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, true, false, true);
+    system = DedupSystemTest::CreateDefaultSystemWithOptions(
+        GetParam(), &info_store, true, true, false, true);
     ASSERT_TRUE(system);
 
     block_index = system->block_index();
@@ -402,191 +403,8 @@ TEST_P(BlockIndexTest, ReadWriteWithPrecommittedData) {
     ASSERT_TRUE(m1.Equals(m3)) << m1.DebugString() << std::endl << std::endl << m3.DebugString();
 }
 
-/**
- * This test ensures a correct behavior when the data on which a block mapping relies
- * fails to be written.
- */
-TEST_P(BlockIndexTest, ReadWriteWithFailedCommittedData) {
-    EXPECT_LOGGING(dedupv1::test::WARN).Matches("Failed to commit container").Times(0, 1);
-    EXPECT_LOGGING(dedupv1::test::WARN).Matches("Missing container for import").Times(0, 1);
-
-    string config = GetParam();
-    config += ";storage.container-size=4M";
-    system = DedupSystemTest::CreateDefaultSystem(config, &info_store, &tp);
-    ASSERT_TRUE(system);
-
-    ContainerStorage* storage = dynamic_cast<ContainerStorage*>(system->storage());
-    ASSERT_TRUE(storage);
-
-    ASSERT_TRUE(container_test_helper->WriteDefaultData(system, 0, 8));
-    ASSERT_TRUE(storage->Flush(NO_EC));
-    ASSERT_TRUE(container_test_helper->WriteDefaultData(system, 8, 8));
-
-    ASSERT_TRUE(system->log()->UnregisterConsumer("chunk-index"));
-    ASSERT_TRUE(system->log()->UnregisterConsumer("gc"));
-
-    dedupv1::blockindex::BlockIndex* block_index = system->block_index();
-    ASSERT_TRUE(block_index);
-
-    BlockMapping orig(0, 64 * 1024);
-    ASSERT_TRUE(block_index->ReadBlockInfo(NULL, &orig, NO_EC));
-
-    BlockMapping m1(0, 64 * 1024);
-    m1.set_version(m1.version() + 1);
-    ASSERT_TRUE(container_test_helper->FillSameBlockMapping(&m1, 9));
-
-    ASSERT_TRUE(block_index->StoreBlock(orig, m1, NO_EC));
-
-    BlockMapping m3(0, 64 * 1024);
-    ASSERT_TRUE(block_index->ReadBlockInfo(NULL, &m3, NO_EC));
-    m3.set_event_log_id(0);
-    ASSERT_TRUE(m1.Equals(m3)) << m1.DebugString() << std::endl << std::endl << m3.DebugString();
-
-    ASSERT_TRUE(storage->FailWriteCacheContainer(container_test_helper->data_address(9)));
-
-    ASSERT_TRUE(system->Stop(StopContext::FastStopContext()));
-    delete system;
-    system = NULL;
-    storage = NULL;
-
-    system = DedupSystemTest::CreateDefaultSystem(config, &info_store, &tp, true, true);
-    ASSERT_TRUE(system);
-
-    block_index = system->block_index();
-    ASSERT_TRUE(block_index);
-
-    BlockMapping m4(0, 64 * 1024);
-    ASSERT_TRUE(block_index->ReadBlockInfo(NULL, &m4, NO_EC));
-    m4.set_event_log_id(0);
-
-    BlockMapping final_mapping(0, 64 * 1024);
-    ASSERT_TRUE(final_mapping.CopyFrom(orig));
-    final_mapping.set_version(m1.version());
-    ASSERT_TRUE(m4.Equals(final_mapping)) << final_mapping.DebugString() << std::endl << std::endl << m4.DebugString();
-}
-
-/**
- * This test ensures a correct behavior when the data on which a block mapping relies
- * fails to be written. Similar to ReadWriteWithFailedCommittedData2, but
- * with a newer version that is not failing.
- */
-TEST_P(BlockIndexTest, ReadWriteWithFailedCommittedData2) {
-    EXPECT_LOGGING(dedupv1::test::WARN).Matches("Failed to commit container").Times(0, 1);
-    EXPECT_LOGGING(dedupv1::test::WARN).Matches("Missing container for import").Times(0, 1);
-
-    string config = GetParam();
-    config += ";storage.container-size=4M";
-    system = DedupSystemTest::CreateDefaultSystem(config, &info_store, &tp);
-    ASSERT_TRUE(system);
-
-    ContainerStorage* storage = dynamic_cast<ContainerStorage*>(system->storage());
-    ASSERT_TRUE(storage);
-
-    ASSERT_TRUE(container_test_helper->WriteDefaultData(system, 0, 8));
-    ASSERT_TRUE(storage->Flush(NO_EC));
-    ASSERT_TRUE(container_test_helper->WriteDefaultData(system, 8, 8));
-
-    ASSERT_TRUE(system->log()->UnregisterConsumer("chunk-index"));
-    ASSERT_TRUE(system->log()->UnregisterConsumer("gc"));
-
-    dedupv1::blockindex::BlockIndex* block_index = system->block_index();
-    ASSERT_TRUE(block_index);
-
-    BlockMapping orig(0, 64 * 1024);
-    ASSERT_TRUE(block_index->ReadBlockInfo(NULL, &orig, NO_EC));
-
-    BlockMapping m1(0, 64 * 1024);
-    m1.set_version(m1.version() + 1);
-    ASSERT_TRUE(container_test_helper->FillSameBlockMapping(&m1, 9));
-
-    BlockMapping m2(0, 64 * 1024);
-    m2.set_version(m2.version() + 2);
-    ASSERT_TRUE(container_test_helper->FillSameBlockMapping(&m2, 1));
-
-    ASSERT_TRUE(block_index->StoreBlock(orig, m1, NO_EC));
-    ASSERT_TRUE(block_index->StoreBlock(m1, m2, NO_EC));
-
-    BlockMapping m3(0, 64 * 1024);
-    ASSERT_TRUE(block_index->ReadBlockInfo(NULL, &m3, NO_EC));
-    m3.set_event_log_id(0);
-    ASSERT_TRUE(m2.Equals(m3)) << m2.DebugString() << std::endl << std::endl << m3.DebugString();
-
-    ASSERT_TRUE(storage->FailWriteCacheContainer(container_test_helper->data_address(9)));
-
-    ASSERT_TRUE(system->Stop(StopContext::FastStopContext()));
-    delete system;
-    system = NULL;
-    storage = NULL;
-
-    system = DedupSystemTest::CreateDefaultSystem(config, &info_store, &tp, true, true);
-    ASSERT_TRUE(system);
-
-    block_index = system->block_index();
-    ASSERT_TRUE(block_index);
-
-    /*
-     * Here we changed the expected behavior at one point.
-     * If a new version of a block (v'') can be written completly, but an old version of the block
-     * fails (v'), the old bahvior was to fall back on the original version (v). The new
-     * behavior is to skip v' and mark v'' as valid.
-     */
-    BlockMapping m4(0, 64 * 1024);
-    ASSERT_TRUE(block_index->ReadBlockInfo(NULL, &m4, NO_EC));
-    m4.set_event_log_id(0);
-    ASSERT_TRUE(m4.Equals(m2)) << m2.DebugString() << std::endl << std::endl << m4.DebugString();
-}
-
-TEST_P(BlockIndexTest, ReadWriteAfterCloseWithoutCommit) {
-    EXPECT_LOGGING(dedupv1::test::ERROR).Repeatedly();
-
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp);
-    ASSERT_TRUE(system);
-
-    dedupv1::blockindex::BlockIndex* block_index = system->block_index();
-    ASSERT_TRUE(block_index);
-
-    BlockMapping orig(0, 64 * 1024);
-    ASSERT_TRUE(block_index->ReadBlockInfo(NULL, &orig, NO_EC));
-
-    BlockMapping m1(0, 64 * 1024);
-    m1.set_version(m1.version() + 1);
-    BlockMappingTest::FillTestBlockMapping(&m1, 1);
-
-    ASSERT_TRUE(block_index->StoreBlock(orig, m1, NO_EC));
-
-    DedupSystem* system_backup = system;
-    system_backup->ClearData();
-    system = NULL;
-
-    INFO("Opening system after 'crash'");
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, true, true, true);
-    ASSERT_TRUE(system);
-
-    block_index = system->block_index();
-    ASSERT_TRUE(block_index);
-
-    DEBUG("Replaying the log");
-
-    BlockMapping m2(0, 64 * 1024);
-    ASSERT_TRUE(block_index->ReadBlockInfo( NULL, &m2, NO_EC));
-
-    DEBUG("Block Mapping: Orig: " << orig.DebugString());
-    DEBUG("Block Mapping: Change: " << m1.DebugString());
-    DEBUG("Block Mapping: After Crash: " << m2.DebugString());
-
-    m2.set_event_log_id(0);
-
-    BlockMapping final_mapping(0, 64 * 1024);
-    ASSERT_TRUE(final_mapping.CopyFrom(orig));
-    final_mapping.set_version(m1.version());
-    ASSERT_TRUE(m2.Equals(final_mapping)) << m2.DebugString() << std::endl << std::endl << final_mapping.DebugString();
-
-    delete system_backup;
-    system_backup = NULL;
-}
-
 TEST_P(BlockIndexTest, ReadWriteAfterCloseWithCommit) {
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
 
     container_test_helper->WriteDefaultData(system, 0, 16);
@@ -596,8 +414,10 @@ TEST_P(BlockIndexTest, ReadWriteAfterCloseWithCommit) {
 
     ASSERT_TRUE(system->log()->UnregisterConsumer("chunk-index"));
     ASSERT_TRUE(system->log()->UnregisterConsumer("container-storage"));
-    ASSERT_TRUE(system->log()->UnregisterConsumer("gc"));
 
+    if (system->log()->IsRegistered("gc").value()) {
+        ASSERT_TRUE(system->log()->UnregisterConsumer("gc"));
+    }
     BlockMapping orig(0, 64 * 1024);
     ASSERT_TRUE(block_index->ReadBlockInfo(NULL, &orig, NO_EC));
 
@@ -613,7 +433,7 @@ TEST_P(BlockIndexTest, ReadWriteAfterCloseWithCommit) {
     delete system;
     system = NULL;
 
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, true);
+    system = DedupSystemTest::CreateDefaultSystemWithOptions(GetParam(), &info_store, true, true);
     ASSERT_TRUE(system);
 
     block_index = system->block_index();
@@ -622,8 +442,9 @@ TEST_P(BlockIndexTest, ReadWriteAfterCloseWithCommit) {
     // Removed because of interferences with test
     ASSERT_TRUE(system->log()->UnregisterConsumer("chunk-index"));
     ASSERT_TRUE(system->log()->UnregisterConsumer("container-storage"));
-    ASSERT_TRUE(system->log()->UnregisterConsumer("gc"));
-
+    if (system->log()->IsRegistered("gc").value()) {
+        ASSERT_TRUE(system->log()->UnregisterConsumer("gc"));
+    }
     BlockMapping m2(0, 64 * 1024);
     ASSERT_TRUE(block_index->ReadBlockInfo(NULL, &m2, NO_EC));
     // is it the same when we ignore the event log id
@@ -635,35 +456,39 @@ TEST_P(BlockIndexTest, ReadWriteAfterCloseWithCommit) {
 class BlockIndexTestLogConsumer : public LogConsumer {
 public:
     int count;
-    BlockMappingPair mapping_pair;
     BlockMapping modified;
 
     BlockIndexTestLogConsumer()
-        : mapping_pair(64 * 1024), modified(64 * 1024) {
+        : modified(64 * 1024) {
         count = 0;
     }
 
     virtual bool LogReplay(dedupv1::log::event_type event_type,
-                           const LogEventData& event_value,
-                           const dedupv1::log::LogReplayContext& context) {
+        const LogEventData& event_value,
+        const dedupv1::log::LogReplayContext& context) {
         if (event_type == EVENT_TYPE_BLOCK_MAPPING_WRITTEN) {
             this->count++;
             BlockMappingWrittenEventData event_data = event_value.block_mapping_written_event();
-            CHECK(event_data.has_mapping_pair(), "Event data has no block mapping");
+            CHECK(event_data.has_mapping(), "Event data has no block mapping");
 
-            CHECK(mapping_pair.CopyFrom(event_data.mapping_pair()), "Failed to copy mapping pair");
-            modified = mapping_pair.GetModifiedBlockMapping(context.log_id());
+            CHECK(modified.CopyFrom(event_data.mapping()), "Failed to copy mapping");
         }
-        DEBUG("Event " << dedupv1::log::Log::GetEventTypeName(event_type) << ", replay " << context.replay_mode());
+        DEBUG("Event " << dedupv1::log::Log::GetEventTypeName(
+                event_type) << ", replay " << context.replay_mode());
         return true;
     }
+
 };
 
 TEST_P(BlockIndexTest, BlockUpdateLogging) {
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
 
+    DEBUG("Write default data");
     container_test_helper->WriteDefaultData(system, 0, 16);
+    ASSERT_TRUE(system->chunk_store()->Flush(NO_EC));
+
+    DEBUG("Load container data into chunk index");
     container_test_helper->LoadContainerDataIntoChunkIndex(system);
 
     dedupv1::blockindex::BlockIndex* block_index = system->block_index();
@@ -679,17 +504,15 @@ TEST_P(BlockIndexTest, BlockUpdateLogging) {
     m1.set_version(1);
     container_test_helper->FillBlockMapping(&m1);
 
+    INFO("Store block");
     ASSERT_TRUE(block_index->StoreBlock(orig, m1, NO_EC));
-
-    INFO("Flush");
-    ASSERT_TRUE(system->chunk_store()->Flush(NO_EC));
 
     INFO("Replay");
     ASSERT_TRUE(system->log()->PerformFullReplayBackgroundMode());
 
     ASSERT_TRUE(system->log()->UnregisterConsumer("bi_test"));
 
-    ASSERT_EQ(2, lc.count) << "Wrong number of events logged and replayed";
+    ASSERT_EQ(1, lc.count) << "Wrong number of events logged and replayed";
 
     BlockMapping& logged_mapping(lc.modified);
     logged_mapping.set_event_log_id(0); // ignore the event log id
@@ -698,7 +521,7 @@ TEST_P(BlockIndexTest, BlockUpdateLogging) {
 }
 
 TEST_P(BlockIndexTest, PartiallyWrittenBlock) {
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
 
     dedupv1::blockindex::BlockIndex* block_index = system->block_index();
@@ -725,7 +548,8 @@ TEST_P(BlockIndexTest, PartiallyWrittenBlock) {
     system = NULL;
     block_index = NULL;
 
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, true, true);
+    system = DedupSystemTest::CreateDefaultSystemWithOptions(
+        GetParam(), &info_store, true, true, true);
     ASSERT_TRUE(system);
 
     block_index = system->block_index();
@@ -742,7 +566,7 @@ TEST_P(BlockIndexTest, PartiallyWrittenBlock) {
 TEST_P(BlockIndexTest, PartiallyWrittenBlockDirtyReplay) {
     EXPECT_LOGGING(dedupv1::test::WARN).Matches("Still").Times(0, 3);
 
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
 
     dedupv1::blockindex::BlockIndex* block_index = system->block_index();
@@ -769,7 +593,8 @@ TEST_P(BlockIndexTest, PartiallyWrittenBlockDirtyReplay) {
     system = NULL;
     block_index = NULL;
 
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, true, true);
+    system = DedupSystemTest::CreateDefaultSystemWithOptions(
+        GetParam(), &info_store, true, true, true);
     ASSERT_TRUE(system);
 
     block_index = system->block_index();
@@ -784,7 +609,7 @@ TEST_P(BlockIndexTest, PartiallyWrittenBlockDirtyReplay) {
 }
 
 TEST_P(BlockIndexTest, DeleteWithoutData) {
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
 
     container_test_helper->WriteDefaultData(system, 0, 16);
@@ -798,7 +623,7 @@ TEST_P(BlockIndexTest, DeleteWithoutData) {
 }
 
 TEST_P(BlockIndexTest, DeleteWithData) {
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
 
     container_test_helper->WriteDefaultData(system, 0, 16);
