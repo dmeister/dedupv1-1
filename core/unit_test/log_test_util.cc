@@ -22,6 +22,7 @@
 #include <base/logging.h>
 #include <base/strutil.h>
 #include <core/log.h>
+#include <core/fixed_log.h>
 
 using std::string;
 using std::vector;
@@ -30,13 +31,14 @@ using dedupv1::base::Index;
 using dedupv1::base::strutil::Split;
 using dedupv1::base::strutil::ToString;
 using dedupv1::log::Log;
+using dedupv1::log::FixedLog;
 
 LOGGER("LogTestUtil");
 
 namespace dedupv1 {
 namespace testutil {
 
-PersistentIndex* OpenLogIndex(const string& config_option) {
+PersistentIndex* OpenFixedLogIndex(const string& config_option) {
     vector<string> options;
     CHECK_RETURN(Split(config_option, ";", &options), NULL, "Failed to split: " << config_option);
 
@@ -52,25 +54,25 @@ PersistentIndex* OpenLogIndex(const string& config_option) {
             CHECK_RETURN(i, NULL, "Failed to create index");
             index = i->AsPersistentIndex();
             CHECK_RETURN(index, NULL, "Index is not persistent");
-            CHECK_RETURN(index->SetOption("width", ToString(Log::kDefaultLogEntryWidth)), NULL, "Failed to set width");
+            CHECK_RETURN(index->SetOption("width", ToString(FixedLog::kDefaultLogEntryWidth)), NULL, "Failed to set width");
         }
         if (option_name == "max-log-size") {
             if (index == NULL) {
-                Index* i = Index::Factory().Create(Log::kDefaultLogIndexType);
+                Index* i = Index::Factory().Create(FixedLog::kDefaultLogIndexType);
                 CHECK_RETURN(i, NULL, "Failed to create index");
                 index = i->AsPersistentIndex();
                 CHECK_RETURN(index, NULL, "Index is not persistent");
-                CHECK_RETURN(index->SetOption("width", ToString(Log::kDefaultLogEntryWidth)), NULL, "Failed to set width");
+                CHECK_RETURN(index->SetOption("width", ToString(FixedLog::kDefaultLogEntryWidth)), NULL, "Failed to set width");
             }
             CHECK_RETURN(index->SetOption("size", option), NULL, "Failed set option: " << options[i]);
         }
         if (option_name == "filename") {
             if (index == NULL) {
-                Index* i = Index::Factory().Create(Log::kDefaultLogIndexType);
+                Index* i = Index::Factory().Create(FixedLog::kDefaultLogIndexType);
                 CHECK_RETURN(i, NULL, "Failed to create index");
                 index = i->AsPersistentIndex();
                 CHECK_RETURN(index, NULL, "Index is not persistent");
-                CHECK_RETURN(index->SetOption("width", ToString(Log::kDefaultLogEntryWidth)), NULL, "Failed to set width");
+                CHECK_RETURN(index->SetOption("width", ToString(FixedLog::kDefaultLogEntryWidth)), NULL, "Failed to set width");
             }
             CHECK_RETURN(index->SetOption(option_name, option), NULL, "Failed set option: " << options[i]);
         }

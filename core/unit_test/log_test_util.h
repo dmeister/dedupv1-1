@@ -28,7 +28,7 @@
 
 namespace dedupv1 {
     namespace testutil {
-        dedupv1::base::PersistentIndex* OpenLogIndex(const std::string& config_option);
+        dedupv1::base::PersistentIndex* OpenFixedLogIndex(const std::string& config_option);
     }
 }
 
