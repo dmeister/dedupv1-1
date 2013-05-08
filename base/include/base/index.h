@@ -511,7 +511,7 @@ class PersistentIndex : public Index {
          * Otherwise the normal put method is used
          */
         virtual enum put_result PutDirty(const void* key, size_t key_size,
-                    const google::protobuf::Message& message, bool pin);
+                    const google::protobuf::Message& message);
 
         /**
          * Ensures that the last write of the given key and key size is persistent.
@@ -521,7 +521,7 @@ class PersistentIndex : public Index {
          * Always should return true if the index has not the write back
          * cache capability.
          */
-        virtual enum put_result EnsurePersistent(const void* key, size_t key_size, bool* pinned);
+        virtual enum put_result EnsurePersistent(const void* key, size_t key_size);
 
         /**
          * returns true if the index has the write back capability and
@@ -529,22 +529,14 @@ class PersistentIndex : public Index {
          */
         virtual bool IsWriteBackCacheEnabled();
 
-        virtual enum lookup_result ChangePinningState(const void* key, size_t key_size, bool new_pin_state);
-
         virtual uint64_t GetDirtyItemCount();
 
         virtual uint64_t GetTotalItemCount();
-
-        virtual uint64_t GetEstimatedMaxCacheItemCount();
 
         virtual bool TryPersistDirtyItem(
                 uint32_t max_batch_size,
                 uint64_t* resume_handle,
                 bool* persisted);
-
-        /**
-         */
-        virtual bool DropAllPinned();
 
         /**
          */

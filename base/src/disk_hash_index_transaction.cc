@@ -119,7 +119,7 @@ bool DiskHashIndexTransactionSystem::Start(const StartContext& start_context, bo
         ", file count " << this->transaction_filename_.size());
 
     // Acquire the locks
-    CHECK(this->lock_.Init(this->transaction_area_size()), "Failed to init locks");
+    this->lock_.Resize(this->transaction_area_size());
     last_file_index_.resize(this->transaction_area_size());
     for (int i = 0; i < last_file_index_.size(); i++) {
         last_file_index_[i] = -1;

@@ -86,11 +86,6 @@ class DiskHashCacheEntry {
         bool dirty_;
 
         /**
-         * true if the page is pinned and therefore should not be written back to disk right now.
-         */
-        bool pinned_;
-
-        /**
          * offset of the entry within the page
          */
         uint32_t offset_;
@@ -199,16 +194,6 @@ class DiskHashCacheEntry {
         inline void set_dirty(bool d);
 
         /**
-         * returns true if the entry is pinned
-         */
-        inline bool is_pinned() const;
-
-        /**
-         * sets the pinned state
-         */
-        inline void set_pinned(bool p);
-
-        /**
          * Current offset in bytes from the beginning of the cache page where
          * this entry is stored
          */
@@ -252,11 +237,6 @@ class DiskHashCachePage {
          * true iff any entry on the page is dirty
          */
         bool dirty_;
-
-        /**
-         * true iff any entry on the page is pinned
-         */
-        bool pinned_;
 
         /**
          * maximal allowed size for the key
@@ -325,8 +305,7 @@ class DiskHashCachePage {
          */
         enum lookup_result Search(const void* key, size_t key_size,
                 google::protobuf::Message* message,
-                bool* is_dirty,
-                bool* is_pinned);
+                bool* is_dirty);
 
         /**
          * Deletes the given key from the page
@@ -348,9 +327,7 @@ class DiskHashCachePage {
          */
         enum put_result Update(const void* key, size_t key_size,
                 const google::protobuf::Message& message,
-                bool keep,
-                bool dirty_change,
-                bool pin);
+                bool dirty_change);
 
         bool ParseData();
 
@@ -403,26 +380,6 @@ class DiskHashCachePage {
          * sets the dirty state of the page
          */
         inline void set_dirty(bool d);
-
-        /**
-         * true if any entry of the page is dirty
-         */
-        inline bool is_pinned() const;
-
-        /**
-         * sets the pinning state of the page
-         */
-        inline void set_pinned(bool b);
-
-        /**
-         * Changes the pinned state of an entry with the given key
-         */
-        enum lookup_result ChangePinningState(const void* key, size_t key_size, bool new_pinning_state);
-
-        /**
-         * Drop all pinned entries on the page
-         */
-        bool DropAllPinned(uint64_t* dropped_item_count);
 
         /**
          * size used by the page in RAM
@@ -500,14 +457,6 @@ bool DiskHashCacheEntry::is_dirty() const {
     return this->dirty_;
 }
 
-bool DiskHashCachePage::is_pinned() const {
-    return this->pinned_;
-}
-
-void DiskHashCachePage::set_pinned(bool p) {
-    this->pinned_ = p;
-}
-
 bool DiskHashCachePage::is_dirty() const {
     return this->dirty_;
 }
@@ -518,14 +467,6 @@ void DiskHashCachePage::set_dirty(bool d) {
 
 void DiskHashCacheEntry::set_dirty(bool d) {
     dirty_ = d;
-}
-
-bool DiskHashCacheEntry::is_pinned() const {
-    return this->pinned_;
-}
-
-void DiskHashCacheEntry::set_pinned(bool p) {
-    pinned_ = p;
 }
 
 }

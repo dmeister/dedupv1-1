@@ -333,17 +333,15 @@ class DiskHashPage {
          * @param key
          * @param key_size
          * @param message
-         * @param keep if true, an existing key is not updated
          * @return
          */
         enum put_result Update(const void* key, size_t key_size,
-                const google::protobuf::Message& message, bool keep = false);
+                const google::protobuf::Message& message);
 
         /**
          * Merges a cache with a cache page with the intent for writting it back
          */
         bool MergeWithCache(DiskHashCachePage* cache_page,
-                uint32_t* pinned_item_count,
                 uint32_t* merged_item_count,
                 uint32_t* merged_new_item_count);
 
@@ -887,11 +885,6 @@ class DiskHashIndex : public PersistentIndex {
             std::vector<bool> bucket_free_state_;
 
             /**
-             * a bit per page if the page is pinned
-             */
-            std::vector<bool> bucket_pinned_state_;
-
-            /**
              * next victim pointer.
              * Used to find the next free id and to find the
              * next unused id
@@ -1053,7 +1046,7 @@ class DiskHashIndex : public PersistentIndex {
      * Internal method used by Put and PutOverwrite to avoid copying nearly the whole method
      * implementation.
      */
-    put_result InternalPut(const void* key, size_t key_size, const google::protobuf::Message& message, bool keep = false);
+    put_result InternalPut(const void* key, size_t key_size, const google::protobuf::Message& message);
 
     /**
      * Internal method used by Lookup and LookupDirty to avoid copying nearly the whole method implementation.
@@ -1174,12 +1167,12 @@ class DiskHashIndex : public PersistentIndex {
      * there. It persists a possible dirty version and marks the page clean.
      */
     virtual enum put_result PutDirty(const void* key, size_t key_size,
-                const google::protobuf::Message& message, bool pin);
+                const google::protobuf::Message& message);
 
     /**
      * If there is a dirty version of the page in memory, force it to disk
      */
-    virtual enum put_result EnsurePersistent(const void* key, size_t key_size, bool* pinned);
+    virtual enum put_result EnsurePersistent(const void* key, size_t key_size);
 
     /**
      * Method is used to try to persist any dirty page. Is scans a series of cache lines and searches for the next
@@ -1196,17 +1189,10 @@ class DiskHashIndex : public PersistentIndex {
             uint64_t* resume_handle,
             bool* persisted);
 
-    virtual enum lookup_result ChangePinningState(const void* key, size_t key_size, bool new_pin_state);
-
     /**
      * returns true iff the configuration allows the usage of the write cache.
      */
     virtual bool IsWriteBackCacheEnabled();
-
-    /**
-     * Goes to everything in the cache
-     */
-    virtual bool DropAllPinned();
 
     /**
      * Goes to everything in the cache

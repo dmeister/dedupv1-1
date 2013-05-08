@@ -67,7 +67,7 @@ TEST_F(DiskHashCachePageTest, Update) {
     uint64_t key = 2;
     IntData value;
     value.set_i(17);
-    ASSERT_EQ(page.Update(&key, sizeof(key), value, false, true, false), PUT_OK);
+    ASSERT_EQ(page.Update(&key, sizeof(key), value, true), PUT_OK);
     page.Store();
     memcpy(shared_buffer, page.raw_buffer(), page.raw_buffer_size());
 
@@ -76,89 +76,9 @@ TEST_F(DiskHashCachePageTest, Update) {
 
     IntData value2;
     bool is_dirty = false;
-    bool is_pinned = false;
-    ASSERT_EQ(page2.Search(&key, sizeof(key), &value2, &is_dirty, &is_pinned), LOOKUP_FOUND);
+    ASSERT_EQ(page2.Search(&key, sizeof(key), &value2, &is_dirty), LOOKUP_FOUND);
     ASSERT_EQ(value2.i(), 17);
     ASSERT_TRUE(is_dirty);
-    ASSERT_FALSE(is_pinned);
-}
-
-TEST_F(DiskHashCachePageTest, Pin) {
-
-    DiskHashCachePage page(0, buffer_size, 8, 32);
-
-    uint64_t key = 2;
-    IntData value;
-    value.set_i(17);
-    ASSERT_EQ(page.Update(&key, sizeof(key), value, false, true, true), PUT_OK);
-    page.Store();
-    memcpy(shared_buffer, page.raw_buffer(), page.raw_buffer_size());
-
-    DiskHashCachePage page2(0, buffer_size, 8, 32);
-    memcpy(page2.mutable_raw_buffer(), shared_buffer, page2.raw_buffer_size());
-
-    IntData value2;
-    bool is_dirty = false;
-    bool is_pinned = false;
-    ASSERT_EQ(page2.Search(&key, sizeof(key), &value2, &is_dirty, &is_pinned), LOOKUP_FOUND);
-    ASSERT_EQ(value2.i(), 17);
-    ASSERT_TRUE(is_dirty);
-    ASSERT_TRUE(is_pinned);
-
-    ASSERT_EQ(page2.ChangePinningState(&key, sizeof(key), false), LOOKUP_FOUND);
-    page2.Store();
-    memcpy(shared_buffer, page2.raw_buffer(), page2.raw_buffer_size());
-
-    DiskHashCachePage page3(0, buffer_size, 8, 32);
-    memcpy(page3.mutable_raw_buffer(), shared_buffer, page3.raw_buffer_size());
-
-    value2.Clear();
-    is_dirty = false;
-    is_pinned = false;
-    ASSERT_EQ(page3.Search(&key, sizeof(key), &value2, &is_dirty, &is_pinned), LOOKUP_FOUND);
-    ASSERT_EQ(value2.i(), 17);
-    ASSERT_TRUE(is_dirty);
-    ASSERT_FALSE(is_pinned);
-}
-
-TEST_F(DiskHashCachePageTest, DropAllPinned) {
-
-    DiskHashCachePage page(0, buffer_size, 8, 32);
-
-    uint64_t key = 2;
-    IntData value;
-    value.set_i(17);
-    ASSERT_EQ(page.Update(&key, sizeof(key), value, false, true, true), PUT_OK);
-    key = 3;
-    value.set_i(17);
-    ASSERT_EQ(page.Update(&key, sizeof(key), value, false, true, false), PUT_OK);
-    key = 4;
-    value.set_i(17);
-    ASSERT_EQ(page.Update(&key, sizeof(key), value, false, true, true), PUT_OK);
-
-    uint64_t dropped_item_count = 0;
-    ASSERT_TRUE(page.DropAllPinned(&dropped_item_count));
-    ASSERT_EQ(page.item_count(), 1);
-    ASSERT_EQ(2, dropped_item_count);
-    page.Store();
-    memcpy(shared_buffer, page.raw_buffer(), page.raw_buffer_size());
-
-    DiskHashCachePage page2(0, buffer_size, 8, 32);
-    memcpy(page2.mutable_raw_buffer(), shared_buffer, page2.raw_buffer_size());
-
-    IntData value2;
-    key = 3;
-    bool is_dirty = false;
-    bool is_pinned = false;
-    ASSERT_EQ(page2.Search(&key, sizeof(key), &value2, &is_dirty, &is_pinned), LOOKUP_FOUND);
-    ASSERT_EQ(value2.i(), 17);
-    ASSERT_TRUE(is_dirty);
-    ASSERT_FALSE(is_pinned);
-
-    key = 2;
-    ASSERT_EQ(page2.Search(&key, sizeof(key), &value2, &is_dirty, &is_pinned), LOOKUP_NOT_FOUND);
-    key = 4;
-    ASSERT_EQ(page2.Search(&key, sizeof(key), &value2, &is_dirty, &is_pinned), LOOKUP_NOT_FOUND);
 }
 
 TEST_F(DiskHashCachePageTest, OverwriteUpdate) {
@@ -168,9 +88,9 @@ TEST_F(DiskHashCachePageTest, OverwriteUpdate) {
     uint64_t key = 2;
     IntData value;
     value.set_i(17);
-    ASSERT_EQ(page.Update(&key, sizeof(key), value, false, true, false), PUT_OK);
+    ASSERT_EQ(page.Update(&key, sizeof(key), value, true), PUT_OK);
     value.set_i(42);
-    ASSERT_EQ(page.Update(&key, sizeof(key), value, false, false, false), PUT_OK);
+    ASSERT_EQ(page.Update(&key, sizeof(key), value, false), PUT_OK);
     page.Store();
     memcpy(shared_buffer, page.raw_buffer(), page.raw_buffer_size());
 
@@ -179,11 +99,9 @@ TEST_F(DiskHashCachePageTest, OverwriteUpdate) {
 
     IntData value2;
     bool is_dirty = false;
-    bool is_pinned = false;
-    ASSERT_EQ(page2.Search(&key, sizeof(key), &value2, &is_dirty, &is_pinned), LOOKUP_FOUND);
+    ASSERT_EQ(page2.Search(&key, sizeof(key), &value2, &is_dirty), LOOKUP_FOUND);
     ASSERT_EQ(value2.i(), 42);
     ASSERT_TRUE(is_dirty);
-    ASSERT_FALSE(is_pinned);
 }
 
 TEST_F(DiskHashCachePageTest, DoubleUpdate) {
@@ -193,10 +111,10 @@ TEST_F(DiskHashCachePageTest, DoubleUpdate) {
     uint64_t key = 2;
     IntData value;
     value.set_i(17);
-    ASSERT_EQ(page.Update(&key, sizeof(key), value, false, true, false), PUT_OK);
+    ASSERT_EQ(page.Update(&key, sizeof(key), value, true), PUT_OK);
     key = 3;
     value.set_i(42);
-    ASSERT_EQ(page.Update(&key, sizeof(key), value, false, false, false), PUT_OK);
+    ASSERT_EQ(page.Update(&key, sizeof(key), value, false), PUT_OK);
     page.Store();
     memcpy(shared_buffer, page.raw_buffer(), page.raw_buffer_size());
 
@@ -205,11 +123,9 @@ TEST_F(DiskHashCachePageTest, DoubleUpdate) {
 
     IntData value2;
     bool is_dirty = false;
-    bool is_pinned = false;
-    ASSERT_EQ(page2.Search(&key, sizeof(key), &value2, &is_dirty, &is_pinned), LOOKUP_FOUND);
+    ASSERT_EQ(page2.Search(&key, sizeof(key), &value2, &is_dirty), LOOKUP_FOUND);
     ASSERT_EQ(value2.i(), 42);
     ASSERT_FALSE(is_dirty);
-    ASSERT_FALSE(is_pinned);
 }
 
 TEST_F(DiskHashCachePageTest, RaiseBuffer) {
@@ -219,7 +135,7 @@ TEST_F(DiskHashCachePageTest, RaiseBuffer) {
         uint64_t key = i;
         IntData value;
         value.set_i(i);
-        ASSERT_EQ(page.Update(&key, sizeof(key), value, false, true, false), PUT_OK);
+        ASSERT_EQ(page.Update(&key, sizeof(key), value, true), PUT_OK);
         page.Store();
     }
 }
@@ -236,12 +152,12 @@ TEST_F(DiskHashCachePageTest, FullPage) {
         uint64_t key = i;
         IntData value;
         value.set_i(i);
-        ASSERT_EQ(page.Update(&key, sizeof(key), value, false, true, false), PUT_OK);
+        ASSERT_EQ(page.Update(&key, sizeof(key), value, true), PUT_OK);
         page.Store();
     }
 
     uint64_t key = 123123;
-    ASSERT_EQ(page.Search(&key, sizeof(key), NULL, NULL, NULL), LOOKUP_NOT_FOUND);
+    ASSERT_EQ(page.Search(&key, sizeof(key), NULL, NULL), LOOKUP_NOT_FOUND);
 }
 
 TEST_F(DiskHashCachePageTest, FullPageRunBad) {
@@ -262,36 +178,15 @@ TEST_F(DiskHashCachePageTest, FullPageRunBad) {
         uint64_t key = i;
         IntData value;
         value.set_i(i);
-        ASSERT_EQ(page.Update(&key, sizeof(key), value, false, true, false), PUT_OK);
+        ASSERT_EQ(page.Update(&key, sizeof(key), value, true), PUT_OK);
         ASSERT_TRUE(page.Store());
     }
 
     uint64_t key = 123123;
-    ASSERT_EQ(page.Search(&key, sizeof(key), NULL, NULL, NULL), LOOKUP_NOT_FOUND);
+    ASSERT_EQ(page.Search(&key, sizeof(key), NULL, NULL), LOOKUP_NOT_FOUND);
 
     page.ReplaceBufferPointer(old_buffer);
     delete[] custom_buffer;
-}
-
-TEST_F(DiskHashCachePageTest, FullPageDropPinned) {
-    int custom_buffer_size = 507; // magic number that leads to an illegal read. Might change when the cache page format changes
-    DiskHashCachePage page(0, custom_buffer_size, 8, 4);
-
-    int i = 0;
-    for (i = 0;; i++) {
-        if (!page.IsAcceptingNewEntries()) {
-            break;
-        }
-        uint64_t key = i;
-        IntData value;
-        value.set_i(i);
-        ASSERT_EQ(page.Update(&key, sizeof(key), value, false, true, true), PUT_OK); // pinned
-        page.Store();
-    }
-
-    uint64_t dropped_item_count = 0;
-    ASSERT_TRUE(page.DropAllPinned(&dropped_item_count));
-    ASSERT_EQ(0, page.item_count());
 }
 
 }
