@@ -96,19 +96,13 @@ LOGGER("Dedupv1Dump");
 bool DumpLogEntry(Log* log, uint64_t log_id) {
     CHECK(log, "Log not set");
 
-    LogEntryData log_entry;
-    bytestring log_value;
-
-    Log::log_read r = log->ReadEntry(log_id, &log_entry, &log_value, NULL);
+    LogEventData event_data;
+    Log::log_read r = log->ReadEvent(log_id, &event_data);
     CHECK(r != Log::LOG_READ_ERROR, "Failed to read log id");
     CHECK(r != Log::LOG_READ_NOENT, "Log id is empty");
     if (r == Log::LOG_READ_PARTIAL) {
         return true;
     }
-    LogEventData event_data;
-    CHECK(event_data.ParseFromArray(log_value.data(), log_value.size()),
-            "Failed to parse log value");
-
     char state = ' ';
     if (log_id <= log->replay_id()) {
         state = '#';
@@ -119,7 +113,7 @@ bool DumpLogEntry(Log* log, uint64_t log_id) {
     sstr << state << std::setw(6) << log_id << "\t" << std::setw(20) << std::setiosflags(std::ios::left) << Log::GetEventTypeName(event_type);
     if (event_type == dedupv1::log::EVENT_TYPE_BLOCK_MAPPING_WRITTEN) {
         BlockMappingWrittenEventData data = event_data.block_mapping_written_event();
-        sstr << "\t block id " << data.mapping_pair().block_id() << ", version " << data.mapping_pair().version_counter();
+        sstr << "\t block id " << data.mapping().block_id() << ", version " << data.mapping().version_counter();
     } else if (event_type == dedupv1::log::EVENT_TYPE_CONTAINER_COMMITED) {
         ContainerCommittedEventData data = event_data.container_committed_event();
         sstr << "\t container id " << data.container_id() << ", address " << ContainerStorage::DebugString(data.address());
@@ -138,12 +132,6 @@ bool DumpLogEntry(Log* log, uint64_t log_id) {
     } else if (event_type == dedupv1::log::EVENT_TYPE_CONTAINER_OPEN) {
         ContainerOpenedEventData data = event_data.container_opened_event();
         sstr << "\t container id " << data.container_id() << ", address " << ContainerStorage::DebugString(data.address());
-    } else if (event_type == dedupv1::log::EVENT_TYPE_REPLAY_STARTED) {
-        ReplayStartEventData data = event_data.replay_start_event();
-        sstr << "\t replay type " << data.replay_type() << " replay id " << data.replay_id() << ", log id " << data.log_id();
-    } else if (event_type == dedupv1::log::EVENT_TYPE_REPLAY_STOPPED) {
-        ReplayStopEventData data = event_data.replay_stop_event();
-        sstr << "\t replay type " << data.replay_type() << " replay id " << data.replay_id() << ", log id " << data.log_id();
     } else if (event_type == dedupv1::log::EVENT_TYPE_SYSTEM_START) {
         if (event_data.has_system_start_event()) {
             // TODO (dmeister): This is downwards compatibility check. May be removed in the future
@@ -162,7 +150,7 @@ bool DumpLog(DedupSystem* dedup_system) {
     Log* log = dedup_system->log();
     CHECK(log, "Log not set");
 
-    int64_t log_id = log->log_id() - log->log_data()->GetLimitId();
+    int64_t log_id = log->log_id();
     if (FLAGS_only_last != 0) {
         if (log_id < log->log_id() - FLAGS_only_last) {
             log_id = log->log_id() - FLAGS_only_last;

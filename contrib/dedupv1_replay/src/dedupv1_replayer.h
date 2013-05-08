@@ -47,20 +47,6 @@ class Dedupv1Replayer {
 
         ~Dedupv1Replayer();
 
-        /**
-         * Pause the gc while replaying.
-         * This is usually necessary for testing purposes
-         */
-        bool PauseGC();
-
-        /**
-         * Resume the gc while replaying.
-         * PauseGC() should be called before callung UnPauseGC().
-         *
-         * This is usually necessary for testing purposes
-         */
-        bool UnPauseGC();
-
         bool Initialize(const std::string& filename);
 
         bool Replay();
@@ -68,11 +54,9 @@ class Dedupv1Replayer {
         bool Stop();
 
     private:
-        dedupv1d::Dedupv1d* system_;
+        dedupv1d::Dedupv1d system_;
 
         bool started_;
-
-        bool gc_paused_;
 };
 
 }

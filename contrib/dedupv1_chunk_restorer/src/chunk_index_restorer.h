@@ -72,11 +72,6 @@ class ChunkIndexRestorer {
         * Reads data from the containers.
         */
         bool ReadContainerData(dedupv1::chunkindex::ChunkIndex* chunk_index);
-
-        /**
-        * Restores the usage count of all chunk mappings.
-        */
-        bool RestoreUsageCount(dedupv1::chunkindex::ChunkIndex* chunk_index);
 };
 
 }

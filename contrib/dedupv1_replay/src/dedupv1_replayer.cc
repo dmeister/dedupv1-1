@@ -52,82 +52,52 @@ namespace contrib {
 namespace replay {
 
 Dedupv1Replayer::Dedupv1Replayer() {
-    system_ = NULL;
     started_ = false;
-    gc_paused_ = false;
 }
 
 bool Dedupv1Replayer::Initialize(const std::string& filename) {
     CHECK(!started_, "Dedupv1 replayer already started");
-    system_ = new Dedupv1d();
-    CHECK(system_->LoadOptions(filename), "Error loading options");
+    CHECK(system_.LoadOptions(filename), "Error loading options");
 
-    CHECK(system_->OpenLockfile(), "Failed to acquire lock on lockfile");
+    CHECK(system_.OpenLockfile(), "Failed to acquire lock on lockfile");
 
     StartContext start_context(StartContext::NON_CREATE,
                                StartContext::DIRTY,
                                StartContext::NO_FORCE,
                                false);
-    CHECK(system_->Start(start_context), "Failed to start dedupv1 system");
+    CHECK(system_.Start(start_context), "Failed to start dedupv1 system");
     // Will force system busy, so no bg replay will start
-    CHECK(system_->dedup_system()->idle_detector()->ForceBusy(true), "Failed to force system busy");
+    CHECK(system_.dedup_system()->idle_detector()->ForceBusy(true),
+        "Failed to force system busy");
 
-    if (gc_paused_) {
-        DEBUG("Will pause GC before running it.");
-        CHECK(system_->dedup_system()->garbage_collector()->PauseProcessing(),
-            "Failed to pause Garbage Collector");
-    }
-
-    CHECK(system_->dedup_system()->Run(), "Failed to run dedupv1 system");
+    CHECK(system_.dedup_system()->Run(), "Failed to run dedupv1 system");
 
     started_ = true;
     return true;
 }
 
-bool Dedupv1Replayer::PauseGC() {
-    DEBUG("GC will be paused");
-    gc_paused_ = true;
-    if (started_) {
-        DEBUG("GC is startet, so it will be paused");
-        return system_->dedup_system()->garbage_collector()->PauseProcessing();
-    }
-    return true;
-}
-
-bool Dedupv1Replayer::UnPauseGC() {
-    DEBUG("GC will not be paused");
-    gc_paused_ = false;
-    if (started_) {
-        DEBUG("GC is startet, so it will be unpaused");
-        return system_->dedup_system()->garbage_collector()->ResumeProcessing();
-    }
-    return true;
-}
-
 bool Dedupv1Replayer::Replay() {
     DCHECK(started_, "Dedupv1 replayer not started");
-    DCHECK(system_ != NULL, "Dedup System is null");
 
-    // The idea behind doing both replays (on in Start if the system is dirty) directly after each other is that it is easier
-    // to program the background replay if the state is already in memory as it is during a usual replay
+    // The idea behind doing both replays (on in Start if the system is dirty)
+    // directly after each other is that it is easier
+    // to program the background replay if the state is already in memory as it
+    // is during a usual replay
     // instead of having to think about an additional special case.
 
-    CHECK(system_->dedup_system()->log()->PerformFullReplayBackgroundMode(), "Failed to perform full replay");
+    CHECK(system_.dedup_system()->log()->PerformFullReplayBackgroundMode(),
+        "Failed to perform full replay");
 
     return true;
 }
 
 Dedupv1Replayer::~Dedupv1Replayer() {
-  if (system_) {
-    delete system_;
-  }
 }
+
 bool Dedupv1Replayer::Stop() {
-    DEBUG("Closing dedupv1 replayer");
-    if (system_) {
-        CHECK(system_->Shutdown(dedupv1::StopContext::FastStopContext()), "Failed to start dedupv1 shutdown");
-        CHECK(system_->Stop(), "Failed to stop dedupv1 system");
-    }
+    CHECK(system_.Shutdown(dedupv1::StopContext::FastStopContext()),
+            "Failed to start dedupv1 shutdown");
+    CHECK(system_.Stop(), "Failed to stop dedupv1 system");
     return true;
 }
 

@@ -138,18 +138,6 @@ class Dedupv1Checker {
     private:
 
         /**
-         * For each prefix we want to know the difference in usage between block and chunk index
-         * and the number of chunks in it.
-         */
-        struct usage_data {
-            usage_data() : usage_count(0), usage_chunks(0) {
-            }
-
-            int32_t usage_count;
-            uint8_t usage_chunks;
-        };
-
-        /**
          * Size a chunk takes in memory
          */
         static const uint16_t kChunkSize = 16;
@@ -208,38 +196,6 @@ class Dedupv1Checker {
         uint64_t pass_bitmask_;
 
         /**
-         *
-         * this map hashes from the 64-bit prefix of a fp, to the summed
-         * usage count.
-         *
-         * On important point to consider is the checking as the usage counter as
-         * the naive approach may not fit in memory, there I will use an n-byte prefix
-         * of the fp to save RAM. The probability of a prefix collision and that here
-         * are multiple gc errors whose errors hide themselves is low.
-         **/
-        std::tr1::unordered_map<uint64_t, usage_data> usage_count_prefix_map_;
-
-        /**
-         * prefixes, that reached INT32_MAX hits in block index. This ones have to be checked sperately.
-         */
-        std::tr1::unordered_map<uint64_t, uint8_t> overrun_prefix_map_;
-
-        /**
-         * prefixes, that reached INT32_MIN while reading Chunk Index.
-         *
-         * Here we have to repair the usage count, but we do not know the exact difference.
-         * Therefore another run over the block index is necessary.
-         */
-        std::tr1::unordered_map<uint64_t, uint8_t> underrun_prefix_map_;
-
-        /**
-         * prefixes, where we found a difference.
-         *
-         * If we have a usage_chunk of 1 here, we do not need another run over the block index.
-         */
-        std::tr1::unordered_map<uint64_t, usage_data> error_prefix_map_;
-
-        /**
          * this map hashes from the (container file index, file offset) to the container at that place.
          */
         std::map<uint32_t, google::sparse_hash_map<uint64_t, uint64_t> > container_address_inverse_map_;
@@ -251,29 +207,6 @@ class Dedupv1Checker {
          */
         bool CheckContainerItem(dedupv1::chunkindex::ChunkIndex* chunk_index, dedupv1::Fingerprinter* fp_gen,
                 dedupv1::chunkstore::Container* container, const dedupv1::chunkstore::ContainerItem* item);
-
-        /**
-         * Call after ReadBlockIndex and ReadChunkIndex
-         * @return
-         */
-        bool CheckUsageCount();
-
-        /**
-         * Called by CheckUsageCount if there are deep checks or repairs necessary.
-         *
-         * If repair_ is false this method only has a look at the orrun_prefix_map_. For this elements we
-         * do not know, if there has an error occured or not. Therefore the method scans this entries deeply
-         * and increases reported_errors_ if one is found.
-         *
-         * If repair_ is true this errors are also repaired. I also scans for the entries in uderrin_prefix_map_
-         * and error_prefix_map_ and repairs demeaged usage counts.
-         *
-         * Note: This method uses ChunkIndex->PutOverride without holding a lock, therefore it may not be used while the
-         * Garbage Collection is running.
-         *
-         * @return false on error, else true
-         */
-        bool RepairChunkCount();
 
         /**
          * Scans through the complete block index and check its consistency

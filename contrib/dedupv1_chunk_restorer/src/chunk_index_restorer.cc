@@ -83,8 +83,6 @@ bool ChunkIndexRestorer::InitializeStorageAndChunkIndex(const std::string& filen
     dedup_system_ = system_->dedup_system();
     dedup_system_->set_info_store(system_->info_store());
 
-    dedup_system_->set_threadpool(system_->threadpool());
-
     // Start the log.
     // the log should not be created, but we have assume that the
     // system is dirty.
@@ -136,11 +134,7 @@ bool ChunkIndexRestorer::RestoreChunkIndexFromContainerStorage() {
     ChunkIndex* chunk_index = dedup_system_->chunk_index();
     CHECK(chunk_index, "Chunk Index was not set while restoring");
 
-    INFO("Step 1");
     CHECK(ReadContainerData(chunk_index), "Could not read container data");
-
-    INFO("Step 2");
-    CHECK(RestoreUsageCount(chunk_index), "Could not restore usage count");
     return true;
 }
 
@@ -185,8 +179,8 @@ bool ChunkIndexRestorer::ReadContainerData(ChunkIndex* chunk_index) {
         }
         if (!duplicate_ids.at(container_id)) {
             // Read the container.
-            Container container(container_id, storage->GetContainerSize(), true);
-            lookup_result read_result = storage->ReadContainer(&container);
+            Container container(container_id, storage->container_size(), true);
+            lookup_result read_result = storage->ReadContainer(&container, false);
             CHECK(read_result != LOOKUP_ERROR, "Failed to read container " << container_id);
             if (read_result == LOOKUP_NOT_FOUND) {
                 WARNING("Inconsistent container meta data: container " << container_id << " not found");
@@ -203,12 +197,10 @@ bool ChunkIndexRestorer::ReadContainerData(ChunkIndex* chunk_index) {
 
                     // Set the correct data address
                     mapping.set_data_address(item->original_id());
-                    // Usage-Count is adjusted later.
-                    mapping.set_usage_count(0);
 
                     DEBUG("Restore container item " << mapping.DebugString());
                     // Insert the chunk mapping into the chunk index.
-                    CHECK(chunk_index->PutPersistentIndex(mapping, true, false, NO_EC),
+                    CHECK(chunk_index->PutPersistentIndex(mapping, true, NO_EC),
                         "Failed to store chunk mapping: " << mapping.DebugString());
 
                 }
@@ -218,9 +210,6 @@ bool ChunkIndexRestorer::ReadContainerData(ChunkIndex* chunk_index) {
                 }
                 duplicate_ids.at(container.primary_id()) = true;
 
-                // Inform the chunk index that it needs to save the containers.
-                chunk_index->container_tracker()->ProcessedContainer(container.primary_id());
-
                 // Update the duplicate ids.
                 std::set<uint64_t>::const_iterator id_iterator;
                 for (id_iterator = container.secondary_ids().begin(); id_iterator != container.secondary_ids().end(); ++id_iterator) {
@@ -228,9 +217,6 @@ bool ChunkIndexRestorer::ReadContainerData(ChunkIndex* chunk_index) {
                         duplicate_ids.resize(*id_iterator * 2, false);
                     }
                     duplicate_ids.at(*id_iterator) = true;
-
-                    // Inform the chunk index that it needs to save the containers.
-                    chunk_index->container_tracker()->ProcessedContainer(*id_iterator);
                 }
             }
         }
@@ -239,78 +225,6 @@ bool ChunkIndexRestorer::ReadContainerData(ChunkIndex* chunk_index) {
     }
     CHECK(lr != LOOKUP_ERROR, "Failed to get container id");
 
-    return true;
-}
-
-bool ChunkIndexRestorer::RestoreUsageCount(ChunkIndex* chunk_index) {
-    CHECK(started_, "Chunk index restorer not started");
-    CHECK(chunk_index, "Chunk index not set");
-
-    // Iterate over the block index to get the usage count.
-    BlockIndex* block_index = dedup_system_->block_index();
-    CHECK(block_index, "Dedup System block index NULL");
-    PersistentIndex* persistent_block_index = block_index->persistent_block_index();
-    CHECK(persistent_block_index, "Persistent Block Index NULL");
-
-    INFO("Restoring chunk usage count data");
-
-    IndexIterator* iter = persistent_block_index->CreateIterator();
-    CHECK(iter, "Index iterator was NULL");
-    ScopedPtr<IndexIterator> scoped_iter(iter);
-
-    uint64_t block_entry_count = persistent_block_index->GetItemCount();
-    uint64_t processed_blocks = 0;
-    double progress = 0.0;
-    tick_count start_time = tick_count::now();
-
-    BlockMappingData block_mapping_data;
-    uint64_t key;
-    size_t key_size = sizeof(key);
-    while (iter->Next(&key, &key_size, &block_mapping_data) == LOOKUP_FOUND) {
-
-        if ((processed_blocks * 100.0 / block_entry_count) >= progress + 1.0) {
-            progress = (processed_blocks * 100.0 / block_entry_count);
-
-            tick_count::interval_t run_time = tick_count::now() - start_time;
-            INFO("Restoring chunk usage count data: " << static_cast<int>(progress) << "%, running time " << run_time.seconds() << "s");
-        }
-        BlockMapping block_mapping(key, dedup_system_->block_size());
-        CHECK(block_mapping.UnserializeFrom(block_mapping_data, false),
-            "Failed to unserialize data: " << block_mapping_data.ShortDebugString());
-        DEBUG("Process block: " << block_mapping.DebugString());
-
-        // Iterate over the block mapping items.
-        std::list<BlockMappingItem>::iterator j;
-        for (j = block_mapping.items().begin(); j != block_mapping.items().end(); ++j) {
-            BlockMappingItem& item(*j);
-
-            if (Fingerprinter::IsEmptyDataFingerprint(item.fingerprint(), item.fingerprint_size())) {
-                // we do not maintain the usage count for the "virtual" empty data fingerprint
-                continue;
-            }
-            // Get the corresponding mapping from the chunk index.
-            ChunkMapping mapping(item.fingerprint(), item.fingerprint_size());
-            mapping.set_data_address(item.data_address());
-
-            lookup_result result = chunk_index->Lookup(&mapping, false, NO_EC);
-            CHECK(result == LOOKUP_FOUND, "Block mapping not found in chunk index: " <<
-                "block mapping " << block_mapping.DebugString() <<
-                ", chunk mapping " << mapping.DebugString() <<
-                " result: " << result);
-
-            // Increase usage count of the mapping by one.
-            mapping.set_usage_count(mapping.usage_count() + 1);
-            if (mapping.usage_count_change_log_id() < block_mapping_data.event_log_id()) {
-                mapping.set_usage_count_change_log_id(block_mapping_data.event_log_id());
-            }
-            DEBUG("Update usage count " << mapping.DebugString());
-
-            // Put it back to the chunk index.
-            CHECK(chunk_index->PutPersistentIndex(mapping, true, false, NO_EC),
-                "Failed to put usage change to index: " << mapping.DebugString());
-        }
-        processed_blocks++;
-    }
     return true;
 }
 
