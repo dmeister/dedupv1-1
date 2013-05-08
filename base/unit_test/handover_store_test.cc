@@ -35,6 +35,8 @@ using dedupv1::base::TIMED_FALSE;
 using dedupv1::base::TIMED_TRUE;
 using dedupv1::base::TIMED_TIMEOUT;
 using dedupv1::base::Walltimer;
+using dedupv1::base::timeunit::SECONDS;
+
 /**
  * Tests for the HandoverStore class
  */
@@ -52,26 +54,26 @@ TEST_F(HandoverStoreTest, Simple) {
     HandoverStore<int> store;
 
     int value = 0;
-    timed_bool tb = store.Get(&value, 5);
+    timed_bool tb = store.Get(&value, 5, SECONDS);
     ASSERT_EQ(tb, TIMED_TIMEOUT);
 
-    tb = store.Put(10, 1);
+    tb = store.Put(10, 1, SECONDS);
     ASSERT_EQ(tb, TIMED_TRUE);
 
-    tb = store.Get(&value, 1);
+    tb = store.Get(&value, 1, SECONDS);
     ASSERT_EQ(tb, TIMED_TRUE);
     ASSERT_EQ(value, 10);
 }
 
 timed_bool PutValue(HandoverStore<int>* hs, int value, int delay) {
     sleep(delay);
-    return hs->Put(value, 10);
+    return hs->Put(value, 10, SECONDS);
 }
 
 TEST_F(HandoverStoreTest, Compex2) {
     HandoverStore<int> store;
 
-    timed_bool tb = store.Put(10, 1);
+    timed_bool tb = store.Put(10, 1, SECONDS);
     ASSERT_EQ(tb, TIMED_TRUE);
 
     Thread<timed_bool> t1(NewRunnable(&PutValue, &store, 10, 2), "hs-test");
@@ -81,7 +83,7 @@ TEST_F(HandoverStoreTest, Compex2) {
 
     Walltimer t;
     int value = 0;
-    tb = store.Get(&value, 5);
+    tb = store.Get(&value, 5, SECONDS);
     ASSERT_EQ(tb, TIMED_TRUE);
     ASSERT_EQ(value, 10);
     ASSERT_LE(t.GetTime(), 3000.0);
@@ -99,7 +101,7 @@ TEST_F(HandoverStoreTest, Compex) {
 
     Walltimer t;
     int value = 0;
-    timed_bool tb = store.Get(&value, 5);
+    timed_bool tb = store.Get(&value, 5, SECONDS);
     ASSERT_EQ(tb, TIMED_TRUE);
     ASSERT_EQ(value, 10);
     ASSERT_LE(t.GetTime(), 3000.0);

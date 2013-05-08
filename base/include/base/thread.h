@@ -32,6 +32,7 @@
 #include <base/semaphore.h>
 #include <base/runnable.h>
 #include <base/strutil.h>
+#include <base/time_unit.h>
 
 #include <string>
 #include <tbb/spin_mutex.h>
@@ -334,10 +335,6 @@ template<class RT> class Thread {
  */
 class ThreadUtil {
     public:
-        enum TimeUnit {
-            SECONDS,
-            MILLISECONDS
-        };
 
         /**
          * Yields the current thread.
@@ -351,9 +348,10 @@ class ThreadUtil {
         static inline bool Yield();
 
         /**
-         * Sleeps the current thread for a given number of seconds
+         * Sleeps the current thread for a given number of time steps.
          */
-        static inline void Sleep(int time_units, TimeUnit time_unit = SECONDS);
+        static inline void Sleep(int time_units,
+            dedupv1::base::timeunit::TimeUnit time_unit);
 
         /**
          * returns the name of the thread with the given pthread id.
@@ -401,8 +399,8 @@ std::string ThreadUtil::GetThreadName(pthread_t pid) {
     return "0x" + dedupv1::base::strutil::ToHexString(&pid, sizeof(pid));
 }
 
-void ThreadUtil::Sleep(int time_units, TimeUnit time_unit) {
-    if (time_unit == SECONDS) {
+void ThreadUtil::Sleep(int time_units, dedupv1::base::timeunit::TimeUnit time_unit) {
+    if (time_unit == dedupv1::base::timeunit::SECONDS) {
         while(time_units> 0) {
             time_units = sleep(time_units);
         }

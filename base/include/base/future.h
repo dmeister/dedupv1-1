@@ -25,6 +25,7 @@
 #include <base/option.h>
 #include <base/logging.h>
 #include <base/locks.h>
+#include <base/time_unit.h>
 
 namespace dedupv1 {
 namespace base {
@@ -55,29 +56,29 @@ template<class RT> class FutureObject {
     /**
      * current reference count
      */
-        uint32_t ref_count_;
+    uint32_t ref_count_;
 
     /**
      * stores the value if the value is set
      */
-        RT value_;
+    RT value_;
 
     /**
      * iff the value is set
      */
-        bool value_set_;
+    bool value_set_;
 
     /**
      * iff the usage of the future is aborted.
      * The value will never be set in the future
      */
-      bool abort_;
+    bool abort_;
 
     /**
      * Condition clients of the future wait on
      */
-        Condition condition_;
-    public:
+    Condition condition_;
+public:
     /**
      * Constructor.
      * The reference count is set to 1. That means that the initial
@@ -102,7 +103,6 @@ template<class RT> class FutureObject {
             lock_.ReleaseLock();
             return true;
         }
-
     /**
      * returns the value of the future.
      * If the value is not set and if it is not aborted, the method
@@ -126,113 +126,114 @@ template<class RT> class FutureObject {
                 }
             }
             if (abort_) {
+            lock_.ReleaseLock();
+            return false;
+        }
+        *v = value_;
+        lock_.ReleaseLock();
+        return true;
+    }
+
+    /**
+     * Waits until the future is aborted or until the value is set.
+     * After the method returns, the abort flag or the value is set.
+     *
+     * @return true iff ok, otherwise an error has occurred
+     */
+    bool Wait() {
+        if (!lock_.AcquireLock()) {
+            ERROR_LOGGER(internal::kFutureLogger, "Failed to acquire future lock");
+            return false;
+        }
+        while (!value_set_ && !abort_) {
+            if (!condition_.ConditionWait(&lock_)) {
+                ERROR_LOGGER(internal::kFutureLogger, "Failed to wait for future condition");
                 lock_.ReleaseLock();
                 return false;
             }
-            *v = value_;
-            lock_.ReleaseLock();
-            return true;
         }
+        lock_.ReleaseLock();
+        return true;
+    }
 
-        /**
-         * Waits until the future is aborted or until the value is set.
-         * After the method returns, the abort flag or the value is set.
-         *
-         * @return true iff ok, otherwise an error has occurred
-         */
-        bool Wait() {
-            if (!lock_.AcquireLock()) {
-                ERROR_LOGGER(internal::kFutureLogger, "Failed to acquire future lock");
-                return false;
-            }
-            while (!value_set_ && !abort_) {
-                if (!condition_.ConditionWait(&lock_)) {
-                    ERROR_LOGGER(internal::kFutureLogger, "Failed to wait for future condition");
-                    lock_.ReleaseLock();
-                    return false;
-                }
-            }
-            lock_.ReleaseLock();
-            return true;
+    /**
+     * Waits for the given future, but only for the given number of seconds (s).
+     *
+     * Returns an unset option (false) if an error occured. If the option is Some(false), the
+     * waiting is aborted due to a timeout. If the result is Some(true), the future is finished and
+     * the waiting succeeded. Now either the value is set or the future is aborted.
+     */
+    dedupv1::base::Option<bool> WaitTimeout(uint32_t timeunits,
+                                            dedupv1::base::timeunit::TimeUnit timeunit) {
+        if (!lock_.AcquireLock()) {
+            ERROR_LOGGER(internal::kFutureLogger, "Failed to acquire future lock");
+            return false;
         }
-
-        /**
-         * Waits for the given future, but only for the given number of seconds (s).
-         *
-         * Returns an unset option (false) if an error occured. If the option is Some(false), the
-         * waiting is aborted due to a timeout. If the result is Some(true), the future is finished and
-         * the waiting succeeded. Now either the value is set or the future is aborted.
-         */
-        dedupv1::base::Option<bool> WaitTimeout(uint32_t s) {
-            if (!lock_.AcquireLock()) {
-                ERROR_LOGGER(internal::kFutureLogger, "Failed to acquire future lock");
+        if (!value_set_ && !abort_) {
+            enum timed_bool tb = condition_.ConditionWaitTimeout(&lock_,
+                timeunits, timeunit);
+            if (tb == TIMED_FALSE) {
+                ERROR_LOGGER(internal::kFutureLogger, "Failed to wait for future condition");
+                lock_.ReleaseLock();
                 return false;
+            } else if (tb == TIMED_TIMEOUT) {
+                lock_.ReleaseLock();
+                return make_option(false);
             }
-            if (!value_set_ && !abort_) {
-                enum timed_bool tb = condition_.ConditionWaitTimeout(&lock_, s);
-                if (tb == TIMED_FALSE) {
-                    ERROR_LOGGER(internal::kFutureLogger, "Failed to wait for future condition");
-                    lock_.ReleaseLock();
-                    return false;
-                } else if (tb == TIMED_TIMEOUT) {
-                    lock_.ReleaseLock();
-                    return make_option(false);
-                }
-            }
-            lock_.ReleaseLock();
-            return make_option(true);
         }
+        lock_.ReleaseLock();
+        return make_option(true);
+    }
 
     /**
      * returns true iff the future is aborted.
      */
-        bool is_abort() {
-            if (!lock_.AcquireLock()) {
-                ERROR_LOGGER(internal::kFutureLogger, "Failed to acquire future lock");
-                return false;
-            }
-            bool a = abort_;
-            lock_.ReleaseLock();
-            return a;
+    bool is_abort() {
+        if (!lock_.AcquireLock()) {
+            ERROR_LOGGER(internal::kFutureLogger, "Failed to acquire future lock");
+            return false;
         }
+        bool a = abort_;
+        lock_.ReleaseLock();
+        return a;
+    }
 
-        /**
-         * returns true iff the value is set
-         * @return
-         */
-        bool is_value_set() {
-            if (!lock_.AcquireLock()) {
-                ERROR_LOGGER(internal::kFutureLogger, "Failed to acquire future lock");
-            }
-            bool a = value_set_;
-            lock_.ReleaseLock();
-            return a;
+    /**
+     * returns true iff the value is set
+     * @return
+     */
+    bool is_value_set() {
+        if (!lock_.AcquireLock()) {
+            ERROR_LOGGER(internal::kFutureLogger, "Failed to acquire future lock");
         }
+        bool a = value_set_;
+        lock_.ReleaseLock();
+        return a;
+    }
 
-        /**
-         * Sets the value.
-         * @param value
-         * @return true iff ok, otherwise an error has occurred
-         */
-        bool Set(RT value) {
-            if (!lock_.AcquireLock()) {
-                ERROR_LOGGER(internal::kFutureLogger, "Failed to acquire future lock");
-                return false;
-            }
-            if (value_set_ || abort_) {
-                lock_.ReleaseLock();
-                return false;
-            }
-            value_ = value;
-            value_set_ = true;
+    /**
+     * Sets the value.
+     * @param value
+     * @return true iff ok, otherwise an error has occurred
+     */
+    bool Set(RT value) {
+        if (!lock_.AcquireLock()) {
+            ERROR_LOGGER(internal::kFutureLogger, "Failed to acquire future lock");
+            return false;
+        }
+        if (value_set_ || abort_) {
+            lock_.ReleaseLock();
+            return false;
+        }
+        value_set_ = true;
+        value_ = value;
             if (!condition_.Broadcast()) {
-                ERROR_LOGGER(internal::kFutureLogger, "Failed to broadcast future condition");
                 lock_.ReleaseLock();
                 return false;
             }
-            lock_.ReleaseLock();
-            return true;
-        }
+        lock_.ReleaseLock();
+        return true;
+    }
 
     /**
      * Aborts the future
@@ -252,9 +253,9 @@ template<class RT> class FutureObject {
                 lock_.ReleaseLock();
                 return false;
             }
-            lock_.ReleaseLock();
-            return true;
-        }
+        lock_.ReleaseLock();
+        return true;
+    }
 
         bool Release() {
             bool d = false;
@@ -323,8 +324,8 @@ template<class RT> class Future {
          * waiting is aborted due to a timeout. If the result is Some(true), the future is finished and
          * the waiting succeeded. Now either the value is set or the future is aborted.
          */
-        dedupv1::base::Option<bool> WaitTimeout(uint32_t s) {
-            return instance_->WaitTimeout(s);
+        dedupv1::base::Option<bool> WaitTimeout(uint32_t s, dedupv1::base::timeunit::TimeUnit tu) {
+            return instance_->WaitTimeout(s, tu);
         }
 
     /**
@@ -369,6 +370,5 @@ template<class RT> class Future {
 
 }
 }
-
 
 #endif /* FUTURE_H_ */

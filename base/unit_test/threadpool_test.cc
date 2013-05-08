@@ -103,7 +103,7 @@ public:
         TRACE("Execute task");
         started = true;
         run_tick = tbb::tick_count::now();
-        ThreadUtil::Sleep(sleep_time_);
+        ThreadUtil::Sleep(sleep_time_, dedupv1::base::timeunit::SECONDS);
         count_++;
 
         if (multi_signal_condition_) {
@@ -273,7 +273,7 @@ TEST_F(ThreadpoolTest, Reject) {
         delete f2;
         f2 = NULL;
     }
-    ThreadUtil::Sleep(5);
+    ThreadUtil::Sleep(5, dedupv1::base::timeunit::SECONDS);
     EXPECT_TRUE(t.Stop());
 }
 
@@ -329,7 +329,7 @@ TEST_F(ThreadpoolTest, CallerRuns) {
         delete f3;
         f3 = NULL;
     }
-    ThreadUtil::Sleep(5);
+    ThreadUtil::Sleep(5, dedupv1::base::timeunit::SECONDS);
     EXPECT_TRUE(t.Stop());
 
     EXPECT_TRUE(blocking1.started);

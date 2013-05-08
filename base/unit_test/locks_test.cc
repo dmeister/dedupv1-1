@@ -172,7 +172,8 @@ TEST_F(ConditionTest, Init) {
 
     Walltimer t;
     ASSERT_TRUE(l.AcquireLock());
-    ASSERT_EQ(c.ConditionWaitTimeout(&l, 10), dedupv1::base::TIMED_TIMEOUT);
+    ASSERT_EQ(c.ConditionWaitTimeout(&l, 10,
+            dedupv1::base::timeunit::SECONDS), dedupv1::base::TIMED_TIMEOUT);
 
     ASSERT_GE(t.GetTime(), 4000.0);
     ASSERT_LE(t.GetTime(), 6000.0);
@@ -195,7 +196,8 @@ TEST_F(ConditionTest, Fire) {
 
     Walltimer t;
     ASSERT_TRUE(l.AcquireLock());
-    ASSERT_EQ(c.ConditionWaitTimeout(&l, 10), dedupv1::base::TIMED_TRUE);
+    ASSERT_EQ(c.ConditionWaitTimeout(&l, 10,
+            dedupv1::base::timeunit::SECONDS), dedupv1::base::TIMED_TRUE);
     ASSERT_LE(t.GetTime(), 8000.0);
 
     ASSERT_TRUE(l.ReleaseLock());

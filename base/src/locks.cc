@@ -44,6 +44,8 @@ using dedupv1::base::strutil::ToHexString;
 using std::string;
 using std::stringstream;
 using dedupv1::base::ThreadUtil;
+using dedupv1::base::timeunit::SECONDS;
+using dedupv1::base::timeunit::TimeUnit;
 
 #ifndef DEADLOCK_CHECK_TIMEOUT
 #define DEADLOCK_CHECK_TIMEOUT 30
@@ -59,12 +61,19 @@ namespace base {
  * the system time is changed, and if the tsp is used to sleep a thread, the
  * thread may sleep much longer than necessary.
  */
-static void maketimeout(struct timespec* tsp, long secs) {
+static void maketimeout(struct timespec* tsp,
+    long timeunits,
+    TimeUnit timeunit) {
     struct timeval now;
     gettimeofday(&now, NULL);
     tsp->tv_sec = now.tv_sec;
     tsp->tv_nsec = now.tv_usec * 1000;
-    tsp->tv_sec += secs;
+
+    if (timeunit == dedupv1::base::timeunit::SECONDS) {
+      tsp->tv_sec += timeunits;
+    } else {
+      tsp->tv_nsec += timeunits * 1000000;
+    }
 }
 
 string DebugStringLockParam(LOCK_LOCATION_PARAM) {
@@ -80,7 +89,7 @@ bool MutexLock::AcquireLockWithStatistics_(
         busy->fetch_and_increment();
 #ifdef DEADLOCK_CHECK
         struct timespec timeout;
-        maketimeout(&timeout, DEADLOCK_CHECK_TIMEOUT);
+        maketimeout(&timeout, DEADLOCK_CHECK_TIMEOUT, SECONDS);
         lockresult = pthread_mutex_timedlock(&this->mutex, &timeout);
         if (lockresult == ETIMEDOUT) {
 #ifdef NDEBUG
@@ -140,7 +149,7 @@ bool MutexLock::AcquireLock_(const char* function, const char* file, int line) {
 
 #ifdef DEADLOCK_CHECK
     struct timespec timeout;
-    maketimeout(&timeout, DEADLOCK_CHECK_TIMEOUT);
+    maketimeout(&timeout, DEADLOCK_CHECK_TIMEOUT, SECONDS);
     lockresult = pthread_mutex_timedlock(&this->mutex, &timeout);
     if (lockresult == ETIMEDOUT) {
         ERROR("Deadlock possible: " << this->DebugString());
@@ -271,7 +280,7 @@ bool ReadWriteLock::AcquireReadLock_(const char* function, const char* file, int
 
 #ifdef DEADLOCK_CHECK
     struct timespec timeout;
-    maketimeout(&timeout, DEADLOCK_CHECK_TIMEOUT);
+    maketimeout(&timeout, DEADLOCK_CHECK_TIMEOUT, SECONDS);
     lockresult = pthread_rwlock_timedrdlock(&this->rw_lock, &timeout);
     if (lockresult == ETIMEDOUT) {
 #ifdef NDEBUG
@@ -323,7 +332,7 @@ bool ReadWriteLock::AcquireWriteLock_(const char* function, const char* file, in
 
 #ifdef DEADLOCK_CHECK
     struct timespec timeout;
-    maketimeout(&timeout, DEADLOCK_CHECK_TIMEOUT);
+    maketimeout(&timeout, DEADLOCK_CHECK_TIMEOUT, SECONDS);
     lockresult = pthread_rwlock_timedwrlock(&this->rw_lock, &timeout);
     if (lockresult == ETIMEDOUT) {
 #ifdef NDEBUG
@@ -389,7 +398,7 @@ bool ReadWriteLock::AcquireReadLockWithStatistics_(
         busy->fetch_and_increment();
 #ifdef DEADLOCK_CHECK
         struct timespec timeout;
-        maketimeout(&timeout, DEADLOCK_CHECK_TIMEOUT);
+        maketimeout(&timeout, DEADLOCK_CHECK_TIMEOUT, SECONDS);
         lockresult = pthread_rwlock_timedrdlock(&this->rw_lock, &timeout);
         if (lockresult == ETIMEDOUT) {
 #ifdef NDEBUG
@@ -430,7 +439,7 @@ bool ReadWriteLock::AcquireWriteLockWithStatistics_(
         busy->fetch_and_increment();
 #ifdef DEADLOCK_CHECK
         struct timespec timeout;
-        maketimeout(&timeout, DEADLOCK_CHECK_TIMEOUT);
+        maketimeout(&timeout, DEADLOCK_CHECK_TIMEOUT, SECONDS);
         lockresult = pthread_rwlock_timedwrlock(&this->rw_lock, &timeout);
         if (lockresult == ETIMEDOUT) {
             ERROR("Deadlock possible: " << this->DebugString());
@@ -496,14 +505,24 @@ bool Condition::ConditionWait_(MutexLock* lock,  const char* function, const cha
     return true;
 }
 
-enum timed_bool Condition::ConditionWaitTimeout_(MutexLock* lock, uint16_t secs, const char* function, const char* file, int line) {
+enum timed_bool Condition::ConditionWaitTimeout_(MutexLock* lock, uint16_t timeunits,
+    TimeUnit timeunit,
+    const char* function, const char* file, int line) {
     CHECK_RETURN(valid_, TIMED_FALSE, "Condition not valid");
     struct timespec timeout;
 #ifndef NO_PTHREAD_CONDATTR_SETCLOCK
     clock_gettime(CLOCK_MONOTONIC, &timeout);
-    timeout.tv_sec += secs;
+    if (timeunit == SECONDS) {
+      timeout.tv_sec += timeunits;
+    } else {
+      timeout.tv_nsec += (timeunits * 1000000);
+      if (timeout.tv_nsec > 1000000000) {
+        timeout.tv_sec += timeout.tv_nsec / 1000000000;
+        timeout.tv_nsec = timeout.tv_nsec % 1000000000;
+      }
+    }
 #else
-    maketimeout(&timeout, secs);
+    maketimeout(&timeout, timeunits, timeunit);
 #endif
     int err = pthread_cond_timedwait(&condition, &lock->mutex, &timeout);
     if (err == ETIMEDOUT) {
@@ -547,6 +566,55 @@ Condition::~Condition() {
             ERROR(strerror(err));
         }
     }
+}
+
+MutexLockVector::MutexLockVector(size_t s) {
+    locks_.resize(s);
+    for (size_t i = 0; i < s; i++) {
+        locks_[i] = new MutexLock();
+    }
+}
+
+void MutexLockVector::Resize(size_t new_size) {
+    if (new_size == size()) {
+        return;
+    } else if (new_size < size()) {
+        for (size_t i = new_size; i < size(); i++) {
+            delete locks_[i];
+        }
+        locks_.resize(new_size);
+    } else {
+        size_t old_size = size();
+        locks_.resize(new_size);
+        for (size_t i = old_size; i < new_size; i++) {
+            locks_[i] = new MutexLock();
+        }
+    }
+}
+
+MutexLockVector::~MutexLockVector() {
+    for (size_t i = 0; i < locks_.size(); i++) {
+        if (locks_[i]) {
+            delete locks_[i];
+            locks_[i] = NULL;
+        }
+    }
+    locks_.clear();
+}
+
+MutexLock* MutexLockVector::Get(size_t i) {
+    if (unlikely(i >= locks_.size())) {
+        return NULL;
+    }
+    return locks_[i];
+}
+
+bool MutexLockVector::empty() const {
+    return locks_.empty();
+}
+
+size_t MutexLockVector::size() const {
+    return locks_.size();
 }
 
 }

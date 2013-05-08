@@ -97,13 +97,17 @@ bool Scheduler::Runner() {
 
                 ScheduleTask task = i->second;
 
-                Runnable<bool>* runnable = NewRunnable(this, &Scheduler::ThreadRunner,
-                    task);
-                CHECK(runnable, "Failed to create runnable");
-                Future<bool>* future = this->threadpool_->Submit(runnable);
-                CHECK(future, "Failed to submit runnable");
-                delete future; // we are not interested in the result of the execution here
+                if (threadpool_) {
 
+                    Runnable<bool>* runnable = NewRunnable(this, &Scheduler::ThreadRunner,
+                        task);
+                    CHECK(runnable, "Failed to create runnable");
+                    Future<bool>* future = this->threadpool_->Submit(runnable);
+                    CHECK(future, "Failed to submit runnable");
+                    delete future;
+                } else {
+                    (void) ThreadRunner(task);
+                }
                 i->second.set_last_exec_tick(now);
             }
         }
@@ -117,11 +121,14 @@ bool Scheduler::Runner() {
 
 bool Scheduler::Start(Threadpool* tp) {
     CHECK(state_ == INITED, "Illegal state: " << state_);
-    CHECK(tp, "Threadpool not set");
-    CHECK(tp->IsStarted(), "Threadpool not started");
 
-    DEBUG("Starting scheduler");
-    this->threadpool_ = tp;
+    if (tp) {
+        CHECK(tp->IsStarted(), "Threadpool not started");
+        this->threadpool_ = tp;
+        DEBUG("Starting scheduler (threadpool mode)");
+    } else {
+        DEBUG("Starting scheduler (single thread mode)");
+    }
     state_ = STARTED;
     return true;
 }

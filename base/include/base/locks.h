@@ -27,6 +27,7 @@
 #include <tbb/atomic.h>
 
 #include <base/base.h>
+#include <base/time_unit.h>
 #include <pthread.h>
 
 namespace dedupv1 {
@@ -61,125 +62,125 @@ enum timed_bool {
  * assignment as we want to use the lock inside STL containers.
  */
 class MutexLock {
-    public:
-        /**
-         * Type of the mutex.
-         * In debug mode, the default is ERROR_CHECK. The
-         * default in the release mode is inherited by the default of the OS.
-         */
-        enum Type {
-            DEFAULT,      //!< DEFAULT
-            OS_DEFAULT,
-            ERROR_CHECK,
-            NORMAL,       //!< NORMAL
-        };
+public:
+    /**
+     * Type of the mutex.
+     * In debug mode, the default is ERROR_CHECK. The
+     * default in the release mode is inherited by the default of the OS.
+     */
+    enum Type {
+        DEFAULT,      // !< DEFAULT
+        OS_DEFAULT,
+        ERROR_CHECK,
+        NORMAL,       // !< NORMAL
+    };
 
-        /**
-         * Constructor.
-         * The lock is ready to be used after calling the constructor
-         * @return
-         */
-        MutexLock(enum Type type = DEFAULT);
+    /**
+     * Constructor.
+     * The lock is ready to be used after calling the constructor
+     * @return
+     */
+    MutexLock(enum Type type = DEFAULT);
 
-        /**
-         * Destructor
-         * @return
-         */
-        ~MutexLock();
+    /**
+     * Destructor
+     * @return
+     */
+    ~MutexLock();
 
-        /**
-         * Acquires the lock and maintains statistics information about the lock state.
-         *
-         * Use AcquireLockWithStatistics without the underscore tail.
-         *
-         * Note: We need here atomic operations.
-         *
-         * @param free
-         * @param busy
-         * @param function
-         * @param file
-         * @param line
-         * @return
-         */
-        bool AcquireLockWithStatistics_(tbb::atomic<uint32_t>* free, tbb::atomic<uint32_t>* busy,
-                const char* function, const char* file, int line);
+    /**
+     * Acquires the lock and maintains statistics information about the lock state.
+     *
+     * Use AcquireLockWithStatistics without the underscore tail.
+     *
+     * Note: We need here atomic operations.
+     *
+     * @param free
+     * @param busy
+     * @param function
+     * @param file
+     * @param line
+     * @return
+     */
+    bool AcquireLockWithStatistics_(tbb::atomic<uint32_t>* free, tbb::atomic<uint32_t>* busy,
+                                    const char* function, const char* file, int line);
 
-        /**
-         * Use AcquireLock without the underscore tail.
-         *
-         * @param function
-         * @param file
-         * @param line
-         * @return
-         */
-        bool AcquireLock_(const char* function, const char* file, int line);
+    /**
+     * Use AcquireLock without the underscore tail.
+     *
+     * @param function
+     * @param file
+     * @param line
+     * @return
+     */
+    bool AcquireLock_(const char* function, const char* file, int line);
 
-        /**
-         * Use TryAcquireLock without the underscore tail.
-         *
-         * @param locked
-         * @param function
-         * @param file
-         * @param line
-         * @return
-         */
-        bool TryAcquireLock_(bool* locked, const char* function, const char* file, int line);
+    /**
+     * Use TryAcquireLock without the underscore tail.
+     *
+     * @param locked
+     * @param function
+     * @param file
+     * @param line
+     * @return
+     */
+    bool TryAcquireLock_(bool* locked, const char* function, const char* file, int line);
 
-        /**
-         * Use ReleaseLock without the underscore tail.
-         *
-         * @param function
-         * @param file
-         * @param line
-         * @return
-         */
-        bool ReleaseLock_(const char* function, const char* file, int line);
+    /**
+     * Use ReleaseLock without the underscore tail.
+     *
+     * @param function
+     * @param file
+     * @param line
+     * @return
+     */
+    bool ReleaseLock_(const char* function, const char* file, int line);
 
-        /**
-         * returns true iff the lock is held by the current thread
-         * @return
-         */
-        bool IsHeld();
+    /**
+     * returns true iff the lock is held by the current thread
+     * @return
+     */
+    bool IsHeld();
 
-        /**
-         * print a developer-readable representation of the lock and its
-         * state.
-         *
-         * @return
-         */
-        std::string DebugString();
-    private:
+    /**
+     * print a developer-readable representation of the lock and its
+     * state.
+     *
+     * @return
+     */
+    std::string DebugString();
+private:
 
-        /**
-         * Underlying pthread mutex
-         */
-        pthread_mutex_t mutex;
+    /**
+     * Underlying pthread mutex
+     */
+    pthread_mutex_t mutex;
 
-        /**
-         * name of the function that currently holds the lock.
-         * Set to NULL if the lock is not acquired.
-         */
-        const char* function;
+    /**
+     * name of the function that currently holds the lock.
+     * Set to NULL if the lock is not acquired.
+     */
+    const char* function;
 
-        /**
-         * name of the file of the function that currently holds the lock.
-         * Set to NULL if lock is not acquired.
-         */
-        const char* file;
+    /**
+     * name of the file of the function that currently holds the lock.
+     * Set to NULL if lock is not acquired.
+     */
+    const char* file;
 
-        /**
-         * line in the file of the function that currently holds the lock.
-         * Set to 0 if the lock is not acquired
-         */
-        int line;
+    /**
+     * line in the file of the function that currently holds the lock.
+     * Set to 0 if the lock is not acquired
+     */
+    int line;
 
-        /**
-         * thread (id) that currently holds the lock
-         */
-        pthread_t thread;
+    /**
+     * thread (id) that currently holds the lock
+     */
+    pthread_t thread;
 
-        friend class Condition;
-        DISALLOW_COPY_AND_ASSIGN(MutexLock);
+    friend class Condition;
+    DISALLOW_COPY_AND_ASSIGN(MutexLock);
 };
 
 #define AcquireLockWithStatistics(free,busy) AcquireLockWithStatistics_(free, busy, __func__, __FILE__, __LINE__)
@@ -188,54 +189,23 @@ class MutexLock {
 #define TryAcquireLock(locked) TryAcquireLock_(locked, __func__,__FILE__, __LINE__)
 
 class MutexLockVector {
-    public:
+public:
 
-        MutexLockVector() {
-        }
+    MutexLockVector(size_t size = 0);
 
-        bool Init(size_t s) {
-            if (!locks_.empty()) {
-                return false;
-            }
-            locks_.resize(s);
-            for(size_t i = 0; i < s; i++) {
-                locks_[i] = new MutexLock();
-                if (!locks_[i]) {
-                    return false;
-                }
-            }
-            return true;
-        }
+    ~MutexLockVector();
 
-        ~MutexLockVector() {
-            for(size_t i = 0; i < locks_.size(); i++) {
-                if (locks_[i]) {
-                    delete locks_[i];
-                    locks_[i] = NULL;
-                }
-            }
-            locks_.clear();
-        }
+    void Resize(size_t new_size);
+    MutexLock* Get(size_t i);
 
-        MutexLock* Get(size_t i) {
-            if (unlikely(i >= locks_.size())) {
-                return NULL;
-            }
-            return locks_[i];
-        }
+    bool empty() const;
 
-        bool empty() {
-            return locks_.empty();
-        }
+    size_t size() const;
+private:
 
-        size_t size() {
-            return locks_.size();
-        }
-    private:
+    std::vector<MutexLock*> locks_;
 
-        std::vector<MutexLock*> locks_;
-
-        DISALLOW_COPY_AND_ASSIGN(MutexLockVector);
+    DISALLOW_COPY_AND_ASSIGN(MutexLockVector);
 };
 
 /**
@@ -247,79 +217,78 @@ class MutexLockVector {
  * assignment as we want to use the lock inside STL containers.
  */
 class ReadWriteLock {
-        /**
-         * Underlying pthread rw lock
-         */
-        pthread_rwlock_t rw_lock;
+    /**
+     * Underlying pthread rw lock
+     */
+    pthread_rwlock_t rw_lock;
 
-        /**
-         * name of the function that currently holds a write lock.
-         * If the lock is not acquired or acquired in read lock mode,
-         * the function is set to NULL:
-         */
-        const char* function;
+    /**
+     * name of the function that currently holds a write lock.
+     * If the lock is not acquired or acquired in read lock mode,
+     * the function is set to NULL:
+     */
+    const char* function;
 
-        /**
-         * file of the function that currently holds a write lock.
-         * If the lock is not acquired or acquired in read lock mode,
-         * the file is set to NULL:
-         */
-        const char* file;
+    /**
+     * file of the function that currently holds a write lock.
+     * If the lock is not acquired or acquired in read lock mode,
+     * the file is set to NULL:
+     */
+    const char* file;
 
-        /**
-         * line in the file of the function that currently holds a write lock.
-         * If the lock is not acquired or acquired in read lock mode,
-         * the line is set 0:
-         */
-        int line;
+    /**
+     * line in the file of the function that currently holds a write lock.
+     * If the lock is not acquired or acquired in read lock mode,
+     * the line is set 0:
+     */
+    int line;
 
-        /**
-         * type in which the lock is currently held.
-         * 'w' if the lock is held in write lock mode. 'r' if the lock
-         * is held in read lock mode. ' ' if the lock is not held.
-         */
-        char type;
+    /**
+     * type in which the lock is currently held.
+     * 'w' if the lock is held in write lock mode. 'r' if the lock
+     * is held in read lock mode. ' ' if the lock is not held.
+     */
+    char type;
 
-        /**
-         * thread (id) that currently holds the (write) lock.
-         */
-        pthread_t thread;
-    public:
-        /**
-         * Constructor
-         * @return
-         */
-        ReadWriteLock();
+    /**
+     * thread (id) that currently holds the (write) lock.
+     */
+    pthread_t thread;
+public:
+    /**
+     * Constructor
+     * @return
+     */
+    ReadWriteLock();
 
-        /**
-         * Destructor
-         * @return
-         */
-        ~ReadWriteLock();
+    /**
+     * Destructor
+     * @return
+     */
+    ~ReadWriteLock();
 
+    bool ReleaseLock_(const char* function, const char* file, int line);
 
-        bool ReleaseLock_(const char* function, const char* file, int line);
+    bool AcquireReadLock_(const char* function, const char* file, int line);
+    bool TryAcquireReadLock_(bool* locked, const char* function, const char* file, int line);
 
-        bool AcquireReadLock_(const char* function, const char* file, int line);
-        bool TryAcquireReadLock_(bool* locked, const char* function, const char* file, int line);
+    bool AcquireWriteLock_(const char* function, const char* file, int line);
+    bool TryAcquireWriteLock_(bool* locked, const char* function, const char* file, int line);
 
-        bool AcquireWriteLock_(const char* function, const char* file, int line);
-        bool TryAcquireWriteLock_(bool* locked, const char* function, const char* file, int line);
+    bool AcquireReadLockWithStatistics_(tbb::atomic<uint32_t>* free, tbb::atomic<uint32_t>* busy,
+                                        const char* function, const char* file, int line);
+    bool AcquireWriteLockWithStatistics_(tbb::atomic<uint32_t>* free, tbb::atomic<uint32_t>* busy,
+                                         const char* function, const char* file, int line);
 
-        bool AcquireReadLockWithStatistics_(tbb::atomic<uint32_t>* free, tbb::atomic<uint32_t>* busy,
-                const char* function, const char* file, int line);
-        bool AcquireWriteLockWithStatistics_(tbb::atomic<uint32_t>* free, tbb::atomic<uint32_t>* busy,
-                const char* function, const char* file, int line);
+    std::string DebugString();
 
-        std::string DebugString();
+    /**
+     * returns true iff the lock is held as write lock by the current thread.
+     * @return
+     */
+    bool IsHeldForWrites();
 
-        /**
-         * returns true iff the lock is held as write lock by the current thread.
-         * @return
-         */
-        bool IsHeldForWrites();
-
-        DISALLOW_COPY_AND_ASSIGN(ReadWriteLock);
+    DISALLOW_COPY_AND_ASSIGN(ReadWriteLock);
 };
 
 #define LOCK_LOCATION_INFO  __func__, __FILE__, __LINE__
@@ -335,55 +304,54 @@ class ReadWriteLock {
 
 std::string DebugStringLockParam(LOCK_LOCATION_PARAM);
 
-
 class ReadWriteLockVector {
-    public:
-        bool Init(size_t s) {
-            if (!locks_.empty()) {
+public:
+    bool Init(size_t s) {
+        if (!locks_.empty()) {
+            return false;
+        }
+        locks_.resize(s);
+        for (size_t i = 0; i < s; i++) {
+            locks_[i] = new ReadWriteLock();
+            if (!locks_[i]) {
                 return false;
             }
-            locks_.resize(s);
-            for(size_t i = 0; i < s; i++) {
-                locks_[i] = new ReadWriteLock();
-                if (!locks_[i]) {
-                    return false;
-                }
+        }
+        return true;
+    }
+
+    ReadWriteLockVector() {
+    }
+
+    bool empty() {
+        return locks_.empty();
+    }
+
+    size_t size() {
+        return locks_.size();
+    }
+
+    ~ReadWriteLockVector() {
+        for (size_t i = 0; i < locks_.size(); i++) {
+            if (locks_[i]) {
+                delete locks_[i];
+                locks_[i] = NULL;
             }
-            return true;
         }
+        locks_.clear();
+    }
 
-        ReadWriteLockVector() {
+    ReadWriteLock* Get(size_t i) {
+        if (unlikely(i >= locks_.size())) {
+            return NULL;
         }
+        return locks_[i];
+    }
+private:
 
-        bool empty() {
-            return locks_.empty();
-        }
+    std::vector<ReadWriteLock*> locks_;
 
-        size_t size() {
-            return locks_.size();
-        }
-
-        ~ReadWriteLockVector() {
-            for(size_t i = 0; i < locks_.size(); i++) {
-                if (locks_[i]) {
-                    delete locks_[i];
-                    locks_[i] = NULL;
-                }
-            }
-            locks_.clear();
-        }
-
-        ReadWriteLock* Get(size_t i) {
-            if (unlikely(i >= locks_.size())) {
-                return NULL;
-            }
-            return locks_[i];
-        }
-    private:
-
-        std::vector<ReadWriteLock*> locks_;
-
-        DISALLOW_COPY_AND_ASSIGN(ReadWriteLockVector);
+    DISALLOW_COPY_AND_ASSIGN(ReadWriteLockVector);
 };
 
 /**
@@ -392,66 +360,67 @@ class ReadWriteLockVector {
  * A number of threads wait until a condition if fulfilled and then wake up
  */
 class Condition {
-        /**
-         * pthread condition
-         */
-        pthread_cond_t condition;
+    /**
+     * pthread condition
+     */
+    pthread_cond_t condition;
 
-        bool valid_;
-    public:
-        /**
-         * Constructor
-         * @return
-         */
-        Condition();
+    bool valid_;
+public:
+    /**
+     * Constructor
+     * @return
+     */
+    Condition();
 
-        /**
-         * Destructor
-         * @return
-         */
-        ~Condition();
+    /**
+     * Destructor
+     * @return
+     */
+    ~Condition();
 
-        /**
-         * Wakes up a single waiting thread
-         * @return
-         */
-        bool Signal();
+    /**
+     * Wakes up a single waiting thread
+     * @return
+     */
+    bool Signal();
 
-        /**
-         * Wakes up all waiting threads
-         * @return
-         */
-        bool Broadcast();
+    /**
+     * Wakes up all waiting threads
+     * @return
+     */
+    bool Broadcast();
 
-        /**
-         * Use ConditionWaitTimeout without the underscore tail.
-         *
-         * @param lock
-         * @param secs
-         * @param function
-         * @param file
-         * @param line
-         * @return
-         */
-        enum timed_bool ConditionWaitTimeout_(MutexLock* lock, uint16_t secs,
-                const char* function, const char* file, int line);
+    /**
+     * Use ConditionWaitTimeout without the underscore tail.
+     *
+     * @param lock
+     * @param secs
+     * @param function
+     * @param file
+     * @param line
+     * @return
+     */
+    enum timed_bool ConditionWaitTimeout_(MutexLock* lock, uint16_t timeunits,
+                                          dedupv1::base::timeunit::TimeUnit timeunit,
+                                          const char* function, const char* file, int line);
 
-        /**
-         * Use ConditionWait without the underscore tail.
-         * @param lock
-         * @param function
-         * @param file
-         * @param line
-         * @return
-         */
-        bool ConditionWait_(MutexLock* lock, const char* function,
-                const char* file, int line);
+    /**
+     * Use ConditionWait without the underscore tail.
+     * @param lock
+     * @param function
+     * @param file
+     * @param line
+     * @return
+     */
+    bool ConditionWait_(MutexLock* lock, const char* function,
+                        const char* file, int line);
 
-        DISALLOW_COPY_AND_ASSIGN(Condition);
+    DISALLOW_COPY_AND_ASSIGN(Condition);
 };
 
 #define ConditionWait(lock) ConditionWait_(lock, __func__,__FILE__, __LINE__)
-#define ConditionWaitTimeout(lock, secs) ConditionWaitTimeout_(lock, secs, __func__,__FILE__, __LINE__)
+#define ConditionWaitTimeout(lock, count, timeunit) ConditionWaitTimeout_(lock, count, timeunit, __func__,__FILE__, __LINE__)
 
 /**
  * A scoped lock is a helper a mutex that ensures
@@ -469,73 +438,73 @@ class Condition {
  * @sa http://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization
  */
 class ScopedLock {
-        /**
-         * Underlying lock that is managed by the scoped lock
-         */
-        MutexLock* lock;
+    /**
+     * Underlying lock that is managed by the scoped lock
+     */
+    MutexLock* lock;
 
-        /**
-         * true iff the lock is held using this lock. This
-         * means also that this scoped lock is responsible for releasing
-         * the lock.
-         */
-        volatile bool holds_it;
-    public:
-        /**
-         * Constructor
-         * @param lock lock to manage. The lock can be NULL. In that
-         * case all acquire and release calls fail.
-         *
-         * @return
-         */
-        inline explicit ScopedLock(MutexLock* lock);
+    /**
+     * true iff the lock is held using this lock. This
+     * means also that this scoped lock is responsible for releasing
+     * the lock.
+     */
+    volatile bool holds_it;
+public:
+    /**
+     * Constructor
+     * @param lock lock to manage. The lock can be NULL. In that
+     * case all acquire and release calls fail.
+     *
+     * @return
+     */
+    inline explicit ScopedLock(MutexLock* lock);
 
-        /**
-         * Destructor.
-         * @return
-         */
-        inline ~ScopedLock();
+    /**
+     * Destructor.
+     * @return
+     */
+    inline ~ScopedLock();
 
-        inline bool Set(MutexLock* lock);
+    inline bool Set(MutexLock* lock);
 
-        inline bool SetLocked(MutexLock* lock);
+    inline bool SetLocked(MutexLock* lock);
 
-        /**
-         * returns the underlying lock
-         * @return
-         */
-        inline MutexLock* Get();
+    /**
+     * returns the underlying lock
+     * @return
+     */
+    inline MutexLock* Get();
 
-        inline bool AcquireLockWithStatistics_(tbb::atomic<uint32_t>* free, tbb::atomic<uint32_t>* busy,
-                const char* function, const char* file, int line);
+    inline bool AcquireLockWithStatistics_(tbb::atomic<uint32_t>* free, tbb::atomic<uint32_t>* busy,
+                                           const char* function, const char* file, int line);
 
-        inline bool AcquireLock_(const char* function, const char* file, int line);
+    inline bool AcquireLock_(const char* function, const char* file, int line);
 
-        inline bool ReleaseLock_(const char* function, const char* file, int line);
+    inline bool ReleaseLock_(const char* function, const char* file, int line);
 
-        /**
-         * returns true iff if the lock is held by the current thread.
-         * It is not important if the lock was acquired by the scoped
-         * lock or by other means.
-         * @return
-         */
-        inline bool IsHeld();
+    /**
+     * returns true iff if the lock is held by the current thread.
+     * It is not important if the lock was acquired by the scoped
+     * lock or by other means.
+     * @return
+     */
+    inline bool IsHeld();
 
-        /**
-         * returns a developer-readable representation of the
-         * lock.
-         *
-         * @return
-         */
-        inline std::string DebugString();
+    /**
+     * returns a developer-readable representation of the
+     * lock.
+     *
+     * @return
+     */
+    inline std::string DebugString();
 
-        /**
-         * Neutralize the scoped lock.
-         * The caller is then responsible to releasing any lock held by this scoped lock.
-         */
-        inline void Unset();
+    /**
+     * Neutralize the scoped lock.
+     * The caller is then responsible to releasing any lock held by this scoped lock.
+     */
+    inline void Unset();
 
-        DISALLOW_COPY_AND_ASSIGN(ScopedLock);
+    DISALLOW_COPY_AND_ASSIGN(ScopedLock);
 };
 
 /**
@@ -554,54 +523,54 @@ class ScopedLock {
  * @sa http://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization
  */
 class ScopedReadWriteLock {
-        /**
-         * Underlying lock
-         */
-        ReadWriteLock* lock;
+    /**
+     * Underlying lock
+     */
+    ReadWriteLock* lock;
 
-        /**
-         * true iff the lock is held using this lock. This
-         * means also that this scoped lock is responsible for releasing
-         * the lock.
-         */
-        volatile bool holds_it;
-    public:
-        inline explicit ScopedReadWriteLock(ReadWriteLock* lock);
+    /**
+     * true iff the lock is held using this lock. This
+     * means also that this scoped lock is responsible for releasing
+     * the lock.
+     */
+    volatile bool holds_it;
+public:
+    inline explicit ScopedReadWriteLock(ReadWriteLock* lock);
 
-        inline ~ScopedReadWriteLock();
+    inline ~ScopedReadWriteLock();
 
-        inline bool Set(ReadWriteLock* lock);
+    inline bool Set(ReadWriteLock* lock);
 
-        inline bool SetLocked(ReadWriteLock* lock);
+    inline bool SetLocked(ReadWriteLock* lock);
 
-        inline ReadWriteLock* Get();
+    inline ReadWriteLock* Get();
 
-        inline bool AcquireReadLockWithStatistics_(tbb::atomic<uint32_t>* free, tbb::atomic<uint32_t>* busy,
-                const char* function, const char* file, int line);
+    inline bool AcquireReadLockWithStatistics_(tbb::atomic<uint32_t>* free, tbb::atomic<uint32_t>* busy,
+                                               const char* function, const char* file, int line);
 
-        inline bool AcquireReadLock_(const char* function, const char* file, int line);
+    inline bool AcquireReadLock_(const char* function, const char* file, int line);
 
-        inline bool AcquireWriteLockWithStatistics_(tbb::atomic<uint32_t>* free, tbb::atomic<uint32_t>* busy,
-                const char* function, const char* file, int line);
+    inline bool AcquireWriteLockWithStatistics_(tbb::atomic<uint32_t>* free, tbb::atomic<uint32_t>* busy,
+                                                const char* function, const char* file, int line);
 
-        inline bool AcquireWriteLock_(const char* function, const char* file, int line);
+    inline bool AcquireWriteLock_(const char* function, const char* file, int line);
 
-        inline bool TryAcquireWriteLock_(bool* locked, const char* function, const char* file, int line);
-        inline bool TryAcquireReadLock_(bool* locked, const char* function, const char* file, int line);
+    inline bool TryAcquireWriteLock_(bool* locked, const char* function, const char* file, int line);
+    inline bool TryAcquireReadLock_(bool* locked, const char* function, const char* file, int line);
 
-        inline bool ReleaseLock_(const char* function, const char* file, int line);
+    inline bool ReleaseLock_(const char* function, const char* file, int line);
 
-        inline bool IsHeldForWrites();
+    inline bool IsHeldForWrites();
 
-        inline std::string DebugString();
+    inline std::string DebugString();
 
-        /**
-         * Neutralize the scoped lock.
-         * The caller is then responsible to releasing any lock held by this scoped lock.
-         */
-        inline void Unset();
+    /**
+     * Neutralize the scoped lock.
+     * The caller is then responsible to releasing any lock held by this scoped lock.
+     */
+    inline void Unset();
 
-        DISALLOW_COPY_AND_ASSIGN(ScopedReadWriteLock);
+    DISALLOW_COPY_AND_ASSIGN(ScopedReadWriteLock);
 };
 
 ScopedReadWriteLock::ScopedReadWriteLock(ReadWriteLock* lock) {
@@ -621,13 +590,17 @@ void ScopedReadWriteLock::Unset() {
 }
 
 bool ScopedReadWriteLock::Set(ReadWriteLock* lock) {
-    if (holds_it == true) return false;
+    if (holds_it == true) {
+        return false;
+    }
     this->lock = lock;
     return true;
 }
 
 bool ScopedReadWriteLock::SetLocked(ReadWriteLock* lock) {
-    if (holds_it == true) return false;
+    if (holds_it == true) {
+        return false;
+    }
     this->lock = lock;
     this->holds_it = true;
     return true;
@@ -638,62 +611,87 @@ ReadWriteLock* ScopedReadWriteLock::Get() {
 }
 
 bool ScopedReadWriteLock::AcquireReadLockWithStatistics_(tbb::atomic<uint32_t>* free, tbb::atomic<uint32_t>* busy,
-        const char* function, const char* file, int line) {
-    if (!this->lock) return false;
+                                                         const char* function, const char* file, int line) {
+    if (!this->lock) {
+        return false;
+    }
     bool r = this->lock->AcquireReadLockWithStatistics_(free, busy, function, file, line);
-    if (r) this->holds_it = true;
+    if (r) {
+        this->holds_it = true;
+    }
     return r;
 }
 
 bool ScopedReadWriteLock::TryAcquireReadLock_(bool* locked, const char* function, const char* file, int line) {
-    if (!this->lock) return false;
+    if (!this->lock) {
+        return false;
+    }
     bool r = this->lock->TryAcquireReadLock_(locked, function, file, line);
-    if (r && locked && *locked) this->holds_it = true;
+    if (r && locked && *locked) {
+        this->holds_it = true;
+    }
     return r;
 }
 
 bool ScopedReadWriteLock::TryAcquireWriteLock_(bool* locked, const char* function, const char* file, int line) {
-    if (!this->lock) return false;
+    if (!this->lock) {
+        return false;
+    }
     bool r = this->lock->TryAcquireWriteLock_(locked, function, file, line);
-    if (r && locked && *locked) this->holds_it = true;
+    if (r && locked && *locked) {
+        this->holds_it = true;
+    }
     return r;
 }
 
-
 inline bool ScopedReadWriteLock::AcquireReadLock_(const char* function, const char* file, int line) {
-    if (!this->lock) return false;
+    if (!this->lock) {
+        return false;
+    }
     bool r = this->lock->AcquireReadLock_(function, file, line);
-    if (r) this->holds_it = true;
+    if (r) {
+        this->holds_it = true;
+    }
     return r;
 }
 
 inline bool ScopedReadWriteLock::AcquireWriteLockWithStatistics_(tbb::atomic<uint32_t>* free, tbb::atomic<uint32_t>* busy,
-        const char* function, const char* file, int line) {
-    if (!this->lock) return false;
+                                                                 const char* function, const char* file, int line) {
+    if (!this->lock) {
+        return false;
+    }
     bool r = this->lock->AcquireWriteLockWithStatistics_(free, busy, function, file, line);
-    if (r) this->holds_it = true;
+    if (r) {
+        this->holds_it = true;
+    }
     return r;
 }
 
 inline bool ScopedReadWriteLock::AcquireWriteLock_(const char* function, const char* file, int line) {
-    if (!this->lock) return false;
+    if (!this->lock) {
+        return false;
+    }
     bool r = this->lock->AcquireWriteLock_(function, file, line);
-    if (r) this->holds_it = true;
+    if (r) {
+        this->holds_it = true;
+    }
     return r;
 }
 
 bool ScopedReadWriteLock::ReleaseLock_(const char* function, const char* file, int line) {
-    if (!this->lock) return false;
+    if (!this->lock) {
+        return false;
+    }
     this->holds_it = false;
     return this->lock->ReleaseLock_(function, file, line);
 }
 
 bool ScopedReadWriteLock::IsHeldForWrites() {
-    return (this->lock ? this->lock->IsHeldForWrites() : false);
+    return this->lock ? this->lock->IsHeldForWrites() : false;
 }
 
 std::string ScopedReadWriteLock::DebugString() {
-    return (this->lock ? this->lock->DebugString() : "<lock not set>");
+    return this->lock ? this->lock->DebugString() : "<lock not set>";
 }
 
 ScopedLock::ScopedLock(MutexLock* lock) {
@@ -708,13 +706,17 @@ ScopedLock::~ScopedLock() {
 }
 
 bool ScopedLock::Set(MutexLock* lock) {
-    if (holds_it == true) return false;
+    if (holds_it == true) {
+        return false;
+    }
     this->lock = lock;
     return true;
 }
 
 bool ScopedLock::SetLocked(MutexLock* lock) {
-    if (holds_it == true) return false;
+    if (holds_it == true) {
+        return false;
+    }
     this->lock = lock;
     this->holds_it = true;
     return true;
@@ -730,32 +732,42 @@ void ScopedLock::Unset() {
 }
 
 bool ScopedLock::AcquireLockWithStatistics_(tbb::atomic<uint32_t>* free, tbb::atomic<uint32_t>* busy,
-        const char* function, const char* file, int line) {
-    if (!this->lock) return false;
+                                            const char* function, const char* file, int line) {
+    if (!this->lock) {
+        return false;
+    }
     bool r = this->lock->AcquireLockWithStatistics_(free, busy, function, file, line);
-    if (r) this->holds_it = true;
+    if (r) {
+        this->holds_it = true;
+    }
     return r;
 }
 
 bool ScopedLock::AcquireLock_(const char* function, const char* file, int line) {
-    if (!this->lock) return false;
+    if (!this->lock) {
+        return false;
+    }
     bool r = this->lock->AcquireLock_(function, file, line);
-    if (r) this->holds_it = true;
+    if (r) {
+        this->holds_it = true;
+    }
     return r;
 }
 
 bool ScopedLock::ReleaseLock_(const char* function, const char* file, int line) {
-    if (!this->lock) return false;
+    if (!this->lock) {
+        return false;
+    }
     this->holds_it = false;
     return this->lock->ReleaseLock_(function, file, line);
 }
 
 bool ScopedLock::IsHeld() {
-    return (this->lock ? this->lock->IsHeld() : false);
+    return this->lock ? this->lock->IsHeld() : false;
 }
 
 std::string ScopedLock::DebugString() {
-    return (this->lock ? this->lock->DebugString() : "<lock not set>");
+    return this->lock ? this->lock->DebugString() : "<lock not set>";
 }
 
 }

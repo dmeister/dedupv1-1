@@ -154,7 +154,7 @@ bool Threadpool::Runner(int thread_id, priority prio, int queue) {
     // wait a bit until all threads are started, while avoiding the infinite wait of the
     // old barrier solution
     while (state_ == THREADPOOL_STATE_STARTING) {
-        ThreadUtil::Sleep(50, ThreadUtil::MILLISECONDS);
+        ThreadUtil::Sleep(50, dedupv1::base::timeunit::MILLISECONDS);
     }
 
     tbb::concurrent_bounded_queue<TaskData>& queueRef(*task_queue_[prio][queue]);
@@ -324,7 +324,7 @@ bool Threadpool::Start() {
     // The start of all threads was successful, now we wait for all threads
     while (finished_thread_count_ == 0 && running_thread_count_ < total_thread_count) {
         // no thread failed, but not all threads are started
-        ThreadUtil::Sleep(50, ThreadUtil::MILLISECONDS);
+        ThreadUtil::Sleep(50, dedupv1::base::timeunit::MILLISECONDS);
     }
 
     this->state_ = THREADPOOL_STATE_STARTED;

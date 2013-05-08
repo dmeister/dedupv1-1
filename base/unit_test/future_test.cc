@@ -75,7 +75,8 @@ TEST_F(FutureTest, Timeout) {
     Future<int>* f = new Future<int>();
     ASSERT_TRUE(f);
 
-    Option<bool> b = f->WaitTimeout(5);
+    Option<bool> b = f->WaitTimeout(5,
+        dedupv1::base::timeunit::SECONDS);
     ASSERT_TRUE(b.valid());
     ASSERT_FALSE(b.value());
 

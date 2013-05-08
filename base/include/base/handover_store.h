@@ -40,116 +40,120 @@ namespace base {
  * slows the producer down to prevent that.
  */
 template<class T> class HandoverStore {
-    private:
-        DISALLOW_COPY_AND_ASSIGN(HandoverStore);
+private:
+    DISALLOW_COPY_AND_ASSIGN(HandoverStore);
 
-        /**
-         * Condition that is fired when the handover store is empty
-         */
-        dedupv1::base::Condition empty_condition_;
+    /**
+     * Condition that is fired when the handover store is empty
+     */
+    dedupv1::base::Condition empty_condition_;
 
-        /**
-         * Condition that is fired when the handover store is filled.
-         */
-        dedupv1::base::Condition fill_condition_;
+    /**
+     * Condition that is fired when the handover store is filled.
+     */
+    dedupv1::base::Condition fill_condition_;
 
-        /**
-         * Lock to protect the buffer. The conditions also use
-         * this lock.
-         */
-        dedupv1::base::MutexLock lock_;
+    /**
+     * Lock to protect the buffer. The conditions also use
+     * this lock.
+     */
+    dedupv1::base::MutexLock lock_;
 
-        bool buffer_used_;
+    bool buffer_used_;
 
-        /**
-         * buffer element that is handed over
-         */
-        T buffer_;
-    public:
-        /**
-         * Constructor.
-         *
-         * @param count
-         * @return
-         */
-        HandoverStore() {
-            buffer_used_ = false;
+    /**
+     * buffer element that is handed over
+     */
+    T buffer_;
+public:
+    /**
+     * Constructor.
+     *
+     * @param count
+     * @return
+     */
+    HandoverStore() {
+        buffer_used_ = false;
+    }
+
+    /**
+     * Puts a new value to the handover store.
+     *
+     * The method blocks for at most the given time (in ms) if there
+     * is no partner available to get the value.
+     *
+     * @param value
+     * @param timeout s
+     * @return
+     */
+    dedupv1::base::timed_bool Put(T value, uint32_t timeout,
+                                  dedupv1::base::timeunit::TimeUnit timeunit) {
+        if (!lock_.AcquireLock()) {
+            return dedupv1::base::TIMED_FALSE;
         }
-
-        /**
-         * Puts a new value to the handover store.
-         *
-         * The method blocks for at most the given time (in ms) if there
-         * is no partner available to get the value.
-         *
-         * @param value
-         * @param timeout s
-         * @return
-         */
-        dedupv1::base::timed_bool Put(T value, uint32_t timeout) {
-            if (!lock_.AcquireLock()) {
-                return dedupv1::base::TIMED_FALSE;
-            }
-            while(buffer_used_) {
-                dedupv1::base::timed_bool tb = empty_condition_.ConditionWaitTimeout(&lock_, timeout);
-                if (tb == dedupv1::base::TIMED_FALSE) {
-                    lock_.ReleaseLock();
-                    return dedupv1::base::TIMED_FALSE;
-                } else if (tb == dedupv1::base::TIMED_TIMEOUT && buffer_used_) {
-                    if (!lock_.ReleaseLock()) {
-                        return dedupv1::base::TIMED_FALSE;
-                    }
-                    return dedupv1::base::TIMED_TIMEOUT;
-                }
-            }
-            // buffer_used == false
-            this->buffer_ = value;
-            buffer_used_ = true;
-            if (!fill_condition_.Broadcast()) {
+        while (buffer_used_) {
+            dedupv1::base::timed_bool tb = empty_condition_.ConditionWaitTimeout(&lock_,
+                timeout, timeunit);
+            if (tb == dedupv1::base::TIMED_FALSE) {
                 lock_.ReleaseLock();
                 return dedupv1::base::TIMED_FALSE;
-            }
-            if (!lock_.ReleaseLock()) {
-                return dedupv1::base::TIMED_FALSE;
-            }
-            return dedupv1::base::TIMED_TRUE;
-        }
-
-        /**
-         * Receives an object from the handover store.
-         *
-         * @param value
-         * @param timeout milliseconds
-         * @return
-         */
-        dedupv1::base::timed_bool Get(T* value, uint32_t timeout) {
-            if (!lock_.AcquireLock()) {
-                return dedupv1::base::TIMED_FALSE;
-            }
-            while(!buffer_used_) {
-                dedupv1::base::timed_bool tb = fill_condition_.ConditionWaitTimeout(&lock_, timeout);
-                if (tb == dedupv1::base::TIMED_FALSE) {
-                    lock_.ReleaseLock();
+            } else if (tb == dedupv1::base::TIMED_TIMEOUT && buffer_used_) {
+                if (!lock_.ReleaseLock()) {
                     return dedupv1::base::TIMED_FALSE;
-                } else if (tb == dedupv1::base::TIMED_TIMEOUT && !buffer_used_) {
-                    if (!lock_.ReleaseLock()) {
-                        return dedupv1::base::TIMED_FALSE;
-                    }
-                    return dedupv1::base::TIMED_TIMEOUT;
                 }
+                return dedupv1::base::TIMED_TIMEOUT;
             }
-            // buffer_used == true
-            *value = this->buffer_;
-            buffer_used_ = false;
-            if (!empty_condition_.Broadcast()) {
+        }
+        // buffer_used == false
+        this->buffer_ = value;
+        buffer_used_ = true;
+        if (!fill_condition_.Broadcast()) {
+            lock_.ReleaseLock();
+            return dedupv1::base::TIMED_FALSE;
+        }
+        if (!lock_.ReleaseLock()) {
+            return dedupv1::base::TIMED_FALSE;
+        }
+        return dedupv1::base::TIMED_TRUE;
+    }
+
+    /**
+     * Receives an object from the handover store.
+     *
+     * @param value
+     * @param timeout milliseconds
+     * @return
+     */
+    dedupv1::base::timed_bool Get(T* value, uint32_t timeout,
+                                  dedupv1::base::timeunit::TimeUnit timeunit) {
+        if (!lock_.AcquireLock()) {
+            return dedupv1::base::TIMED_FALSE;
+        }
+        while (!buffer_used_) {
+            dedupv1::base::timed_bool tb = fill_condition_.ConditionWaitTimeout(&lock_,
+                timeout, timeunit);
+            if (tb == dedupv1::base::TIMED_FALSE) {
                 lock_.ReleaseLock();
                 return dedupv1::base::TIMED_FALSE;
+            } else if (tb == dedupv1::base::TIMED_TIMEOUT && !buffer_used_) {
+                if (!lock_.ReleaseLock()) {
+                    return dedupv1::base::TIMED_FALSE;
+                }
+                return dedupv1::base::TIMED_TIMEOUT;
             }
-            if (!lock_.ReleaseLock()) {
-                return dedupv1::base::TIMED_FALSE;
-            }
-            return dedupv1::base::TIMED_TRUE;
         }
+        // buffer_used == true
+        *value = this->buffer_;
+        buffer_used_ = false;
+        if (!empty_condition_.Broadcast()) {
+            lock_.ReleaseLock();
+            return dedupv1::base::TIMED_FALSE;
+        }
+        if (!lock_.ReleaseLock()) {
+            return dedupv1::base::TIMED_FALSE;
+        }
+        return dedupv1::base::TIMED_TRUE;
+    }
 };
 
 }
