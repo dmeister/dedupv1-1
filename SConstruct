@@ -43,7 +43,7 @@ cflags = Split("-fPIC -D__STDC_LIMIT_MACROS")
 debug_cflags = ['-ggdb', '-g']
 # In release we also include the DebugStrings, but we will separate them later
 release_cflags = ['-O3', '-DNDEBUG', '-DNVALGRIND', '-g'] 
-ldflags = ["-Wl,-rpath,/opt/dedupv1/lib"]
+ldflags = ["-Wl"]
 
 os_libs = ["m", "pthread"]
 libs = ["microhttpd", "curl", "apr-1", "aprutil-1", 
@@ -116,6 +116,9 @@ AddOption("--force_scst", dest="force_scst", action="store_true", default=False)
 AddOption("--clang", dest="clang", action="store_true", default=False)
 # Use icc compiler
 AddOption("--icc", dest="icc", action="store_true", default=False)
+
+prefix = GetOption("prefix")
+ldflags[0] += ",-rpath,%s/lib" % (prefix)
 
 if GetOption("no-test"):
   build_test = False

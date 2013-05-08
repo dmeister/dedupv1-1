@@ -12,6 +12,7 @@ import shutil
 import optparse
 import subprocess
 import platform
+from os.path import join
 
 def is_mac():
     return platform.uname()[0] == "Darwin"
@@ -49,26 +50,29 @@ def install(*args, **kwargs):
 def install_crcutil(options):
     print "Install crcutil"
     run("tar -zxf crcutil-1.0.tar.gz")
-    run("./configure --prefix=/opt/dedupv1/", cwd="crcutil-1.0/")
+    run("./configure --prefix=%s" % (options.prefix), cwd="crcutil-1.0/")
 
     if not os.path.exists("crcutil-1.0/build"):
         os.mkdir("crcutil-1.0/build")
     run("for i in code/*.cc ; do g++ -DHAVE_CONFIG_H -I. -fPIC -DCRCUTIL_USE_MM_CRC32=1 -Wall -msse4.2 -Icode -g -O3 -fomit-frame-pointer -c -o build/`basename $i .cc`.o $i ; done", cwd="crcutil-1.0/")
     run("g++ -DHAVE_CONFIG_H -I. -fPIC -Iexamples -Itests  -DCRCUTIL_USE_MM_CRC32=1 -Wall -msse4.2 -Icode -g -O3 -fomit-frame-pointer -c -o build/interface.o examples/interface.cc", cwd="crcutil-1.0/")
     run("ar rcs libcrcutil.a *.o", cwd="crcutil-1.0/build/")
-    run("cp libcrcutil.a /opt/dedupv1/lib", cwd="crcutil-1.0/build/")
-    if not os.path.exists("/opt/dedupv1/include/crcutil"):
-        os.mkdir("/opt/dedupv1/include/crcutil")
-    run("cp *.h /opt/dedupv1/include/crcutil", cwd="crcutil-1.0/code/")
-    run("cp interface.h /opt/dedupv1/include/crcutil", cwd="crcutil-1.0/examples/")
-    run("cp aligned_alloc.h /opt/dedupv1/include/crcutil", cwd="crcutil-1.0/tests/")
+    run("cp libcrcutil.a %s/lib" % (options.prefix), cwd="crcutil-1.0/build/")
+
+    crcutil_include_path = join(options.prefix, "include/crcutil")
+    if not os.path.exists(crcutil_include_path):
+        os.mkdir(crcutil_include_path)
+    run("cp *.h %s" % (crcutil_include_path), cwd="crcutil-1.0/code/")
+    run("cp interface.h %s" % (crcutil_include_path), cwd="crcutil-1.0/examples/")
+    run("cp aligned_alloc.h %s" % (crcutil_include_path), cwd="crcutil-1.0/tests/")
     #run("sudo ldconfig", cwd="crcutil-1.0/")
 
 @install()
 def install_tc(options):
     print "Install tokyocabinet"
     run("tar -zxf dmeister-tokyocabinet-5ad8b9b.tar.gz")
-    run("LDFLAGS=-L/opt/dedupv1/lib  ./configure --enable-fastest --prefix=/opt/dedupv1", cwd = "dmeister-tokyocabinet-5ad8b9b/")
+    run("LDFLAGS=-L%s/lib  ./configure --enable-fastest --prefix=%s" % (
+      options.prefix, options.prefix), cwd = "dmeister-tokyocabinet-5ad8b9b/")
     run("make -j%s" % get_cpu_count(), cwd = "dmeister-tokyocabinet-5ad8b9b/")
     run("make install", cwd = "dmeister-tokyocabinet-5ad8b9b/")
 
@@ -76,7 +80,8 @@ def install_tc(options):
 def install_mhd(options):
     print "Install libmicrohttpd"
     run("tar -xzf libmicrohttpd-0.9.15.tar.gz")
-    run("./configure --prefix=/opt/dedupv1", cwd="libmicrohttpd-0.9.15")
+    run("./configure --prefix=%s" % (options.prefix),
+        cwd="libmicrohttpd-0.9.15")
     run("make -j%s" % get_cpu_count(), cwd="libmicrohttpd-0.9.15")
     run("make install", cwd="libmicrohttpd-0.9.15")
 
@@ -85,14 +90,14 @@ def install_leveldb(options):
     print "Install leveldb"
     run("tar -xzf leveldb-1.9.0.tar.gz")
     run("make", cwd="leveldb-1.9.0")
-    run("cp -r include/leveldb /opt/dedupv1/include", cwd="leveldb-1.9.0")
-    run("cp libleveldb* /opt/dedupv1/lib", cwd="leveldb-1.9.0")
+    run("cp -r include/leveldb %s/include" % (options.prefix), cwd="leveldb-1.9.0")
+    run("cp libleveldb* %s/lib" % (options.prefix), cwd="leveldb-1.9.0")
 
 @install()
 def install_apr(options):
     print "Install apr"
     run("tar -zxf apr-1.3.8.tar.gz")
-    run("./configure --prefix=/opt/dedupv1", cwd="apr-1.3.8")
+    run("./configure --prefix=%s" % (options.prefix), cwd="apr-1.3.8")
     run("make -j%s" % get_cpu_count(), cwd="apr-1.3.8")
     run("make install", cwd="apr-1.3.8")
 
@@ -100,7 +105,8 @@ def install_apr(options):
 def install_apr_util(options):
     print "Install apr-util"
     run("tar -zxf apr-util-1.3.9.tar.gz")
-    run("./configure --prefix=/opt/dedupv1 --with-apr=/opt/dedupv1", cwd="apr-util-1.3.9")
+    run("./configure --prefix=%s --with-apr=%s" % (
+      options.prefix, options.prefix), cwd="apr-util-1.3.9")
     run("make -j%s" % get_cpu_count(), cwd="apr-util-1.3.9")
     run("make install", cwd="apr-util-1.3.9")
 
@@ -108,7 +114,8 @@ def install_apr_util(options):
 def install_log4cxx(options):
     print "Install log4cxx"
     run("tar -zxf apache-log4cxx-0.10.0.tar.gz")
-    run("./configure --prefix=/opt/dedupv1 --with-apr=/opt/dedupv1 --with-apr-util=/opt/dedupv1", cwd="apache-log4cxx-0.10.0")
+    run("./configure --prefix=%s --with-apr=%s --with-apr-util=%s" % (
+      options.prefix, options.prefix, options.prefix), cwd="apache-log4cxx-0.10.0")
     # I don't know what is wrong here, but here is a patch
     run("patch -p 1 < ../apache-log4cxx-0.10.0.patch", cwd="apache-log4cxx-0.10.0")
     run("make -j%s" % get_cpu_count(), cwd="apache-log4cxx-0.10.0")
@@ -118,26 +125,28 @@ def install_log4cxx(options):
 def install_protobuf(options):
     print "Install protobuf"
     run("tar -zxf protobuf-2.5.0.tar.gz")
-    run("./configure --prefix=/opt/dedupv1", cwd="protobuf-2.5.0")
+    run("./configure --prefix=%s" % (options.prefix), cwd="protobuf-2.5.0")
     run("make -j%s" % get_cpu_count(), cwd="protobuf-2.5.0")
     run("make install", cwd="protobuf-2.5.0")
 
-    if not os.path.exists("/opt/dedupv1/lib/python2.7"):
-        os.mkdir("/opt/dedupv1/lib/python2.7")
-    if not os.path.exists("/opt/dedupv1/lib/python2.7/site-packages"):
-        os.mkdir("/opt/dedupv1/lib/python2.7/site-packages")
+    python_path = join(options.prefix, "lib/python2.7")
+    if not os.path.exists(python_path):
+        os.mkdir(python_path)
+    python_sitepackages_path = join(python_path, "site-packages")
+    if not os.path.exists(python_sitepackages_path):
+        os.mkdir(python_sitepackages_path)
     run("python2.7 setup.py build",
         cwd="protobuf-2.5.0/python",
-        env = {"PYTHONPATH": "/opt/dedupv1/lib/python2.7/site-packages"})
-    run("python2.7 setup.py install --prefix=/opt/dedupv1",
+        env = {"PYTHONPATH": python_sitepackages_path})
+    run("python2.7 setup.py install --prefix=%s" % (options.prefix),
         cwd="protobuf-2.5.0/python",
-        env = {"PYTHONPATH": "/opt/dedupv1/lib/python2.7/site-packages"})
+        env = {"PYTHONPATH": python_sitepackages_path})
 
 @install("test")
 def install_gtest(options):
     print "Install gtest"
     run("tar -xzf gtest-1.5.0.tar.gz")
-    run("./configure --prefix=/opt/dedupv1", cwd="gtest-1.5.0")
+    run("./configure --prefix=%s" % (options.prefix), cwd="gtest-1.5.0")
     run("make", cwd="gtest-1.5.0")
     run("make install", cwd="gtest-1.5.0")
 
@@ -145,17 +154,18 @@ def install_gtest(options):
 def install_gtest_prod(options):
     print "Install gtest Production header"
 
-    if not os.path.exists("/opt/dedupv1/include/gtest/gtest_prod.h"):
+    prod_header_path = join(options.prefix, "include/gtest/gtest_prod.h")
+    if not os.path.exists(prod_header_path):
         run("tar -xzf gtest-1.5.0.tar.gz")
-        if not os.path.exists("/opt/dedupv1/include/test"):
-            os.mkdir("/opt/dedupv1/include/gtest")
-        shutil.copy("gtest-1.5.0/include/gtest/gtest_prod.h", "/opt/dedupv1/include/gtest/gtest_prod.h")
+        if not os.path.exists("%s/include/gtest" % (options.prefix)):
+            os.mkdir("%s/include/gtest" % (options.prefix))
+        shutil.copy("gtest-1.5.0/include/gtest/gtest_prod.h", prod_header_path)
 
 @install("test")
 def install_gmock(options):
     print "Install gmock"
     run("tar -xzf gmock-1.5.0.tar.gz")
-    run("./configure --prefix=/opt/dedupv1", cwd="gmock-1.5.0")
+    run("./configure --prefix=%s" % (options.prefix), cwd="gmock-1.5.0")
     run("make -j%s" % get_cpu_count(), cwd="gmock-1.5.0")
     run("make install", cwd="gmock-1.5.0")
 
@@ -213,32 +223,37 @@ def install_jsoncpp(options):
     p = subprocess.Popen("gcc -dumpversion",shell = True, stdout = subprocess.PIPE)
     cxx_version=p.stdout.read().strip()
 
-    if os.path.exists("/opt/dedupv1/include/json"):
-        shutil.rmtree("/opt/dedupv1/include/json")
-        #os.mkdir("/opt/dedupv1/include/json")
+    json_path = join(options.prefix, "include/json")
+    if os.path.exists(json_path):
+        shutil.rmtree(json_path)
 
     if not is_mac():
-        shutil.copytree("jsoncpp-src-0.5.0/include/json", "/opt/dedupv1/include/json")
-        shutil.copy("jsoncpp-src-0.5.0/libs/linux-gcc-%s/libjson_linux-gcc-%s_libmt.a" % (cxx_version, cxx_version), "/opt/dedupv1/lib/libjson.a")
-        shutil.copy("jsoncpp-src-0.5.0/libs/linux-gcc-%s/libjson_linux-gcc-%s_libmt.so" % (cxx_version, cxx_version), "/opt/dedupv1/lib/libjson.so")
+        shutil.copytree("jsoncpp-src-0.5.0/include/json", json_path)
+        shutil.copy("jsoncpp-src-0.5.0/libs/linux-gcc-%s/libjson_linux-gcc-%s_libmt.a" % (cxx_version, cxx_version),
+            "%s/lib/libjson.a" % (options.prefix))
+        shutil.copy("jsoncpp-src-0.5.0/libs/linux-gcc-%s/libjson_linux-gcc-%s_libmt.so" % (cxx_version, cxx_version),
+            "%s/lib/libjson.so" % (options.prefix))
     else:
-        shutil.copytree("jsoncpp-src-0.5.0/include/json", "/opt/dedupv1/include/json")
-        shutil.copy("jsoncpp-src-0.5.0/libs/linux-gcc-%s/libjson_linux-gcc-%s_libmt.a" % (cxx_version, cxx_version), "/opt/dedupv1/lib/libjson.a")
-        shutil.copy("jsoncpp-src-0.5.0/libs/linux-gcc-%s/libjson_linux-gcc-%s_libmt.dylib" % (cxx_version, cxx_version), "/opt/dedupv1/lib/libjson.dylib")
+        shutil.copytree("jsoncpp-src-0.5.0/include/json", json_path)
+        shutil.copy("jsoncpp-src-0.5.0/libs/linux-gcc-%s/libjson_linux-gcc-%s_libmt.a" % (cxx_version, cxx_version),
+            "%s/lib/libjson.a" % (options.prefix))
+        shutil.copy("jsoncpp-src-0.5.0/libs/linux-gcc-%s/libjson_linux-gcc-%s_libmt.dylib" % (cxx_version, cxx_version),
+            "%s/lib/libjson.dylib" % (options.prefix))
 
         # Fix library path
         # Without it the first build path (e.g. buildscons/linux-gcc-4.2.1/src/lib_json/libjson_linux-gcc-4.2.1_libmt.dylib)
         # is baked into the library, linking will succeed, but running will fail because
         # the library cannot be found. Here we change the path to the correct one
         # More information: http://blogs.sun.com/dipol/entry/dynamic_libraries_rpath_and_mac
-        run("install_name_tool -id \"/opt/dedupv1/lib/libjson.dylib\" /opt/dedupv1/lib/libjson.dylib")
+        run("install_name_tool -id \"%s/lib/libjson.dylib\" %s/lib/libjson.dylib" % (
+          options.prefix, options.prefix))
 
 @install()
 def install_bz2(options):
     print "Install bz2"
     run("tar -xzf bzip2-1.0.5.tar.gz")
     run("make -j%s CFLAGS=\"-fPIC -Wall -Winline -O2 -g -D_FILE_OFFSET_BITS=64\"" % get_cpu_count(), cwd="bzip2-1.0.5")
-    run("make install PREFIX=/opt/dedupv1", cwd="bzip2-1.0.5")
+    run("make install PREFIX=%s" % (options.prefix), cwd="bzip2-1.0.5")
 
 @install()
 def install_lz4(options):
@@ -246,16 +261,18 @@ def install_lz4(options):
     run("tar -xzf lz4-r53.tar.gz")
     shutil.copyfile("lz4-Makefile", "lz4-r53/Makefile")
     run("make -j%s CFLAGS=\"-fPIC -Wall -Winline -O2 -g -D_FILE_OFFSET_BITS=64\"" % get_cpu_count(), cwd="lz4-r53")
-    run("make install PREFIX=/opt/dedupv1", cwd="lz4-r53")
-
+    run("make install PREFIX=%s" % (options.prefix), cwd="lz4-r53")
 
 @install()
 def install_re2(options):
     print "Install re2"
     run("tar -xf re2-20130115.tgz")
-    run("patch -p 0 < ../re2-Makefile.patch", cwd="re2")
+    run("sed -i.bak s#/usr/local#%s#g Makefile" % (options.prefix),
+        cwd="re2")
+
     run("make", cwd="re2")
     run("make install", cwd="re2")
+
 
 @install()
 def install_tbb(options):
@@ -263,14 +280,14 @@ def install_tbb(options):
     print "Install Intel Threading Building Blocks (TBB)"
     run("tar -xzf %s_src.tgz" % tbb_version)
     run("make -j%s tbb_build_prefix=tbb" % get_cpu_count(), cwd=tbb_version)
-    run("cp build/tbb_release/libtbb* /opt/dedupv1/lib", cwd=tbb_version)
-    run("cp -r include/tbb /opt/dedupv1/include", cwd=tbb_version)
+    run("cp build/tbb_release/libtbb* %s/lib" % (options.prefix), cwd=tbb_version)
+    run("cp -r include/tbb %s/include" % (options.prefix), cwd=tbb_version)
 
 @install()
 def install_sparsehash(options):
     print "Install sparsehash"
     run("tar -xzf sparsehash-1.7.tar.gz")
-    run("./configure --prefix=/opt/dedupv1", cwd="sparsehash-1.7")
+    run("./configure --prefix=%s" % (options.prefix), cwd="sparsehash-1.7")
     run("make -j%s" % get_cpu_count(), cwd="sparsehash-1.7")
     run("make install", cwd="sparsehash-1.7")
 
@@ -278,7 +295,7 @@ def install_sparsehash(options):
 def install_gflags(options):
     print "Install gflags"
     run("tar -xzf gflags-1.4.tar.gz")
-    run("./configure --prefix=/opt/dedupv1", cwd="gflags-1.4")
+    run("./configure --prefix=%s" % (options.prefix), cwd="gflags-1.4")
     run("patch -p1 < ../gflags_stripped_help.patch", cwd="gflags-1.4")
     run("make -j%s" % get_cpu_count(), cwd="gflags-1.4")
     run("make install", cwd="gflags-1.4")
@@ -287,7 +304,7 @@ def install_gflags(options):
 def install_sqlite(options):
     print "Install sqlite"
     run("tar -xf sqlite-autoconf-3070602.tar.gz")
-    run("./configure --prefix=/opt/dedupv1", cwd="sqlite-autoconf-3070602")
+    run("./configure --prefix=%s" % (options.prefix), cwd="sqlite-autoconf-3070602")
     run("make -j%s" % get_cpu_count(), cwd="sqlite-autoconf-3070602")
     run("make install", cwd="sqlite-autoconf-3070602")
 
@@ -295,7 +312,9 @@ def install_sqlite(options):
 def install_snappy(options):
     print "install snappy"
     run("tar -xf snappy-1.0.4.tar.gz")
-    run("./configure --prefix=/opt/dedupv1", cwd="snappy-1.0.4", env = {"CXXFLAGS": "-O3 -DNDEBUG"})
+    run("./configure --prefix=%s" % (options.prefix),
+        cwd="snappy-1.0.4",
+        env = {"CXXFLAGS": "-O3 -DNDEBUG"})
     run("make -j%s" % get_cpu_count(), cwd="snappy-1.0.4")
     run("make check", cwd="snappy-1.0.4")
     run("make install", cwd="snappy-1.0.4")
@@ -311,20 +330,23 @@ def install_tcb_py(options):
   print "Install tokyo cabinet bindungs (py)"
   run("tar -xzf py-tcdb-0.3.tar.gz")
   run("patch -p 1 < ../py-tcdb.patch", cwd="py-tcdb-0.3")
-  run("python2.7 setup.py install --prefix=/opt/dedupv1", cwd="py-tcdb-0.3")
+  run("python2.7 setup.py install --prefix=%s" % (
+    options.prefix), cwd="py-tcdb-0.3")
 
 @install()
 def install_linenoise(options):
     print "Install linenoise"
     run("tar -xzf dmeister-linenoise-17b7547.tar.gz")
-    run("scons install --prefix=/opt/dedupv1", cwd="dmeister-linenoise-17b7547")
+    run("scons install --prefix=%s" % (
+      options.prefix), cwd="dmeister-linenoise-17b7547")
 
 @install()
 def install_protobuf_json(options):
     print "Install protobuf-json (py)"
     run ("tar -xf protobuf-json.tar.gz")
 
-    dir_name = "/opt/dedupv1/lib/python2.7/site-packages/protobuf-json.egg"
+    dir_name = "%s/lib/python2.7/site-packages/protobuf-json.egg" % (
+        options.prefix)
     if not os.path.isdir(dir_name):
         os.mkdir(dir_name)
     shutil.copy("protobuf-json/protobuf_json.py", dir_name)
@@ -333,7 +355,8 @@ def install_protobuf_json(options):
 def install_valgrind_prod(options):
     print "Install valgrind production header"
     run ("tar -xf valgrind-header.tar.gz")
-    shutil.copy("valgrind-header/valgrind/valgrind.h", "/opt/dedupv1/include")
+    shutil.copy("valgrind-header/valgrind/valgrind.h",
+        "%s/include" % (options.prefix))
 
 success = []
 fails = []
@@ -449,6 +472,9 @@ if __name__ == "__main__":
     parser = optparse.OptionParser(usage=usage)
     parser.add_option("--scst_sbin_dir",
         dest="scst_sbin_dir")
+    parser.add_option("--prefix",
+        dest="prefix",
+        default="/opt/dedupv1/")
     parser.add_option("--debug",
         action="store_true",
         dest="debug",
@@ -469,8 +495,8 @@ if __name__ == "__main__":
                   callback=parse_extra_modules)
     (options, argv) = parser.parse_args()
 
-    if not os.path.exists("/opt/dedupv1") or not os.path.isdir("/opt/dedupv1"):
-        print "Create user-writable directory /opt/dedupv1"
+    if not os.path.exists(options.prefix) or not os.path.isdir(options.prefix):
+        print "Create user-writable directory %s" % (options.prefix)
         sys.exit(1)
 
     if len(argv) == 0 or ("all" in argv):
