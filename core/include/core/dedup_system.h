@@ -44,7 +44,6 @@
 #include <core/idle_detector.h>
 #include <core/statistics.h>
 #include <core/info_store.h>
-#include <base/threadpool.h>
 
 #include <string>
 
@@ -59,10 +58,8 @@ namespace dedupv1 {
  * with own threads.
  */
 class DedupSystem : public dedupv1::StatisticProvider {
-    public:
+public:
     DISALLOW_COPY_AND_ASSIGN(DedupSystem);
-
-    static const uint32_t kDefaultLogFullPauseTime;
 
     static const dedupv1::scsi::ScsiResult kFullError;
     static const dedupv1::scsi::ScsiResult kReadChecksumError;
@@ -86,34 +83,29 @@ class DedupSystem : public dedupv1::StatisticProvider {
      * Type for statistics about the dedup system
      */
     class Statistics {
-        public:
-            Statistics();
-            /**
-             * Profiling information
-             */
-            dedupv1::base::Profile profiling_total_;
+public:
+        Statistics();
+        /**
+         * Profiling information
+         */
+        dedupv1::base::Profile profiling_total_;
 
-            /**
-             * Number of concurrently active dedup sessions, aka active request threads.
-             */
-            tbb::atomic<uint32_t> active_session_count_;
+        /**
+         * Number of concurrently active dedup sessions, aka active request threads.
+         */
+        tbb::atomic<uint32_t> active_session_count_;
 
-            /**
-             * Active sessions, with a valid block lock
-             */
-            tbb::atomic<uint32_t> processsed_session_count_;
+        /**
+         * Active sessions, with a valid block lock
+         */
+        tbb::atomic<uint32_t> processsed_session_count_;
 
-            /**
-             * Number of requests running longer than 1s
-             */
-            tbb::atomic<uint64_t> long_running_request_count_;
-
-            /**
-             * Average number of ms a request is waiting for a block lock.
-             */
-            dedupv1::base::SimpleSlidingAverage average_waiting_time_;
+        /**
+         * Average number of ms a request is waiting for a block lock.
+         */
+        dedupv1::base::SimpleSlidingAverage average_waiting_time_;
     };
-    private:
+private:
     /**
      * Reference to the chunk index.
      * The chunk index is initially NULL and it is set during the configuration phase.
@@ -199,22 +191,12 @@ class DedupSystem : public dedupv1::StatisticProvider {
      */
     dedupv1::BlockLocks block_locks_;
 
-    /**
-     * Default: false
-     */
-    bool disable_sync_cache_;
-
     dedupv1::InfoStore* info_store_;
 
     /**
      * iff true, the system is readonly. No user-visible changed should be possible.
      */
     bool readonly_;
-
-    /**
-     * Threadpool to use by the dedup system and all its children
-     */
-    dedupv1::base::Threadpool* tp_;
 
     /**
      * number of times a write request should be retried after an error.
@@ -231,14 +213,14 @@ class DedupSystem : public dedupv1::StatisticProvider {
     bool report_long_running_requests_;
 
     bool FastBlockCopy(
-            uint64_t src_block_id,
-            uint64_t src_offset,
-            uint64_t target_block_id,
-            uint64_t target_offset,
-            uint64_t size,
-            dedupv1::base::ErrorContext* ec);
+        uint64_t src_block_id,
+        uint64_t src_offset,
+        uint64_t target_block_id,
+        uint64_t target_offset,
+        uint64_t size,
+        dedupv1::base::ErrorContext* ec);
 
-	/**
+    /**
      * Makes a read or write request on the given block
      *
      * @param session session to use
@@ -247,21 +229,20 @@ class DedupSystem : public dedupv1::StatisticProvider {
      * @param ec error contest (may be NULL)
      */
     bool MakeBlockRequest(
-            dedupv1::Session* session,
-            Request* block_request,
-            bool last_block_request,
-            dedupv1::base::ErrorContext* ec);
+        dedupv1::Session* session,
+        Request* block_request,
+        bool last_block_request,
+        dedupv1::base::ErrorContext* ec);
 
     dedupv1::scsi::ScsiResult DoMakeRequest(
-            dedupv1::Session* session,
-            enum request_type rw,
-            uint64_t request_index,
-            uint64_t request_offset,
-            uint64_t size,
-            byte* buffer,
-            dedupv1::base::ErrorContext* ec);
-
-    public:
+        dedupv1::Session* session,
+        enum request_type rw,
+        uint64_t request_index,
+        uint64_t request_offset,
+        uint64_t size,
+        byte* buffer,
+        dedupv1::base::ErrorContext* ec);
+public:
     /**
      * Constructor.
      * @return
@@ -311,7 +292,6 @@ class DedupSystem : public dedupv1::StatisticProvider {
      * - gc.*
      * - idle-detection.*
      * - block-locks.*
-     * - report-long-running-requests: Boolean
      * - raw-volume.*
      *
      * @param option_name
@@ -327,11 +307,10 @@ class DedupSystem : public dedupv1::StatisticProvider {
      *
      * @param start_context start context
      * @param info_store info store to use
-     * @param tp threadpool to use
      * @return true iff ok, otherwise an error has occurred
      */
     virtual bool Start(const dedupv1::StartContext& start_context,
-            dedupv1::InfoStore* info_store, dedupv1::base::Threadpool* tp);
+                       dedupv1::InfoStore* info_store);
 
     /**
      * @return true iff ok, otherwise an error has occurred
@@ -366,29 +345,32 @@ class DedupSystem : public dedupv1::StatisticProvider {
      * @return
      */
     virtual dedupv1::scsi::ScsiResult MakeRequest(
-            dedupv1::Session* session,
-            enum request_type type,
-            uint64_t request_index,
-            uint64_t request_offset,
-            uint64_t size,
-            byte* buffer,
-            dedupv1::base::ErrorContext* ec);
+        dedupv1::Session* session,
+        enum request_type type,
+        uint64_t request_index,
+        uint64_t request_offset,
+        uint64_t size,
+        byte* buffer,
+        dedupv1::base::ErrorContext* ec);
 
     virtual dedupv1::scsi::ScsiResult FastCopy(
-            uint64_t src_block_id,
-            uint64_t src_offset,
-            uint64_t target_block_id,
-            uint64_t target_offset,
-            uint64_t size,
-            dedupv1::base::ErrorContext* ec);
+        uint64_t src_block_id,
+        uint64_t src_offset,
+        uint64_t target_block_id,
+        uint64_t target_offset,
+        uint64_t size,
+        dedupv1::base::ErrorContext* ec);
 
-    virtual dedupv1::base::Option<bool> Throttle(int thread_id, int thread_count);
+    virtual dedupv1::base::Option<bool> Throttle(int thread_id,
+                                                 int thread_count);
 
     virtual dedupv1::scsi::ScsiResult SyncCache();
 
-    virtual bool PersistStatistics(std::string prefix, dedupv1::PersistStatistics* ps);
+    virtual bool PersistStatistics(std::string prefix,
+                                   dedupv1::PersistStatistics* ps);
 
-    virtual bool RestoreStatistics(std::string prefix, dedupv1::PersistStatistics* ps);
+    virtual bool RestoreStatistics(std::string prefix,
+                                   dedupv1::PersistStatistics* ps);
 
     /**
      * Returns statistics about the lock contention as JSON string.
@@ -521,20 +503,6 @@ class DedupSystem : public dedupv1::StatisticProvider {
      */
     inline bool set_info_store(dedupv1::InfoStore* info_store);
 
-    /**
-     * Sets the threadpool
-     * Used for testing.
-     *
-     * @param tp the new thread pool to use
-     * @return
-     */
-    inline bool set_threadpool(dedupv1::base::Threadpool* tp);
-
-    /**
-     * Returns the threadpool
-     * @return
-     */
-    inline dedupv1::base::Threadpool* threadpool();
 
     /**
      * returns the volume with the given id
@@ -552,18 +520,6 @@ class DedupSystem : public dedupv1::StatisticProvider {
     void ClearData();
 #endif
 };
-
-dedupv1::base::Threadpool* DedupSystem::threadpool() {
-    return tp_;
-}
-
-bool DedupSystem::set_threadpool(dedupv1::base::Threadpool* tp) {
-    if (tp_) {
-        return false;
-    }
-    tp_ = tp;
-    return true;
-}
 
 bool DedupSystem::set_info_store(dedupv1::InfoStore* info_store) {
     if (info_store_) {

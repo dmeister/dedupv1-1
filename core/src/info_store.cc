@@ -66,6 +66,7 @@ IndexInfoStore::IndexInfoStore() {
 IndexInfoStore::~IndexInfoStore() {
   if (index_) {
     delete index_;
+    index_ = NULL;
   }
 }
 
@@ -102,6 +103,7 @@ bool IndexInfoStore::PersistInfo(std::string key, const google::protobuf::Messag
         return true;
     }
 #endif
+    DCHECK(index_, "Index not set");
     DEBUG("Persisting info: key " << key << ", message " << message.ShortDebugString());
 
     CHECK(this->index_->Put(key.data(), key.size(), message) != PUT_ERROR,
@@ -116,6 +118,7 @@ lookup_result IndexInfoStore::RestoreInfo(std::string key, google::protobuf::Mes
         return LOOKUP_NOT_FOUND;
     }
 #endif
+    DCHECK_RETURN(index_, LOOKUP_ERROR, "Index not set");
     lookup_result lr = this->index_->Lookup(key.data(), key.size(), message);
     CHECK_RETURN(lr != LOOKUP_ERROR, LOOKUP_ERROR, "Failed to lookup info data: key " << key);
     if (lr == LOOKUP_NOT_FOUND) {

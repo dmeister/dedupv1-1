@@ -59,9 +59,6 @@ namespace dedupv1 {
 
 void DedupSystemTest::SetUp() {
     system = NULL;
-
-    ASSERT_TRUE(tp.SetOption("size", "8"));
-    ASSERT_TRUE(tp.Start());
 }
 
 void DedupSystemTest::TearDown() {
@@ -71,16 +68,21 @@ void DedupSystemTest::TearDown() {
     }
 }
 
-DedupSystem* DedupSystemTest::CreateDefaultSystem(string config_option,
-                                                  dedupv1::InfoStore* info_store,
-                                                  dedupv1::base::Threadpool* tp,
-                                                  bool start,
-                                                  bool restart,
-                                                  bool crashed,
-                                                  bool dirty,
-                                                  bool full_replay) {
+DedupSystem* DedupSystemTest::CreateDefaultSystem(string options,
+    dedupv1::InfoStore* info_store) {
+    return CreateDefaultSystemWithOptions(options, info_store,
+        true, false, false, true, false);
+}
+
+DedupSystem* DedupSystemTest::CreateDefaultSystemWithOptions(
+    string config_option,
+    dedupv1::InfoStore* info_store,
+    bool start,
+    bool restart,
+    bool crashed,
+    bool dirty,
+    bool full_replay) {
     CHECK_RETURN(info_store, NULL, "Info store not set");
-    CHECK_RETURN(tp != NULL, NULL, "Threadpool not set");
 
     vector<string> options;
     CHECK_RETURN(Split(config_option, ";", &options), NULL, "Failed to split: " << config_option);
@@ -106,7 +108,7 @@ DedupSystem* DedupSystemTest::CreateDefaultSystem(string config_option,
         if (restart) {
             start_context.set_create(StartContext::NON_CREATE);
         }
-        CHECK_RETURN(system->Start(start_context, info_store, tp), NULL, "Cannot start system");
+        CHECK_RETURN(system->Start(start_context, info_store), NULL, "Cannot start system");
         if (dirty) {
             system->log()->PerformDirtyReplay();
         }
@@ -120,14 +122,14 @@ DedupSystem* DedupSystemTest::CreateDefaultSystem(string config_option,
 
 TEST_P(DedupSystemTest, LoadConfig) {
     string p = GetParam();
-    system = CreateDefaultSystem(p, &info_store, &tp);
+    system = CreateDefaultSystem(p, &info_store);
     ASSERT_TRUE(system) << "Could not create default system with options: " << p;
     ASSERT_TRUE(system->volume_info() != NULL);
 }
 
 TEST_P(DedupSystemTest, PrintStatistics) {
     string p = GetParam();
-    system = CreateDefaultSystem(p, &info_store, &tp);
+    system = CreateDefaultSystem(p, &info_store);
     ASSERT_TRUE(system);
 
     string s = system->PrintStatistics();
@@ -141,7 +143,7 @@ TEST_P(DedupSystemTest, PrintStatistics) {
 
 TEST_P(DedupSystemTest, PrintProfile) {
     string p = GetParam();
-    system = CreateDefaultSystem(p, &info_store, &tp);
+    system = CreateDefaultSystem(p, &info_store);
     ASSERT_TRUE(system);
 
     string s = system->PrintProfile();
@@ -155,7 +157,7 @@ TEST_P(DedupSystemTest, PrintProfile) {
 
 TEST_P(DedupSystemTest, PrintLockStatistics) {
     string p = GetParam();
-    system = CreateDefaultSystem(p, &info_store, &tp);
+    system = CreateDefaultSystem(p, &info_store);
     ASSERT_TRUE(system);
 
     string s = system->PrintLockStatistics();
@@ -168,7 +170,7 @@ TEST_P(DedupSystemTest, PrintLockStatistics) {
 
 TEST_P(DedupSystemTest, PrintTrace) {
     string p = GetParam();
-    system = CreateDefaultSystem(p, &info_store, &tp);
+    system = CreateDefaultSystem(p, &info_store);
     ASSERT_TRUE(system);
 
     string s = system->PrintTrace();
@@ -187,7 +189,7 @@ static Json::Value ToJson(const string& s) {
 }
 
 TEST_P(DedupSystemTest, PersistentStatistics) {
-    system = CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
 
     FILE* file = fopen("data/rabin-test","r");
@@ -232,7 +234,7 @@ TEST_P(DedupSystemTest, PersistentStatistics) {
         system = NULL;
     }
 
-    system = CreateDefaultSystem(GetParam(), &info_store, &tp, true, true);
+    system = CreateDefaultSystemWithOptions(GetParam(), &info_store, true, true);
     ASSERT_TRUE(system);
     ASSERT_TRUE(system->RestoreStatistics("dedup", &mps));
 
@@ -250,7 +252,7 @@ TEST_P(DedupSystemTest, PersistentStatistics) {
 }
 
 TEST_P(DedupSystemTest, MakeRequest) {
-    system = CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
 
     FILE* file = fopen("data/rabin-test","r");
@@ -278,7 +280,7 @@ TEST_P(DedupSystemTest, MakeRequest) {
 }
 
 TEST_P(DedupSystemTest, MakeLargeRequest) {
-    system = CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
 
     int size = 16 * 1024 * 1024;
@@ -320,14 +322,14 @@ bool PrintStatisticsLoop(DedupSystem* system, bool* stop_flag) {
 }
 
 TEST_P(DedupSystemTest, StatisticsDuringStartup) {
-    system = CreateDefaultSystem(GetParam(), &info_store, &tp, false);
+    system = CreateDefaultSystemWithOptions(GetParam(), &info_store, false);
     ASSERT_TRUE(system);
 
     bool stop_flag = false;
     Thread<bool> stats_thread(NewRunnable(&PrintStatisticsLoop, system, &stop_flag), "stats");
     ASSERT_TRUE(stats_thread.Start());
 
-    EXPECT_TRUE(system->Start(StartContext(), &info_store, &tp));
+    EXPECT_TRUE(system->Start(StartContext(), &info_store));
 
     stop_flag = true;
     ASSERT_TRUE(stats_thread.Join(NULL));
@@ -335,7 +337,7 @@ TEST_P(DedupSystemTest, StatisticsDuringStartup) {
 }
 
 TEST_P(DedupSystemTest, MakeReallyLargeRequest) {
-    system = CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
 
     int size = 128 * 1024 * 1024;
@@ -379,7 +381,7 @@ TEST_P(DedupSystemTest, MakeReallyLargeRequest) {
 }
 
 TEST_P(DedupSystemTest, OverwriteRequests) {
-    system = CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
 
     int size = 16 * 1024 * 1024;
@@ -399,7 +401,11 @@ TEST_P(DedupSystemTest, OverwriteRequests) {
 
     DEBUG("Write 1");
     for (int i = 0; i < requests; i++) {
-        ASSERT_TRUE(volume->MakeRequest(REQUEST_WRITE, i * system->block_size(), system->block_size(), buffer + (i * system->block_size()), NO_EC));
+        ASSERT_TRUE(volume->MakeRequest(REQUEST_WRITE,
+                i * system->block_size(),
+                system->block_size(),
+                buffer + (i * system->block_size()),
+                NO_EC));
     }
 
     memset(buffer, 1, size);
@@ -407,12 +413,20 @@ TEST_P(DedupSystemTest, OverwriteRequests) {
     // now overwrite
     DEBUG("Write 2");
     for (int i = 0; i < requests; i++) {
-        ASSERT_TRUE(volume->MakeRequest(REQUEST_WRITE, i * system->block_size(), system->block_size(), buffer + (i * system->block_size()), NO_EC));
+        ASSERT_TRUE(volume->MakeRequest(REQUEST_WRITE,
+                i * system->block_size(),
+                system->block_size(),
+                buffer + (i * system->block_size()),
+                NO_EC));
     }
 
     DEBUG("Read");
     for (int i = 0; i < requests; i++) {
-        ASSERT_TRUE(volume->MakeRequest(REQUEST_READ, i * system->block_size(), system->block_size(), result + (i * system->block_size()), NO_EC));
+        ASSERT_TRUE(volume->MakeRequest(REQUEST_READ,
+                i * system->block_size(),
+                system->block_size(),
+                result + (i * system->block_size()),
+                NO_EC));
     }
 
     for (int i = 0; i < size; i++) {
@@ -432,10 +446,10 @@ bool MakeOverwriteRequest(tuple<DedupSystem*, int, int, bool, bool> t) {
     byte* buffer = new byte[system->block_size()];
     ScopedArray<byte> scoped_buffer(buffer);
     if (zero_data) {
-      memset(buffer, 0, system->block_size());
+        memset(buffer, 0, system->block_size());
     } else {
-      LC_RNG rng(1024);
-      rng.GenerateBlock(buffer, system->block_size());
+        LC_RNG rng(1024);
+        rng.GenerateBlock(buffer, system->block_size());
     }
 
     DedupVolume* volume = system->GetVolume(0);
@@ -444,10 +458,18 @@ bool MakeOverwriteRequest(tuple<DedupSystem*, int, int, bool, bool> t) {
     for (int i = 0; i < request_count; i++) {
         memset(buffer, i % 8, system->block_size());
         if (overwrite) {
-            CHECK(volume->MakeRequest(REQUEST_WRITE, thread_id * system->block_size(), system->block_size(), buffer, NO_EC),
+            CHECK(volume->MakeRequest(REQUEST_WRITE,
+                    thread_id * system->block_size(),
+                    system->block_size(),
+                    buffer,
+                    NO_EC),
                 "Write failed");
         } else {
-            CHECK(volume->MakeRequest(REQUEST_WRITE, ((request_count * thread_id) + i) * system->block_size(), system->block_size(), buffer, NO_EC),
+            CHECK(volume->MakeRequest(REQUEST_WRITE,
+                    ((request_count * thread_id) + i) * system->block_size(),
+                    system->block_size(),
+                    buffer,
+                    NO_EC),
                 "Write failed");
         }
     }
@@ -456,7 +478,7 @@ bool MakeOverwriteRequest(tuple<DedupSystem*, int, int, bool, bool> t) {
 }
 
 TEST_P(DedupSystemTest, StrictOverwriteRequests) {
-    system = CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
 
     int requests = 128;
@@ -467,7 +489,7 @@ TEST_P(DedupSystemTest, StrictOverwriteRequests) {
     for (int i = 0; i < thread_count; i++) {
         threads[i] = new Thread<bool>(
             NewRunnable(&MakeOverwriteRequest, make_tuple(system, i,
-                requests, true, false)),"write");
+                    requests, true, false)),"write");
     }
     tbb::tick_count start = tbb::tick_count::now();
     for (int i = 0; i < thread_count; i++) {
@@ -495,7 +517,7 @@ TEST_P(DedupSystemTest, StrictOverwriteRequests) {
 }
 
 TEST_P(DedupSystemTest, StrictOverwriteZeroDataRequests) {
-    system = CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
 
     int requests = 128;
@@ -506,7 +528,7 @@ TEST_P(DedupSystemTest, StrictOverwriteZeroDataRequests) {
     for (int i = 0; i < thread_count; i++) {
         threads[i] = new Thread<bool>(
             NewRunnable(&MakeOverwriteRequest, make_tuple(system, i,
-                requests, true, true)),"write");
+                    requests, true, true)),"write");
     }
     tbb::tick_count start = tbb::tick_count::now();
     for (int i = 0; i < thread_count; i++) {
@@ -534,7 +556,7 @@ TEST_P(DedupSystemTest, StrictOverwriteZeroDataRequests) {
 }
 
 TEST_P(DedupSystemTest, StrictNoOverwriteRequests) {
-    system = CreateDefaultSystem(GetParam(), &info_store, &tp);
+    system = CreateDefaultSystem(GetParam(), &info_store);
     ASSERT_TRUE(system);
 
     int requests = 128;
@@ -545,7 +567,7 @@ TEST_P(DedupSystemTest, StrictNoOverwriteRequests) {
     for (int i = 0; i < thread_count; i++) {
         threads[i] = new Thread<bool>(
             NewRunnable(&MakeOverwriteRequest, make_tuple(system, i,
-                requests, false, false)),"write");
+                    requests, false, false)),"write");
     }
     tbb::tick_count start = tbb::tick_count::now();
     for (int i = 0; i < thread_count; i++) {

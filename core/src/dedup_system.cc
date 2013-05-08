@@ -68,7 +68,6 @@
 #include <core/container_storage_alloc.h>
 #include <core/idle_detector.h>
 #include <core/garbage_collector.h>
-#include <core/usage_count_garbage_collector.h>
 #include <core/none_garbage_collector.h>
 #include <core/container_storage.h>
 #include <core/container_storage_bg.h>
@@ -76,6 +75,7 @@
 #include <core/container_storage_write_cache.h>
 #include <base/callback.h>
 #include <base/config_loader.h>
+#include <core/fixed_log.h>
 
 using std::list;
 using std::string;
@@ -92,12 +92,11 @@ using dedupv1::ContentStorage;
 using dedupv1::Session;
 using dedupv1::OpenRequest;
 using dedupv1::log::Log;
+using dedupv1::log::FixedLog;
 using dedupv1::gc::GarbageCollector;
-using dedupv1::gc::UsageCountGarbageCollector;
 using dedupv1::chunkindex::ChunkIndexFactory;
 using dedupv1::chunkindex::ChunkIndex;
 using dedupv1::log::EVENT_TYPE_SYSTEM_START;
-using dedupv1::log::EVENT_TYPE_SYSTEM_RUN;
 using dedupv1::scsi::SCSI_CHECK_CONDITION;
 using dedupv1::scsi::SCSI_KEY_MEDIUM_ERROR;
 using dedupv1::scsi::SCSI_KEY_ILLEGAL_REQUEST;
@@ -121,18 +120,16 @@ LOGGER("DedupSystem");
 
 namespace dedupv1 {
 
-const uint32_t DedupSystem::kDefaultLogFullPauseTime = 100 * 1000;
 const uint32_t DedupSystem::kDefaultBlockSize = 256 * 1024;
 
 const ScsiResult DedupSystem::kFullError(dedupv1::scsi::SCSI_CHECK_CONDITION,
-                                         dedupv1::scsi::SCSI_KEY_HARDWARE_ERROR, 0x03, 0x00);
+    dedupv1::scsi::SCSI_KEY_HARDWARE_ERROR, 0x03, 0x00);
 const ScsiResult DedupSystem::kReadChecksumError(dedupv1::scsi::SCSI_CHECK_CONDITION,
-                                                 dedupv1::scsi::SCSI_KEY_MEDIUM_ERROR, 0x11, 0x04);
+    dedupv1::scsi::SCSI_KEY_MEDIUM_ERROR, 0x11, 0x04);
 
 DedupSystem::Statistics::Statistics() : average_waiting_time_(256) {
     active_session_count_ = 0;
     processsed_session_count_ = 0;
-    long_running_request_count_ = 0;
 }
 
 DedupSystem::DedupSystem() {
@@ -144,24 +141,19 @@ DedupSystem::DedupSystem() {
     volume_info_ = NULL;
     log_ = NULL;
     block_size_ = kDefaultBlockSize;
-    disable_sync_cache_ = false;
     info_store_ = NULL;
     readonly_ = false;
 
     volume_info_ = NULL;
     gc_ = NULL;
-    tp_ = NULL;
+    // /tp_ = NULL;
     write_retry_count_ = 0;
     read_retry_count_ = 0;
 
-#ifdef NDEBUG
-    report_long_running_requests_ = false;
-#else
-    report_long_running_requests_ = true;
-#endif
     filter_chain_ = new FilterChain();
     this->content_storage_ = new ContentStorage();
-    this->log_ = new Log();
+
+    this->log_ = NULL;
 
     // chunk index is a configurable type and it therefore created
     // later
@@ -193,11 +185,6 @@ bool DedupSystem::SetOption(const string& option_name, const string& option) {
         CHECK(bs % 512 == 0, "Block size is not aligned to 512 sectors");
         CHECK(bs > 0, "Block size must be larger than 0");
         this->block_size_ = bs;
-        return true;
-    }
-    if (option_name == "disable-sync-cache") {
-        CHECK(To<bool>(option).valid(), "Illegal option " << option);
-        this->disable_sync_cache_ = To<bool>(option).value();
         return true;
     }
     if (option_name == "write-retries") {
@@ -279,7 +266,14 @@ bool DedupSystem::SetOption(const string& option_name, const string& option) {
         return true;
     }
     // log
+    if (option_name == "log") {
+        CHECK(log_ == NULL, "Log already configured");
+        log_ = Log::Factory().Create(option);
+        CHECK(log_, "Failed to create log of type " << option);
+        return true;
+    }
     if (StartsWith(option_name, "log.")) {
+        CHECK(log_, "Log not configured");
         CHECK(this->log_->SetOption(option_name.substr(strlen("log.")), option),
             "Log configuration failed");
         return true;
@@ -293,11 +287,7 @@ bool DedupSystem::SetOption(const string& option_name, const string& option) {
         return true;
     }
     if (StartsWith(option_name, "gc.")) {
-        if (gc_ == NULL) {
-            // GC not set, use default
-            gc_ = GarbageCollector::Factory().Create("usage-count");
-            CHECK(gc_, "Failed to create garbage collector");
-        }
+        CHECK(gc_, "Garbage collector is not configured");
         return this->gc_->SetOption(option_name.substr(strlen("gc.")), option);
     }
 
@@ -314,11 +304,6 @@ bool DedupSystem::SetOption(const string& option_name, const string& option) {
             "Block locks configuration failed");
         return true;
     }
-    if (option_name == "report-long-running-requests") {
-        CHECK(To<bool>(option).valid(), "Illegal option " << option);
-        this->report_long_running_requests_ = To<bool>(option).value();
-        return true;
-    }
 #ifdef DEDUPV1_CORE_TEST
     if (StartsWith(option_name, "raw-volume.")) {
         CHECK(this->volume_info_->SetOption(
@@ -333,12 +318,12 @@ bool DedupSystem::SetOption(const string& option_name, const string& option) {
 }
 
 bool DedupSystem::Start(const StartContext& start_context,
-                        dedupv1::InfoStore* info_store,
-                        dedupv1::base::Threadpool* tp) {
+    dedupv1::InfoStore* info_store) {
     CHECK(this->state_ == CREATED, "Dedup system already started");
     CHECK(this->block_size_ > 0, "Dedup system not ready: Block size not set");
     CHECK(this->chunk_index_, "Dedup system not ready: Chunk index not ready");
     CHECK(this->chunk_store_, "Chunk store not configured");
+    CHECK(log_, "Log not configured");
 
     dedupv1::base::Walltimer startup_timer;
 
@@ -348,11 +333,10 @@ bool DedupSystem::Start(const StartContext& start_context,
 
     if (gc_ == NULL) {
         // use default gc
-        gc_ = GarbageCollector::Factory().Create("usage-count");
+        gc_ = GarbageCollector::Factory().Create("none");
         CHECK(gc_, "Failed to create garbage collector");
     }
 
-    tp_ = tp;
     info_store_ = info_store;
     CHECK(info_store_, "Info store not set");
 
@@ -361,18 +345,18 @@ bool DedupSystem::Start(const StartContext& start_context,
     CHECK(this->block_index_, "Block index not configured");
     CHECK(this->block_index_->Start(start_context, this), "Block index starting failed");
 
-    CHECK(this->chunk_index_, "Chunk index not configured");
-    CHECK(this->chunk_index_->Start(start_context, this), "Chunk index starting failed");
-
     CHECK(this->chunk_store_, "Storage not configured");
     CHECK(this->chunk_store_->Start(start_context, this), "Storage starting failed");
 
+    CHECK(this->chunk_index_, "Chunk index not configured");
+    CHECK(this->chunk_index_->Start(start_context, this), "Chunk index starting failed");
+
     CHECK(this->filter_chain_, "Filter chain not configured");
-    CHECK(this->filter_chain_->Start(this), "Filter chain starting failed");
+    CHECK(this->filter_chain_->Start(start_context, this), "Filter chain starting failed");
 
     CHECK(this->content_storage_, "Content Storage not configured");
     CHECK(this->content_storage_->Start(
-            this->tp_,
+            start_context,
             this->block_index_,
             this->chunk_index_,
             this->chunk_store_,
@@ -394,7 +378,7 @@ bool DedupSystem::Start(const StartContext& start_context,
         event_data.set_forced(start_context.force());
         event_data.set_dirty(start_context.dirty());
         CHECK(this->log_->CommitEvent(EVENT_TYPE_SYSTEM_START,
-                &event_data, NULL, NULL, NO_EC),
+                &event_data, NO_EC).valid(),
             "Cannot log system start event");
     }
     DEBUG("Started dedup system (startup time: " << startup_timer.GetTime() << "ms)");
@@ -412,18 +396,18 @@ bool DedupSystem::Run() {
     CHECK(this->gc_->Run(), "Cannot start gc");
     CHECK(this->idle_detector_.Run(), "Cannot run idle detection");
 
-    if (!readonly_) {
-        CHECK(this->log_->CommitEvent(EVENT_TYPE_SYSTEM_RUN, NULL, NULL, NULL, NO_EC),
-            "Cannot log system start event");
-    }
     INFO("Dedup subsystem is running");
     this->state_ = RUNNING;
     return true;
 }
 
 bool DedupSystem::Stop(const dedupv1::StopContext& stop_context) {
-    DEBUG("Stopping dedup subsystem");
     bool failed = false;
+
+    if (state_ == STOPPED) {
+      return true;
+    }
+    DEBUG("Stopping dedup subsystem");
 
     if (!this->idle_detector_.Stop(stop_context)) {
         ERROR("Cannot stop idle detection");
@@ -450,7 +434,8 @@ bool DedupSystem::Stop(const dedupv1::StopContext& stop_context) {
     // committing system.
     // By the way: I don't think that the timeout thread is a problem because
     // either the timeout thread commits a due container before the flush or the flush does it.
-    dedupv1::chunkstore::ContainerStorage* cs = dynamic_cast<dedupv1::chunkstore::ContainerStorage*>(this->storage());
+    dedupv1::chunkstore::ContainerStorage* cs =
+        dynamic_cast<dedupv1::chunkstore::ContainerStorage*>(this->storage());
     if (cs) {
         if (!cs->background_committer()->Stop(stop_context)) {
             ERROR("Failed to stop background committer");
@@ -527,7 +512,7 @@ bool DedupSystem::Stop(const dedupv1::StopContext& stop_context) {
             failed = true;
         }
     }
-
+    state_ = STOPPED;
     return !failed;
 }
 
@@ -580,6 +565,7 @@ DedupSystem::~DedupSystem() {
         delete log_;
         this->log_ = NULL;
     }
+    info_store_ = NULL;
 }
 
 ScsiResult DedupSystem::SyncCache() {
@@ -588,25 +574,6 @@ ScsiResult DedupSystem::SyncCache() {
     CHECK_RETURN(this->state_ == RUNNING,
         ScsiResult(SCSI_CHECK_CONDITION, SCSI_KEY_NOT_READY, 0x04, 0x00),
         "System not started");
-
-    DEBUG("Dedup Sync Cache");
-
-    if (disable_sync_cache_) {
-        // skip the processing
-        // we say that we do not support the message
-        return ScsiResult::kIllegalMessage;
-    }
-
-    dedupv1::base::ErrorContext ec;
-    if (chunk_store_) {
-        // TODO (dmeister): in an error we report a write error as I don't know
-        // what to really return
-        CHECK_RETURN(chunk_store_->Flush(&ec),
-            ScsiResult(SCSI_CHECK_CONDITION, SCSI_KEY_MEDIUM_ERROR, 0x0C, 0x00),
-            "Failed to flush storage");
-    } else {
-        WARNING("Chunk store not set");
-    }
 
     return ScsiResult::kOk;
 }
@@ -652,7 +619,7 @@ bool DedupSystem::FastBlockCopy(
         } else {
             CHECK(block_locks_.WriteUnlocks(locked_block_list, LOCK_LOCATION_INFO),
                 "Failed to unlock block locks");
-            ThreadUtil::Sleep(100, ThreadUtil::MILLISECONDS);
+            ThreadUtil::Sleep(100, dedupv1::base::timeunit::MILLISECONDS);
         }
     }
 
@@ -786,7 +753,8 @@ bool DedupSystem::MakeBlockRequest(
 
         this->stats_.processsed_session_count_.fetch_and_increment();
 
-        if (!this->content_storage_->WriteBlock(sess, block_request, &request_stats, last_block_request, ec)) {
+        if (!this->content_storage_->WriteBlock(sess, block_request, &request_stats,
+                last_block_request, ec)) {
             if (ec && ec->is_full()) {
                 ERROR("Write failure: request " << block_request->DebugString() <<
                     ", active requests " << this->stats_.active_session_count_ << ", reason: full");
@@ -802,13 +770,6 @@ bool DedupSystem::MakeBlockRequest(
     }
 
     request_stats.Finish(RequestStatistics::TOTAL);
-    if (request_stats.latency(RequestStatistics::TOTAL) > 1000.0) {
-        if (report_long_running_requests_) {
-            DEBUG("Long running request: " << block_request->DebugString() <<
-                ", stats " << request_stats.DebugString());
-        }
-        stats_.long_running_request_count_++;
-    }
     if (!this->idle_detector_.OnRequestEnd(
             block_request->request_type(),
             block_request->block_id(),
@@ -853,9 +814,13 @@ ScsiResult DedupSystem::MakeRequest(
             // retries
 
             if (rw == REQUEST_READ) {
-                WARNING("Retry Read: index " << request_index << ", offset " << request_offset << ", size " << size << ", retry count " << (i + 1));
+                WARNING(
+                    "Retry Read: index " << request_index << ", offset " << request_offset <<
+                    ", size " << size << ", retry count " << (i + 1));
             } else {
-                WARNING("Retry Write: index " << request_index << ", offset " <<  request_offset << ", size " << size << ", retry count " << (i + 1));
+                WARNING(
+                    "Retry Write: index " << request_index << ", offset " <<  request_offset <<
+                    ", size " << size << ", retry count " << (i + 1));
             }
 
             r = DoMakeRequest(session, rw, request_index, request_offset, size, buffer, ec);
@@ -903,13 +868,6 @@ Option<bool> DedupSystem::Throttle(int thread_id, int thread_count) {
     } else if (unlikely(b.value())) {
         throttled = true;
     }
-
-    b = this->chunk_index_->Throttle(thread_id, thread_count);
-    if (unlikely(!b.valid())) {
-        WARNING("Chunk index throttle failed");
-    } else if (unlikely(b.value())) {
-        throttled = true;
-    }
     return make_option(throttled);
 }
 
@@ -945,9 +903,13 @@ ScsiResult DedupSystem::DoMakeRequest(
     if (rw == REQUEST_READ) {
         DEBUG("Read: index " << request_index << ", offset " << request_offset << ", size " << size);
     } else {
-        DEBUG("Write: index " << request_index << ", offset " <<  request_offset << ", size " << size);
+        DEBUG(
+            "Write: index " << request_index << ", offset " <<  request_offset << ", size " << size);
     }
-    CHECK_RETURN(sess->Lock(), (rw == REQUEST_READ ? ScsiResult::kReadError : ScsiResult::kWriteError), "Failed to lock session");
+    CHECK_RETURN(
+        sess->Lock(),
+        (rw == REQUEST_READ ? ScsiResult::kReadError : ScsiResult::kWriteError),
+        "Failed to lock session");
 
     uint64_t idx = request_index;
     uint32_t request_size = 0;
@@ -1090,15 +1052,22 @@ string DedupSystem::PrintLockStatistics() {
     sstr << "{" << std::endl;
     sstr << "\"block locks\": " << this->block_locks_.PrintLockStatistics() << "," << std::endl;
 
-    sstr << "\"gc\": " << (this->gc_ ? this->gc_->PrintLockStatistics() : "null") << "," << std::endl;
+    sstr << "\"gc\": " << (this->gc_ ? this->gc_->PrintLockStatistics() : "null") << "," <<
+    std::endl;
     sstr << "\"idle\": " << this->idle_detector_.PrintLockStatistics() << "," << std::endl;
     sstr << "\"log\": " << (log_ ? this->log_->PrintLockStatistics() : "null") << "," << std::endl;
-    sstr << "\"block index\": " << (block_index_ ? this->block_index_->PrintLockStatistics() : "null") << "," << std::endl;
-    sstr << "\"chunk index\": " << (chunk_index_ ? this->chunk_index_->PrintLockStatistics() : "null") << "," << std::endl;
-    sstr << "\"chunk store\": " << (chunk_store_ ? this->chunk_store_->PrintLockStatistics() : "null") << "," << std::endl;
-    sstr << "\"filter chain\": " << (filter_chain_ ? this->filter_chain_->PrintLockStatistics() : "null") << "," << std::endl;
-    sstr << "\"volumes\": " << (volume_info_ ? this->volume_info_->PrintLockStatistics() : "null") << "," << std::endl;
-    sstr << "\"content storage\": " << (content_storage_ ? this->content_storage_->PrintLockStatistics() : "null")  << std::endl;
+    sstr << "\"block index\": " <<
+    (block_index_ ? this->block_index_->PrintLockStatistics() : "null") << "," << std::endl;
+    sstr << "\"chunk index\": " <<
+    (chunk_index_ ? this->chunk_index_->PrintLockStatistics() : "null") << "," << std::endl;
+    sstr << "\"chunk store\": " <<
+    (chunk_store_ ? this->chunk_store_->PrintLockStatistics() : "null") << "," << std::endl;
+    sstr << "\"filter chain\": " <<
+    (filter_chain_ ? this->filter_chain_->PrintLockStatistics() : "null") << "," << std::endl;
+    sstr << "\"volumes\": " <<
+    (volume_info_ ? this->volume_info_->PrintLockStatistics() : "null") << "," << std::endl;
+    sstr << "\"content storage\": " <<
+    (content_storage_ ? this->content_storage_->PrintLockStatistics() : "null")  << std::endl;
     sstr << "}" << std::endl;
     return sstr.str();
 }
@@ -1110,7 +1079,8 @@ string DedupSystem::PrintStatistics() {
     sstr.precision(3);
 
     sstr << "{" << std::endl;
-    sstr << "\"currently processed requests\": " << this->stats_.processsed_session_count_ << "," << std::endl;
+    sstr << "\"currently processed requests\": " << this->stats_.processsed_session_count_ <<
+    "," << std::endl;
     sstr << "\"active requests\": " << this->stats_.active_session_count_ << "," << std::endl;
 
     if (block_index_ && block_index_->persistent_block_index() && storage()) {
@@ -1128,12 +1098,18 @@ string DedupSystem::PrintStatistics() {
     sstr << "\"gc\": " << (this->gc_ ? this->gc_->PrintStatistics() : "null") << "," << std::endl;
     sstr << "\"idle\": " << this->idle_detector_.PrintStatistics() << "," << std::endl;
     sstr << "\"log\": " << (log_ ? this->log_->PrintStatistics() : "null") << "," << std::endl;
-    sstr << "\"block index\": " << (block_index_ ? this->block_index_->PrintStatistics() : "null") << "," << std::endl;
-    sstr << "\"chunk index\": " << (chunk_index_ ? this->chunk_index_->PrintStatistics() : "null") << "," << std::endl;
-    sstr << "\"chunk store\": " << (chunk_store_ ? this->chunk_store_->PrintStatistics() : "null") << "," << std::endl;
-    sstr << "\"filter chain\": " << (filter_chain_ ? this->filter_chain_->PrintStatistics() : "null") << "," << std::endl;
-    sstr << "\"volumes\": " << (volume_info_ ? this->volume_info_->PrintStatistics() : "null") << "," << std::endl;
-    sstr << "\"content storage\": " << (content_storage_ ? this->content_storage_->PrintStatistics() : "\null") << std::endl;
+    sstr << "\"block index\": " <<
+    (block_index_ ? this->block_index_->PrintStatistics() : "null") << "," << std::endl;
+    sstr << "\"chunk index\": " <<
+    (chunk_index_ ? this->chunk_index_->PrintStatistics() : "null") << "," << std::endl;
+    sstr << "\"chunk store\": " <<
+    (chunk_store_ ? this->chunk_store_->PrintStatistics() : "null") << "," << std::endl;
+    sstr << "\"filter chain\": " <<
+    (filter_chain_ ? this->filter_chain_->PrintStatistics() : "null") << "," << std::endl;
+    sstr << "\"volumes\": " << (volume_info_ ? this->volume_info_->PrintStatistics() : "null") <<
+    "," << std::endl;
+    sstr << "\"content storage\": " <<
+    (content_storage_ ? this->content_storage_->PrintStatistics() : "\null") << std::endl;
     sstr << "}" << std::endl;
     return sstr.str();
 }
@@ -1141,18 +1117,22 @@ string DedupSystem::PrintStatistics() {
 string DedupSystem::PrintTrace() {
     stringstream sstr;
     sstr << "{" << std::endl;
-    sstr << "\"long running request count\": " << this->stats_.long_running_request_count_ << "," << std::endl;
     sstr << "\"gc\": " << (this->gc_ ? this->gc_->PrintTrace() : "null") << "," << std::endl;
     sstr << "\"idle\": " << this->idle_detector_.PrintTrace() << "," << std::endl;
     sstr << "\"log\": " << (log_ ? this->log_->PrintTrace() : "null") << "," << std::endl;
     sstr << "\"block locks\": " << block_locks_.PrintTrace() << ", " << std::endl;
-    sstr << "\"block index\": " << (block_index_ ? this->block_index_->PrintTrace() : "null") << "," << std::endl;
-    sstr << "\"chunk index\": " << (chunk_index_ ? this->chunk_index_->PrintTrace() : "null") << "," << std::endl;
-    sstr << "\"chunk store\": " << (chunk_store_ ? this->chunk_store_->PrintTrace() : "null") << "," << std::endl;
-    sstr << "\"filter chain\": " << (filter_chain_ ? this->filter_chain_->PrintTrace() : "null") << "," << std::endl;
-    sstr << "\"volumes\": " << (volume_info_ ? this->volume_info_->PrintTrace() : "null") << "," << std::endl;
-    sstr << "\"content storage\": " << (content_storage_ ? this->content_storage_->PrintTrace() : "null") << "," << std::endl;
-    sstr << "\"threadpool\": " << (tp_ ? this->tp_->PrintTrace() : "null") << "" << std::endl;
+    sstr << "\"block index\": " << (block_index_ ? this->block_index_->PrintTrace() : "null") <<
+    "," << std::endl;
+    sstr << "\"chunk index\": " << (chunk_index_ ? this->chunk_index_->PrintTrace() : "null") <<
+    "," << std::endl;
+    sstr << "\"chunk store\": " << (chunk_store_ ? this->chunk_store_->PrintTrace() : "null") <<
+    "," << std::endl;
+    sstr << "\"filter chain\": " << (filter_chain_ ? this->filter_chain_->PrintTrace() : "null") <<
+    "," << std::endl;
+    sstr << "\"volumes\": " << (volume_info_ ? this->volume_info_->PrintTrace() : "null") << "," <<
+    std::endl;
+    sstr << "\"content storage\": " <<
+    (content_storage_ ? this->content_storage_->PrintTrace() : "null") << std::endl;
     sstr << "}" << std::endl;
     return sstr.str();
 }
@@ -1162,7 +1142,8 @@ string DedupSystem::PrintProfile() {
     sstr << "{" << std::endl;
     sstr << "\"log\": " << (log_ ? this->log_->PrintProfile() : "null") << "," << std::endl;
     sstr << "\"block locks\": " << this->block_locks_.PrintProfile() << "," << std::endl;
-    sstr << "\"average waiting latency\": " << this->stats_.average_waiting_time_.GetAverage() << "," << std::endl;
+    sstr << "\"average waiting latency\": " << this->stats_.average_waiting_time_.GetAverage() <<
+    "," << std::endl;
     sstr << "\"gc\": " << (this->gc_ ? this->gc_->PrintProfile() : "null") << "," << std::endl;
     sstr << "\"idle\": " << this->idle_detector_.PrintProfile() << "," << std::endl;
     sstr << "\"block index\": " <<
@@ -1171,11 +1152,12 @@ string DedupSystem::PrintProfile() {
     (chunk_index_ ? this->chunk_index_->PrintProfile() : "null") << "," << std::endl;
     sstr << "\"chunk store\": " <<
     (chunk_store_ ? this->chunk_store_->PrintProfile() : "null") << "," << std::endl;
-    sstr << "\"filter chain\": " << (filter_chain_ ? this->filter_chain_->PrintProfile() : "null") << "," << std::endl;
-    sstr << "\"volumes\": " << (volume_info_ ? this->volume_info_->PrintProfile() : "null") << "," << std::endl;
+    sstr << "\"filter chain\": " <<
+    (filter_chain_ ? this->filter_chain_->PrintProfile() : "null") << "," << std::endl;
+    sstr << "\"volumes\": " << (volume_info_ ? this->volume_info_->PrintProfile() : "null") <<
+    "," << std::endl;
     sstr << "\"content storage\": " <<
     (content_storage_ ? this->content_storage_->PrintProfile() : "null")  << "," << std::endl;
-    sstr << "\"threadpool\": " << (tp_ ? this->tp_->PrintProfile() : "null") << "," << std::endl;
     sstr << "\"base dedup system\":" << this->stats_.profiling_total_.GetSum() << std::endl;
     sstr << "}" << std::endl;
     return sstr.str();
@@ -1241,7 +1223,6 @@ void DedupSystem::RegisterDefaults() {
 
     dedupv1::CryptoFingerprinter::RegisterFingerprinter();
 
-    dedupv1::gc::UsageCountGarbageCollector::RegisterGC();
     dedupv1::gc::NoneGarbageCollector::RegisterGC();
 
     dedupv1::chunkindex::FullChunkIndexSamplingStrategy::RegisterStrategy();
@@ -1253,6 +1234,8 @@ void DedupSystem::RegisterDefaults() {
 
     dedupv1::chunkstore::RoundRobinContainerStorageWriteCacheStrategy::RegisterWriteCacheStrategy();
     dedupv1::chunkstore::EarliestFreeContainerStorageWriteCacheStrategy::RegisterWriteCacheStrategy();
+
+    dedupv1::log::FixedLog::RegisterLog();
 
     dedupv1::chunkindex::ChunkIndex::RegisterChunkIndex();
 }
@@ -1275,15 +1258,14 @@ void DedupSystem::ClearData() {
     if (gc_ != NULL) {
         gc_->ClearData();
     }
-    if (dynamic_cast<dedupv1::chunkstore::ContainerStorage*>(storage())) {
-        dedupv1::chunkstore::ContainerStorage* cs =
-            dynamic_cast<dedupv1::chunkstore::ContainerStorage*>(storage());
-        cs->ClearData();
+    if (chunk_store_) {
+      chunk_store_->ClearData();
     }
     block_index_->ClearData();
     chunk_index_->ClearData();
     log_->ClearData();
 }
+
 #endif
 
 }

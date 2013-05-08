@@ -190,7 +190,7 @@ bool DedupVolumeInfo::AttachVolume(DedupVolume* volume) {
     event_data.set_volume_id(volume->GetId());
     INFO("Attach volume " << volume->GetId());
 
-    CHECK(this->log_->CommitEvent(EVENT_TYPE_VOLUME_ATTACH, &event_data, NULL, NULL, NO_EC),
+    CHECK(this->log_->CommitEvent(EVENT_TYPE_VOLUME_ATTACH, &event_data, NO_EC).valid(),
         "Cannot commit volume attach for volume " << volume->GetId());
     return true;
 }
@@ -212,7 +212,7 @@ bool DedupVolumeInfo::DetachVolume(DedupVolume* volume) {
     event_data.set_volume_id(volume->GetId());
 
     INFO("Detach volume " << volume->GetId());
-    CHECK(this->log_->CommitEvent(EVENT_TYPE_VOLUME_DETACH, &event_data, NULL, NULL, NO_EC),
+    CHECK(this->log_->CommitEvent(EVENT_TYPE_VOLUME_DETACH, &event_data, NO_EC).valid(),
         "Cannot commit volume detach for volume " << volume->GetId());
     return true;
 }

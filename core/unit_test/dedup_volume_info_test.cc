@@ -121,7 +121,7 @@ TEST_F(DedupVolumeInfoTest, Register) {
 }
 
 TEST_F(DedupVolumeInfoTest, Attach) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH, _, _, _, _)).Times(4).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH, _, _)).Times(4).WillRepeatedly(Return(true));
 
     ASSERT_TRUE(volume_info->Start(&dedup_system));
 
@@ -139,7 +139,7 @@ TEST_F(DedupVolumeInfoTest, Attach) {
 }
 
 TEST_F(DedupVolumeInfoTest, Detach) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_DETACH, _, _, _, _)).Times(4).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_DETACH, _, _)).Times(4).WillRepeatedly(Return(true));
 
     ASSERT_TRUE(volume_info->Start(&dedup_system));
 

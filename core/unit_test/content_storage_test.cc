@@ -60,7 +60,6 @@ protected:
 
     DedupSystem* system;
     dedupv1::MemoryInfoStore info_store;
-    dedupv1::base::Threadpool tp;
 
     byte test_data[4][BLOCK_SIZE];
     uint64_t test_adress[4];
@@ -69,10 +68,7 @@ protected:
     Chunker* chunker;
 
     virtual void SetUp() {
-        ASSERT_TRUE(tp.SetOption("size", "8"));
-        ASSERT_TRUE(tp.Start());
-
-        system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp);
+        system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store);
         ASSERT_TRUE(system);
 
         chunker = Chunker::Factory().Create("static");

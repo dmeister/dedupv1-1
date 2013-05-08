@@ -214,7 +214,8 @@ void IdleDetector::UpdateIdleState() {
 bool IdleDetector::IdleLoop() {
     DEBUG("Starting idle thread");
     while (this->state_ == RUNNING) {
-        ThreadUtil::Sleep(idle_check_interval_);
+        ThreadUtil::Sleep(idle_check_interval_,
+            dedupv1::base::timeunit::SECONDS);
 
         UpdateIdleState();
 

@@ -32,24 +32,23 @@ namespace dedupv1 {
 class DedupSystem;
 
 class DedupSystemTest : public testing::TestWithParam<const char*>  {
-    protected:
+protected:
     USE_LOGGING_EXPECTATION();
 
     DedupSystem* system;
     dedupv1::MemoryInfoStore info_store;
-    dedupv1::base::Threadpool tp;
 
     virtual void SetUp();
     virtual void TearDown();
-    public:
-    static DedupSystem* CreateDefaultSystem(std::string config_options,
-            dedupv1::InfoStore* info_store,
-            dedupv1::base::Threadpool* tp,
-            bool start = true,
-            bool restart = false,
-	        bool crashed = false,
-            bool dirty = true,
-            bool full_replay = false);
+public:
+    static DedupSystem* CreateDefaultSystem(std::string options, dedupv1::InfoStore*);
+    static DedupSystem* CreateDefaultSystemWithOptions(std::string config_options,
+                                                       dedupv1::InfoStore* info_store,
+                                                       bool start = true,
+                                                       bool restart = false,
+                                                       bool crashed = false,
+                                                       bool dirty = true,
+                                                       bool full_replay = false);
 };
 
 };

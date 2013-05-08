@@ -60,7 +60,8 @@ Option<bool> ThrottleHelper::Throttle(
         // factor is hit. We more or less shutdown the system when that point is reached.
         if (throttle_ratio > thread_ratio) {
             throttled = true;
-            ThreadUtil::Sleep(throttle_wait_time_, ThreadUtil::MILLISECONDS);
+            ThreadUtil::Sleep(throttle_wait_time_,
+                dedupv1::base::timeunit::MILLISECONDS);
         }
 
         DEBUG("Throttling, "

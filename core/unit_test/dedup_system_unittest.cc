@@ -50,7 +50,7 @@ TEST_F(DedupSystemTest, StartWithoutConfig) {
     EXPECT_LOGGING(dedupv1::test::ERROR).Once();
 
     system = new DedupSystem();
-    ASSERT_FALSE(system->Start(StartContext(), &info_store, &tp)) << "System should not start without configuration";
+    ASSERT_FALSE(system->Start(StartContext(), &info_store)) << "System should not start without configuration";
 }
 
 TEST_F(DedupSystemTest, DoubleStart) {
@@ -59,8 +59,8 @@ TEST_F(DedupSystemTest, DoubleStart) {
     system = new DedupSystem();
     ASSERT_TRUE(system->LoadOptions("data/dedupv1_test.conf"));
 
-    ASSERT_TRUE(system->Start(StartContext(), &info_store, &tp));
-    ASSERT_FALSE(system->Start(StartContext(), &info_store, &tp));
+    ASSERT_TRUE(system->Start(StartContext(), &info_store));
+    ASSERT_FALSE(system->Start(StartContext(), &info_store));
 }
 
 TEST_F(DedupSystemTest, DoubleRun) {
@@ -69,7 +69,7 @@ TEST_F(DedupSystemTest, DoubleRun) {
     system = new DedupSystem();
     ASSERT_TRUE(system->LoadOptions("data/dedupv1_test.conf"));
 
-    ASSERT_TRUE(system->Start(StartContext(), &info_store, &tp));
+    ASSERT_TRUE(system->Start(StartContext(), &info_store));
     ASSERT_TRUE(system->Run());
     ASSERT_FALSE(system->Run());
 }
@@ -86,7 +86,7 @@ TEST_F(DedupSystemTest, RunWithoutStart) {
 TEST_F(DedupSystemTest, MakeReadRequestWithOffsetInEmptySystem) {
     system = new DedupSystem();
     ASSERT_TRUE(system->LoadOptions("data/dedupv1_test.conf"));
-    ASSERT_TRUE(system->Start(StartContext(), &info_store, &tp));
+    ASSERT_TRUE(system->Start(StartContext(), &info_store));
     ASSERT_TRUE(system->Run());
 
     byte* buffer = new byte[4096];
@@ -118,7 +118,7 @@ TEST_F(DedupSystemTest, MakeReadRequestWithOffsetInEmptySystem) {
 TEST_F(DedupSystemTest, ContainerMismatchSameRequest) {
     system = new DedupSystem();
     ASSERT_TRUE(system->LoadOptions("data/dedupv1_test.conf"));
-    ASSERT_TRUE(system->Start(StartContext(), &info_store, &tp));
+    ASSERT_TRUE(system->Start(StartContext(), &info_store));
     ASSERT_TRUE(system->Run());
 
     size_t buffer_size = system->block_size();
@@ -164,34 +164,6 @@ bool MakeSameRequestRunner(tuple<DedupSystem*, Barrier*, int> args) {
     }
     delete[] buffer;
     return true;
-}
-
-/**
- * Unit test that tests if there is not container mismatch when the same
- * chunk is written multiple times by different threads at the same time
- *
- * As long there is not Log assertion mechanism, the output of the unit test
- * has to be checked manually.
- */
-TEST_F(DedupSystemTest, ContainerMismatchMultipleThreads) {
-    system = new DedupSystem();
-    ASSERT_TRUE(system->LoadOptions("data/dedupv1_test.conf"));
-    ASSERT_TRUE(system->Start(StartContext(), &info_store, &tp));
-    ASSERT_TRUE(system->Run());
-
-    Barrier barrier(2);
-
-    Thread<bool> t1(NewRunnable(MakeSameRequestRunner, make_tuple(system, &barrier, 0)), "write thread 1");
-    Thread<bool> t2(NewRunnable(MakeSameRequestRunner, make_tuple(system, &barrier, 1)), "write thread 2");
-
-    ASSERT_TRUE(t1.Start());
-    ASSERT_TRUE(t2.Start());
-
-    bool r = false;
-    ASSERT_TRUE(t1.Join(&r));
-    ASSERT_TRUE(r) << "thread 1 exited with an error";
-    ASSERT_TRUE(t2.Join(&r));
-    ASSERT_TRUE(r) << "thread 2 exited with an error";
 }
 
 }

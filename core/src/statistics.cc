@@ -143,7 +143,7 @@ dedupv1::base::Option<bool> IndexPersistentStatistics::Exists(const std::string&
 #ifdef DEDUPV1_CORE_TEST
 void IndexPersistentStatistics::ClearData() {
     data_cleared_ = true;
-    ThreadUtil::Sleep(1, ThreadUtil::SECONDS);
+    ThreadUtil::Sleep(1, dedupv1::base::timeunit::SECONDS);
     if (this->index_) {
         delete index_;
         this->index_ = NULL;

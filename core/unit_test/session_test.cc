@@ -43,18 +43,14 @@ protected:
 
     DedupSystem* system;
     dedupv1::MemoryInfoStore info_store;
-    dedupv1::base::Threadpool tp;
 
     virtual void SetUp() {
         session = NULL;
         system = NULL;
 
-        ASSERT_TRUE(tp.SetOption("size", "8"));
-        ASSERT_TRUE(tp.Start());
-
         system = new DedupSystem();
         ASSERT_TRUE(system->LoadOptions("data/dedupv1_test.conf"));
-        ASSERT_TRUE(system->Start(StartContext(), &info_store, &tp));
+        ASSERT_TRUE(system->Start(StartContext(), &info_store));
         ASSERT_TRUE(system->Run());
 
         DedupVolume* volume = system->GetVolume(0);
