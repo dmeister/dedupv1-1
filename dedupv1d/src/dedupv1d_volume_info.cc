@@ -48,7 +48,7 @@ using dedupv1::base::LOOKUP_ERROR;
 using dedupv1::base::LOOKUP_FOUND;
 using dedupv1::base::LOOKUP_NOT_FOUND;
 using dedupv1::base::lookup_result;
-using dedupv1::base::IndexCursor;
+using dedupv1::base::IndexIterator;
 using dedupv1::base::strutil::To;
 using dedupv1::base::strutil::ToString;
 using dedupv1::base::strutil::EndsWith;
@@ -106,7 +106,6 @@ bool Dedupv1dVolumeInfo::Start(const StartContext& start_context,
     CHECK(fast_copy_->Start(start_context, info_store_), "Failed to start volume cloner");
 
     CHECK(this->info_ != NULL, "Info storage not set");
-    CHECK(this->info_->SupportsCursor(), "Index doesn't support cursor");
     CHECK(this->info_->IsPersistent(), "Volume info index should be persistent");
 
     DEBUG("Start dedupv1d volume info");
@@ -148,16 +147,13 @@ bool Dedupv1dVolumeInfo::Start(const StartContext& start_context,
         DEBUG("Found volume " << new_volume->device_name() << " (id " << new_volume->id() << ", pre configured)");
     }
 
-    IndexCursor* cursor = this->info_->CreateCursor();
+    IndexIterator* cursor = this->info_->CreateIterator();
     CHECK(cursor, "Cannot create cursor");
 
     // start dynamic volumes
-    enum lookup_result ir = cursor->First();
-    CHECK(ir != LOOKUP_ERROR, "Cannot read volume info storage");
+    VolumeInfoData volume_info;
+    enum lookup_result ir = cursor->Next(NULL, NULL, &volume_info);
     while (ir == LOOKUP_FOUND) {
-        VolumeInfoData volume_info;
-        CHECK(cursor->Get(NULL, NULL, &volume_info), "Get volume info value");
-
         Dedupv1dVolume* new_volume = new Dedupv1dVolume(false);
         CHECK(new_volume, "cannot create new volume");
         CHECK(new_volume->ParseFrom(volume_info), "Failed to configure volume: " << volume_info.DebugString());
@@ -166,9 +162,9 @@ bool Dedupv1dVolumeInfo::Start(const StartContext& start_context,
         CHECK(this->RegisterVolume(new_volume, false), "cannot register volume: " << new_volume->DebugString());
         DEBUG("Found volume " << new_volume->device_name() << " (id " << new_volume->id() << ", dynamic)");
 
-        ir = cursor->Next();
-        CHECK(ir != LOOKUP_ERROR, "Cannot read volume info storage");
+        ir = cursor->Next(NULL, NULL, &volume_info);
     }
+    CHECK(ir != LOOKUP_ERROR, "Cannot read volume info storage");
     delete cursor;
     this->started_ = true;
     return true;
@@ -340,10 +336,9 @@ bool Dedupv1dVolumeInfo::CheckNewVolume(Dedupv1dVolume* new_volume) {
     CHECK(this->target_info_, "Target info not set");
     CHECK(new_volume, "New volume not set");
 
-    bool detaching_state = false;
-    CHECK(this->detacher_->IsDetaching(new_volume->id(), &detaching_state), "Failed to check detaching state");
-
-    CHECK(!detaching_state, "Volume with id " << new_volume->id() << " is in detaching state");
+    Option<bool> b = detacher_->IsDetaching(new_volume->id());
+    CHECK(b.valid(), "Failed to check detaching state");
+    CHECK(!b.value(), "Volume with id " << new_volume->id() << " is in detaching state");
 
     CHECK(volume_name_map_.find(new_volume->device_name()) == volume_name_map_.end(),
         "Volume with name " << new_volume->device_name() << " exists already");

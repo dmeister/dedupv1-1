@@ -30,6 +30,7 @@
 #include <base/locks.h>
 #include <core/log_consumer.h>
 #include <core/log.h>
+#include <core/fixed_log.h>
 #include <base/logging.h>
 #include <base/runnable.h>
 #include <base/thread.h>
@@ -44,6 +45,7 @@ using dedupv1::base::NewRunnable;
 using dedupv1::base::Thread;
 using dedupv1::base::ThreadUtil;
 using dedupv1::log::Log;
+using dedupv1::log::FixedLog;
 using dedupv1::log::EVENT_TYPE_VOLUME_ATTACH;
 using dedupv1::log::EVENT_TYPE_VOLUME_DETACH;
 using dedupv1::IdleDetector;
@@ -73,12 +75,11 @@ protected:
         TRACE("SetUp restart is " << restart);
         EXPECT_CALL(system, info_store()).WillRepeatedly(Return(&info_store));
 
-        log = new Log();
+        log = new FixedLog();
         ASSERT_TRUE(log->SetOption("filename", "work/log"));
         ASSERT_TRUE(log->SetOption("max-log-size", "16M"));
         ASSERT_TRUE(log->SetOption("info.type", "sqlite-disk-btree"));
         ASSERT_TRUE(log->SetOption("info.filename", "work/log-info"));
-        ASSERT_TRUE(log->SetOption("info.max-item-count", "16"));
         if (restart) {
             ASSERT_TRUE(log->Start(dedupv1::StartContext(dedupv1::StartContext::NON_CREATE), &system));
         } else {
@@ -124,18 +125,18 @@ protected:
             VolumeAttachedEventData attach_data;
             attach_data.set_volume_id(1);
 
-            if (!log->CommitEvent(EVENT_TYPE_VOLUME_ATTACH, &attach_data, NULL, NULL, NO_EC)) {
+            if (!log->CommitEvent(EVENT_TYPE_VOLUME_ATTACH, &attach_data, NO_EC).valid()) {
                 return false;
             }
 
             VolumeDetachedEventData detached_data;
             detached_data.set_volume_id(1);
-            if (!log->CommitEvent(EVENT_TYPE_VOLUME_DETACH, &detached_data, NULL, NULL, NO_EC)) {
+            if (!log->CommitEvent(EVENT_TYPE_VOLUME_DETACH, &detached_data, NO_EC).valid()) {
                 return false;
             }
 
             if (s > 0) {
-                ThreadUtil::Sleep(s);
+                ThreadUtil::Sleep(s, dedupv1::base::timeunit::SECONDS);
             } else {
                 ThreadUtil::Yield();
             }

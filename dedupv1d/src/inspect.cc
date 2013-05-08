@@ -127,9 +127,9 @@ string Inspect::ShowContainerHeader(uint64_t container_id) {
         } else if (storage->state() != ContainerStorage::RUNNING && storage->state() != ContainerStorage::STARTED) {
             sstr << "\"ERROR\": \"Storage not started\"" << std::endl;
         } else {
-            Container container(container_id, storage->GetContainerSize(), false);
+            Container container(container_id, storage->container_size(), false);
 
-            enum lookup_result r = storage->ReadContainer(&container);
+            enum lookup_result r = storage->ReadContainer(&container, false);
             if (r == LOOKUP_ERROR) {
                 sstr << "\"ERROR\": \"Container " << container_id << " read failed\"" << std::endl;
             } else if (r == LOOKUP_NOT_FOUND) {
@@ -194,9 +194,9 @@ string Inspect::ShowContainer(uint64_t container_id, bytestring* fp_filter) {
         } else if (storage->state() != ContainerStorage::RUNNING && storage->state() != ContainerStorage::STARTED) {
             sstr << "\"ERROR\": \"Storage not started\"" << std::endl;
         } else {
-            Container container(container_id, storage->GetContainerSize(), false);
+            Container container(container_id, storage->container_size(), false);
 
-            enum lookup_result r = storage->ReadContainer(&container);
+            enum lookup_result r = storage->ReadContainer(&container, false);
             if (r == LOOKUP_ERROR) {
                 sstr << "\"ERROR\": \"Container " << container_id << " read failed\"" << std::endl;
             } else if (r == LOOKUP_NOT_FOUND) {
@@ -267,38 +267,6 @@ string Inspect::ShowContainer(uint64_t container_id, bytestring* fp_filter) {
             }
         }
     }
-    sstr << "}";
-    return sstr.str();
-}
-
-string PrintBlockMappingPairData(const BlockMappingPairData& data) {
-    stringstream sstr;
-    sstr << "{";
-    sstr << "\"block id\": " << data.block_id() << ",";
-    sstr << "\"version\": " << data.version_counter() << ",";
-    sstr << "\"blocks\": [";
-    for (int i = 0; i < data.items_size(); i++) {
-        if (i != 0) {
-            sstr << ",";
-        }
-        sstr << "{";
-        bytestring bs = make_bytestring(data.items(i).fp());
-        if (Fingerprinter::IsEmptyDataFingerprint(bs)) {
-            sstr << "\"chunk\": \"<empty>\",";
-        } else {
-            sstr << "\"chunk\": \"" << Fingerprinter::DebugString(data.items(i).fp()) << "\",";
-        }
-        if (data.items(i).data_address() == Storage::EMPTY_DATA_STORAGE_ADDRESS) {
-            sstr << "\"address\": \"<empty>\",";
-        } else {
-            sstr << "\"address\": \"" << data.items(i).data_address() << "\",";
-        }
-        sstr << "\"offset\": " << data.items(i).chunk_offset() << ",";
-        sstr << "\"size\": " << data.items(i).size() << ",";
-        sstr << "\"usage count modifier\": " << data.items(i).usage_count_modifier();
-        sstr << "}";
-    }
-    sstr << "]";
     sstr << "}";
     return sstr.str();
 }
@@ -402,19 +370,12 @@ string Inspect::ShowLog(uint64_t log_id) {
     Log* log = system->log();
     CHECK_RETURN_JSON(system, "Log not set");
 
-    LogEntryData log_entry;
-    bytestring log_value;
-
-    Log::log_read r = log->ReadEntry(log_id, &log_entry, &log_value, NULL);
+    LogEventData event_data;
+    Log::log_read r = log->ReadEvent(log_id, &event_data);
     CHECK_RETURN_JSON(r != Log::LOG_READ_ERROR, "Failed to read log id");
     CHECK_RETURN_JSON(r != Log::LOG_READ_PARTIAL,
         "Log id is not the first part of a partial log entry")
     CHECK_RETURN_JSON(r != Log::LOG_READ_NOENT, "Log id is empty");
-//    CHECK_RETURN_JSON(r != Log::LOG_READ_REPLAYED, "Log id is already replayed");
-
-    LogEventData event_data;
-    CHECK_RETURN_JSON(event_data.ParseFromArray(log_value.data(), log_value.size()),
-        "Failed to parse log value");
 
     enum event_type event_type = static_cast<enum event_type>(event_data.event_type());
     stringstream sstr;
@@ -424,7 +385,7 @@ string Inspect::ShowLog(uint64_t log_id) {
     sstr << "\"size\": " << event_data.ByteSize() << "," << std::endl;
     if (event_type == EVENT_TYPE_BLOCK_MAPPING_WRITTEN) {
         BlockMappingWrittenEventData data = event_data.block_mapping_written_event();
-        sstr << "\"data\": " << PrintBlockMappingPairData(data.mapping_pair());
+        sstr << "\"data\": " << PrintBlockMappingData(data.mapping());
     } else if (event_type == EVENT_TYPE_CONTAINER_COMMITED) {
         ContainerCommittedEventData data = event_data.container_committed_event();
         sstr << "\"data\": {";
@@ -434,20 +395,6 @@ string Inspect::ShowLog(uint64_t log_id) {
             sstr << "\"address\": \"" << ContainerStorage::DebugString(data.address()) << "\"";
         }
         sstr << "}";
-    } else if (event_type == dedupv1::log::EVENT_TYPE_OPHRAN_CHUNKS) {
-        OphranChunksEventData data = event_data.ophran_chunks_event();
-        sstr << "\"data\": {";
-        sstr << "\"ophran chunks\": [";
-
-        for (int i = 0; i < data.chunk_fp_size(); i++) {
-            if (i != 0) {
-                sstr << ",";
-            }
-            sstr << Fingerprinter::DebugString(data.chunk_fp(i).data(), data.chunk_fp(i).size()) << std::endl;
-        }
-        sstr << "]" << std::endl;
-        sstr << "}";
-
     } else if (event_type == EVENT_TYPE_CONTAINER_MERGED) {
         ContainerMergedEventData data = event_data.container_merged_event();
         sstr << "\"data\": {";
@@ -504,14 +451,12 @@ string Inspect::ShowChunk(const bytestring& fp) {
     CHECK_RETURN_JSON(chunk_index, "Chunk index not set");
 
     ChunkMapping mapping(fp);
-    enum lookup_result r = chunk_index->Lookup(&mapping, false, NO_EC);
+    enum lookup_result r = chunk_index->Lookup(&mapping, NO_EC);
     CHECK_RETURN_JSON(r != LOOKUP_ERROR, "Failed to lookup chunk");
     CHECK_RETURN_JSON(r != LOOKUP_NOT_FOUND, "Chunk not found: " << Fingerprinter::DebugString(fp));
     stringstream sstr;
     sstr << "{";
-    sstr << "\"data address\": " << mapping.data_address() << "," << std::endl;
-    sstr << "\"usage count\": " << mapping.usage_count() << "," << std::endl;
-    sstr << "\"usage count change log id\": " << mapping.usage_count_change_log_id() << std::endl;
+    sstr << "\"data address\": " << mapping.data_address() << std::endl;
     sstr << "}";
     return sstr.str();
 }

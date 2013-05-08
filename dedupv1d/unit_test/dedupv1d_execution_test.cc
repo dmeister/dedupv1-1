@@ -445,13 +445,13 @@ TEST_P(Dedupv1dExecutionTest, WriteOverwriteWhileIdle) {
     Thread<bool> t(NewRunnable(ds, &dedupv1d::Dedupv1d::Wait),"runner");
     t.Start();
 
-    dedupv1::base::ThreadUtil::Sleep(2, dedupv1::base::ThreadUtil::SECONDS);
+    dedupv1::base::ThreadUtil::Sleep(2, dedupv1::base::timeunit::SECONDS);
 
     std::list<std::string> fp_write =
         RunThread(NewRunnable(dedupv1d_test_write_large, ds, 5, 0UL));
     ASSERT_TRUE(fp_write.size() > 0) << "Write thread error";
 
-    dedupv1::base::ThreadUtil::Sleep(2, dedupv1::base::ThreadUtil::SECONDS);
+    dedupv1::base::ThreadUtil::Sleep(2, dedupv1::base::timeunit::SECONDS);
 
     ASSERT_TRUE(ds->dedup_system()->idle_detector()->ForceIdle(true));
 
@@ -459,7 +459,7 @@ TEST_P(Dedupv1dExecutionTest, WriteOverwriteWhileIdle) {
         fp_write = RunThread(NewRunnable(dedupv1d_test_write_large, ds, 4, 0UL));
         ASSERT_TRUE(fp_write.size() > 0) << "Write thread error";
 
-        dedupv1::base::ThreadUtil::Sleep(4, dedupv1::base::ThreadUtil::SECONDS);
+        dedupv1::base::ThreadUtil::Sleep(4, dedupv1::base::timeunit::SECONDS);
     }
 
     ASSERT_TRUE(ds->Shutdown(dedupv1::StopContext::FastStopContext())) << "Failed to shutdown dedupv1";
@@ -711,10 +711,6 @@ error:
 INSTANTIATE_TEST_CASE_P(Dedupv1dExecution,
     Dedupv1dExecutionTest,
     ::testing::Values("data/dedupv1_test.conf",
-        "data/dedupv1_test.conf;storage.compression=lz4",
-        "data/dedupv1_test.conf;storage.compression=snappy",
-        "data/dedupv1_sqlite_test.conf",
-        "data/dedupv1_leveldb_test.conf",
         "data/dedupv1_sampling_test.conf",
         "data/dedupv1_test.conf;chunking.avg-chunk-size=16K;chunking.min-chunk-size=4K;chunking.max-chunk-size=64K",
         "data/dedupv1_test.conf;chunking.avg-chunk-size=4K;chunking.min-chunk-size=1K;chunking.max-chunk-size=16K"));

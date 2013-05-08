@@ -53,7 +53,7 @@ using dedupv1::base::put_result;
 using dedupv1::base::PUT_ERROR;
 using dedupv1::base::PUT_KEEP;
 using dedupv1::chunkstore::Storage;
-using dedupv1::base::IndexCursor;
+using dedupv1::base::IndexIterator;
 using dedupv1::StartContext;
 using dedupv1::base::Index;
 using dedupv1::base::ScopedPtr;
@@ -152,10 +152,6 @@ bool Dedupv1dVolumeDetacher::DetachingThreadRunner(uint32_t volume_id) {
 bool Dedupv1dVolumeDetacher::Start(const StartContext& start_context) {
     CHECK(this->state == STATE_CREATED, "Illegal state: " << this->state);
     CHECK(this->detaching_info() != NULL, "Detached state info not set");
-    CHECK(this->detaching_info()->SupportsCursor(),
-        "Detached state info doesn't support cursors");
-    CHECK(this->detaching_info()->HasCapability(dedupv1::base::PUT_IF_ABSENT),
-        "Detached state info doesn't support put if absent operation");
     CHECK(this->detaching_info()->IsPersistent(),
         "Detached state info is not persistent");
 
@@ -175,17 +171,16 @@ bool Dedupv1dVolumeDetacher::Run() {
 
     DEBUG("Run volume detacher");
 
-    IndexCursor* cursor = this->detaching_info()->CreateCursor();
+    IndexIterator* cursor = this->detaching_info()->CreateIterator();
     CHECK(cursor, "Failed to create cursor");
-    ScopedPtr<IndexCursor> scoped_cursor(cursor); // release when exists
+    ScopedPtr<IndexIterator> scoped_cursor(cursor); // release when exists
 
     this->state = STATE_RUNNING;
-    enum lookup_result r = cursor->First();
-    while (r == LOOKUP_FOUND) {
         uint32_t volume_id = 0;
         size_t volume_id_size = sizeof(volume_id);
         VolumeInfoDetachingData detaching_data;
-        CHECK(cursor->Get(&volume_id, &volume_id_size, &detaching_data), "Failed to get index data (volume_id: " << volume_id << ")");
+    enum lookup_result r = cursor->Next(&volume_id, &volume_id_size, &detaching_data);
+    while (r == LOOKUP_FOUND) {
         CHECK(volume_id_size == sizeof(volume_id), "Illegal volume data (volume_id: " << volume_id << "; size of volume_id: " << sizeof(volume_id) << "; volume_id_size: " << volume_id_size << ")");
 
         DEBUG("Found volume in detaching state: volume id " << volume_id << ", former device name " << detaching_data.former_device_name());
@@ -194,7 +189,9 @@ bool Dedupv1dVolumeDetacher::Run() {
                                            "detacher " + dedupv1::base::strutil::ToString(volume_id));
         CHECK(t, "Memalloc for thread failed");
         this->detaching_threads_[volume_id] = t;
-        r = cursor->Next();
+
+        volume_id_size = sizeof(volume_id);
+        r = cursor->Next(&volume_id, &volume_id_size, &detaching_data);
     }
 
     for (map<uint32_t, Thread<bool>* >::iterator i = this->detaching_threads()->begin(); i != this->detaching_threads()->end(); i++) {
@@ -281,10 +278,13 @@ bool Dedupv1dVolumeDetacher::DetachVolume(const Dedupv1dVolume& volume) {
 
     // we flush the storage before we acquire this lock might cause deadlock
     // avoiding errors at other places
-    // see issue 46
     ScopedLock scoped_lock(&this->lock_);
     CHECK(scoped_lock.AcquireLock(), "Failed to acquire lock");
     CHECK(this->state != STATE_CREATED, "Illegal state " << this->state);
+
+    Option<bool> b = IsDetachingLocked(volume.id());
+    CHECK(b.valid(), "Failed to check deteching state");
+    CHECK(b.value() == false, "Volume is already in detaching state: " << volume.DebugString());
 
     VolumeInfoDetachingData detaching_data;
     detaching_data.set_volume_id(volume.id());
@@ -299,10 +299,9 @@ bool Dedupv1dVolumeDetacher::DetachVolume(const Dedupv1dVolume& volume) {
     // leave current_block_id unset
 
     int32_t volume_id_key = volume.id();
-    enum put_result r = this->detaching_info()->PutIfAbsent(&volume_id_key, sizeof(volume_id_key), detaching_data);
+    enum put_result r = this->detaching_info()->Put(&volume_id_key, sizeof(volume_id_key), detaching_data);
     CHECK(r != PUT_ERROR,
         "Failed to put volume into detaching info index: " << volume.DebugString());
-    CHECK(r != PUT_KEEP, "Volume is already in detaching state: " << volume.DebugString());
     if (state == STATE_RUNNING) {
         // start processing thread
         Thread<bool>* t = new Thread<bool>(NewRunnable(this, &Dedupv1dVolumeDetacher::DetachingThreadRunner, volume.id()),
@@ -316,19 +315,19 @@ bool Dedupv1dVolumeDetacher::DetachVolume(const Dedupv1dVolume& volume) {
     return true;
 }
 
-bool Dedupv1dVolumeDetacher::IsDetaching(uint32_t volume_id, bool* detaching_state) {
-    CHECK(detaching_state, "Detaching state not set");
-
-    ScopedLock scoped_lock(&this->lock_);
-    CHECK(scoped_lock.AcquireLock(), "Failed to acquire lock");
+Option<bool> Dedupv1dVolumeDetacher::IsDetachingLocked(uint32_t volume_id) {
     CHECK(this->state != STATE_CREATED, "Illegal state " << this->state);
 
     VolumeInfoDetachingData detaching_data;
     enum lookup_result r = this->detaching_info()->Lookup(&volume_id, sizeof(volume_id), &detaching_data);
     CHECK(r != LOOKUP_ERROR, "Failed to lookup detaching info for volume " << volume_id);
-    *detaching_state = (r == LOOKUP_FOUND);
-    CHECK(scoped_lock.ReleaseLock(), "Failed to release lock");
-    return true;
+    return make_option(r == LOOKUP_FOUND);
+}
+
+Option<bool> Dedupv1dVolumeDetacher::IsDetaching(uint32_t volume_id) {
+    ScopedLock scoped_lock(&this->lock_);
+    CHECK(scoped_lock.AcquireLock(), "Failed to acquire lock");
+    return IsDetachingLocked(volume_id);
 }
 
 bool Dedupv1dVolumeDetacher::DeclareFullyDetached(uint32_t volume_id) {

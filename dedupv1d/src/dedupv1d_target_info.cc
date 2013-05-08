@@ -43,7 +43,7 @@ using dedupv1::base::LOOKUP_ERROR;
 using dedupv1::base::LOOKUP_FOUND;
 using dedupv1::base::LOOKUP_NOT_FOUND;
 using dedupv1::base::lookup_result;
-using dedupv1::base::IndexCursor;
+using dedupv1::base::IndexIterator;
 using dedupv1::base::strutil::To;
 using dedupv1::base::strutil::ToString;
 using dedupv1::base::strutil::EndsWith;
@@ -73,7 +73,6 @@ bool Dedupv1dTargetInfo::Start(const StartContext& start_context,
     CHECK(this->started_ == false, "Target info already started");
 
     CHECK(this->info_ != NULL, "Info storage not set");
-    CHECK(this->info_->SupportsCursor(), "Index doesn't support cursor");
     CHECK(this->info_->IsPersistent(), "Target info index should be persistent");
 
     CHECK(volume_info, "Volume info not set");
@@ -109,25 +108,22 @@ bool Dedupv1dTargetInfo::Start(const StartContext& start_context,
         INFO("Found target " << new_target.name() << " (pre configured)");
     }
 
-    IndexCursor* cursor = this->info_->CreateCursor();
+    IndexIterator* cursor = this->info_->CreateIterator();
     CHECK(cursor, "Cannot create cursor");
 
     // start dynamic targets
-    enum lookup_result ir = cursor->First();
-    CHECK(ir != LOOKUP_ERROR, "Cannot read target info");
+    TargetInfoData target_info;
+    enum lookup_result ir = cursor->Next(NULL, NULL, &target_info);
     while (ir == LOOKUP_FOUND) {
-        TargetInfoData target_info;
-        CHECK(cursor->Get(NULL, NULL, &target_info), "Get target info value");
-
         Dedupv1dTarget new_target(false);
         CHECK(new_target.ParseFrom(target_info), "Failed to configure target: " << new_target.DebugString());
         CHECK(this->CheckTarget(new_target), "Target not valid: " << new_target.DebugString());
         CHECK(this->RegisterTarget(new_target), "cannot register target: " << new_target.DebugString());
         INFO("Found target " << new_target.name() << " (dynamic)");
 
-        ir = cursor->Next();
-        CHECK(ir != LOOKUP_ERROR, "Cannot read volume info storage");
+        ir = cursor->Next(NULL, NULL, &target_info);
     }
+        CHECK(ir != LOOKUP_ERROR, "Cannot read target info storage");
     delete cursor;
     this->started_ = true;
     return true;

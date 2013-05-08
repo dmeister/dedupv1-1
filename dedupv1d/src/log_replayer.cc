@@ -115,7 +115,7 @@ bool LogReplayer::TryStopReplay() {
     CHECK(scoped_lock.AcquireLock(), "Lock lock failed");
 
     if (is_replaying_) {
-        CHECK(this->log_->ReplayStop(EVENT_REPLAY_MODE_REPLAY_BG, true),
+        CHECK(this->log_->ReplayStop(EVENT_REPLAY_MODE_REPLAY_BG, true, false, true),
             "Cannot start log replay");
         is_replaying_ = false;
     }
@@ -143,13 +143,15 @@ bool LogReplayer::DoLoop() {
             replay_result = Replay(this->max_area_size_replay_log_full_);
 
             if (this->nearly_full_throttle_ > 0) {
-                ThreadUtil::Sleep(nearly_full_throttle_, ThreadUtil::MILLISECONDS);
+                ThreadUtil::Sleep(nearly_full_throttle_,
+                    dedupv1::base::timeunit::MILLISECONDS);
             }
         } else if (is_running) {
             replay_result = Replay(this->max_area_size_replay_system_idle_);
 
             if (this->throttle_ > 0) {
-                ThreadUtil::Sleep(throttle_, ThreadUtil::MILLISECONDS);
+                ThreadUtil::Sleep(throttle_,
+                    dedupv1::base::timeunit::MILLISECONDS);
             }
         } else {
             replay_result = LOG_REPLAY_NO_MORE_EVENTS;
@@ -158,7 +160,8 @@ bool LogReplayer::DoLoop() {
         if (replay_result == LOG_REPLAY_NO_MORE_EVENTS) {
             CHECK(TryStopReplay(), "Cannot stop log replay");
 
-            ThreadUtil::Sleep(check_interval_, ThreadUtil::SECONDS);
+            ThreadUtil::Sleep(check_interval_,
+                dedupv1::base::timeunit::SECONDS);
         } else if (replay_result == LOG_REPLAY_ERROR) {
             ERROR("Log replay failed. Stopping log replay");
             return false;

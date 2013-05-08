@@ -103,13 +103,11 @@ protected:
     void SetDefaultOptions(Dedupv1dTargetInfo* ti) {
         ASSERT_TRUE(ti->SetOption("type", "sqlite-disk-btree"));
         ASSERT_TRUE(ti->SetOption("filename", "work/dedupv1_target_info"));
-        ASSERT_TRUE(ti->SetOption("max-item-count", "64K"));
     }
 
     void SetDefaultOptions(Dedupv1dUserInfo* ui) {
         ASSERT_TRUE(ui->SetOption("type", "sqlite-disk-btree"));
         ASSERT_TRUE(ui->SetOption("filename", "work/dedupv1_user_info"));
-        ASSERT_TRUE(ui->SetOption("max-item-count", "64K"));
     }
 
     void Restart() {

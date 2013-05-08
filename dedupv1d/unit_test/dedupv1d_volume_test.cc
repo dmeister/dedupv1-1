@@ -50,18 +50,14 @@ protected:
 
     DedupSystem* dedup_system;
     dedupv1::MemoryInfoStore info_store;
-    dedupv1::base::Threadpool tp;
 
     virtual void SetUp() {
-        ASSERT_TRUE(tp.SetOption("size", "8"));
-        ASSERT_TRUE(tp.Start());
-
         dsv = new Dedupv1dVolume(true);
         ASSERT_TRUE(dsv);
 
         dedup_system = new DedupSystem();
-        ASSERT_TRUE(dedup_system->LoadOptions("data/dedupsystem.conf"));
-        ASSERT_TRUE(dedup_system->Start(dedupv1::StartContext(), &info_store, &tp));
+        ASSERT_TRUE(dedup_system->LoadOptions("data/dedupv1_core_test.conf"));
+        ASSERT_TRUE(dedup_system->Start(dedupv1::StartContext(), &info_store));
         ASSERT_TRUE(dedup_system->Run());
     }
 

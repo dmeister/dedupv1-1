@@ -88,7 +88,6 @@ protected:
     void SetTargetInfoOptions(Dedupv1dTargetInfo* ti) {
         ASSERT_TRUE(ti->SetOption("type", "sqlite-disk-btree"));
         ASSERT_TRUE(ti->SetOption("filename", "work/dedupv1_target_info"));
-        ASSERT_TRUE(ti->SetOption("max-item-count", "64K"));
         ASSERT_TRUE(ti->SetOption("target", "1"));
         ASSERT_TRUE(ti->SetOption("target.name", "iqn.2005-10.de.jgu:example"));
     }
@@ -112,7 +111,6 @@ protected:
     void SetDefaultOptions(Dedupv1dUserInfo* ti) {
         ASSERT_TRUE(ti->SetOption("type", "sqlite-disk-btree"));
         ASSERT_TRUE(ti->SetOption("filename", "work/dedupv1_user_info"));
-        ASSERT_TRUE(ti->SetOption("max-item-count", "64K"));
     }
 
     void Restart() {

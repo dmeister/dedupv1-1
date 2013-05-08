@@ -58,14 +58,6 @@ bool GCMonitorAdapter::ParseParam(const string& key, const string& value) {
     if (!gc) {
         return true;
     }
-    if (key == "force-processing" && value == "true") {
-        CHECK(gc->StartProcessing(), "Failed to force processing");
-        return true;
-    }
-    if (key == "force-processing" && value == "false") {
-        CHECK(gc->StopProcessing(), "Failed to force stop");
-        return true;
-    }
     return false;
 }
 
@@ -80,11 +72,6 @@ string GCMonitorAdapter::Monitor() {
         if (gc == NULL) {
             sstr << "\"ERROR\": \"GC not found\"" << std::endl;
         } else {
-            if (gc->IsProcessing()) {
-                sstr << "\"state\": \"processing\"" << std::endl;
-            } else {
-                sstr << "\"state\": \"stopped\"" << std::endl;
-            }
         }
     }
     sstr << "}";

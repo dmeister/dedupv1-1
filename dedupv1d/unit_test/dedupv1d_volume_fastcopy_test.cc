@@ -133,7 +133,7 @@ protected:
         ASSERT_TRUE(volume_info->Start(dedupv1::StartContext(), group_info, target_info, &dedup_system));
         ASSERT_TRUE(volume_info->Run());
 
-        EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+        EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
         list <pair <string, string> > options;
         options.push_back( make_pair("id", "0"));
@@ -184,13 +184,11 @@ protected:
     void SetDefaultOptions(Dedupv1dVolumeInfo* vi) {
         ASSERT_TRUE(vi->SetOption("type", "sqlite-disk-btree"));
         ASSERT_TRUE(vi->SetOption("filename", "work/dedupv1_volume_info"));
-        ASSERT_TRUE(vi->SetOption("max-item-count", "64K"));
     }
 
     void SetTargetInfoOptions(Dedupv1dTargetInfo* ti) {
         ASSERT_TRUE(ti->SetOption("type", "sqlite-disk-btree"));
         ASSERT_TRUE(ti->SetOption("filename", "work/dedupv1_target_info"));
-        ASSERT_TRUE(ti->SetOption("max-item-count", "64K"));
         ASSERT_TRUE(ti->SetOption("target", "2"));
         ASSERT_TRUE(ti->SetOption("target.name", "iqn.2010.05.example"));
         ASSERT_TRUE(ti->SetOption("target", "3"));
@@ -204,7 +202,6 @@ protected:
     void SetGroupInfoOptions(Dedupv1dGroupInfo* gi) {
         ASSERT_TRUE(gi->SetOption("type", "sqlite-disk-btree"));
         ASSERT_TRUE(gi->SetOption("filename", "work/dedupv1_group_info"));
-        ASSERT_TRUE(gi->SetOption("max-item-count", "64K"));
         ASSERT_TRUE(gi->SetOption("group", "Default"));
         ASSERT_TRUE(gi->SetOption("group", "a"));
         ASSERT_TRUE(gi->SetOption("group", "b"));

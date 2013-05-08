@@ -125,7 +125,15 @@ class Dedupv1dVolumeDetacher {
          * @return
          */
         inline std::map<uint32_t, dedupv1::base::Thread<bool>* >* detaching_threads();
-
+        /**
+         * Checks if a given volume (by id) is currently
+         * in detaching state.
+         *
+         * @param volume_id
+         * @param detaching_state
+         * @return
+         */
+        dedupv1::base::Option<bool> IsDetachingLocked(uint32_t volume_id);
     public:
         /**
          *
@@ -181,7 +189,7 @@ class Dedupv1dVolumeDetacher {
          * @param detaching_state
          * @return
          */
-        bool IsDetaching(uint32_t volume_id, bool* detaching_state);
+        dedupv1::base::Option<bool> IsDetaching(uint32_t volume_id);
 
         /**
          * Declares that a volume that is in detaching mode is fully detached.

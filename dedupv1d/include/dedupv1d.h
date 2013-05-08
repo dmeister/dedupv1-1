@@ -26,7 +26,6 @@
 #include <base/locks.h>
 #include <base/barrier.h>
 #include <base/memory_new_handler.h>
-#include <base/threadpool.h>
 #include <base/scheduler.h>
 #include <base/protected.h>
 #include <core/dedup_system.h>
@@ -64,42 +63,32 @@ class Dedupv1dUserInfo;
  * Main class for the dedupv1 daemon and all related problems.
  */
 class Dedupv1d : public dedupv1::base::memory::NewHandlerListener, public dedupv1::StatisticProvider {
-    private:
+private:
     DISALLOW_COPY_AND_ASSIGN(Dedupv1d);
     FRIEND_TEST(Dedupv1dTest, DirtyFlagAfterCrash);
-
-    /**
-     * Default size of the thread pool
-     */
-    static const uint32_t kDefaultThreadpoolSize;
-
-    public:
+public:
 
     /**
      * enumeration of the state of the dedupv1d
      */
     enum dedupv1d_state {
-        CREATED,//!< DEDUPV1_SCSI_STATE_CREATED
+        CREATED, // !< DEDUPV1_SCSI_STATE_CREATED
         STARTING,
         DIRTY_REPLAY,
-        STARTED,//!< DEDUPV1_SCSI_STATE_STARTED
-        RUNNING,//!< DEDUPV1_SCSI_STATE_RUNNING
-        STOPPED //!< DEDUPV1_SCSI_STATE_STOPPED
+        STARTED, // !< DEDUPV1_SCSI_STATE_STARTED
+        RUNNING, // !< DEDUPV1_SCSI_STATE_RUNNING
+        STOPPED // !< DEDUPV1_SCSI_STATE_STOPPED
     };
 
     /**
      * configuration states of different monitors.
      */
     enum monitor_config_state {
-        MONITOR_ENABLED, //!< MONITOR_ENABLED
-        MONITOR_DISABLED,//!< MONITOR_DISABLED
-        MONITOR_FORBIDDEN//!< MONITOR_FORBIDDEN
+        MONITOR_ENABLED, // !< MONITOR_ENABLED
+        MONITOR_DISABLED, // !< MONITOR_DISABLED
+        MONITOR_FORBIDDEN // !< MONITOR_FORBIDDEN
     };
-    private:
-    /**
-     * Threadpool to execute tasks, e.g. command handling threads
-     */
-    dedupv1::base::Threadpool threads_;
+private:
 
     /**
      * Scheduler for the scheduled execution of tasks.
@@ -263,7 +252,6 @@ class Dedupv1d : public dedupv1::base::memory::NewHandlerListener, public dedupv
      */
     double last_service_time_;
 
-
     /**
      * Reads the dirty state from the dirty file.
      * If the first read files, the system tries the backup file, but marks it dirty anyway.
@@ -282,8 +270,7 @@ class Dedupv1d : public dedupv1::base::memory::NewHandlerListener, public dedupv
 
     bool ScheduledPersistStatistics(const dedupv1::base::ScheduleContext& context);
     bool ScheduledLogUptime(const dedupv1::base::ScheduleContext& context);
-
-    public:
+public:
     /**
      * Constructor
      * @return
@@ -328,7 +315,6 @@ class Dedupv1d : public dedupv1::base::memory::NewHandlerListener, public dedupv
      * - daemon.memory-parachute: false or StorageUnit
      * - daemon.max-memory: StorageUnit
      * - monitor.*: String
-     * - threadpool.*
      * - volume-info.*
      * - target-info.*
      * - group-info.*
@@ -471,11 +457,6 @@ class Dedupv1d : public dedupv1::base::memory::NewHandlerListener, public dedupv
      */
     inline const dedupv1::StartContext& start_context() const;
 
-    /**
-     * returns the threadpool to used by the daemon
-     */
-    inline dedupv1::base::Threadpool* threadpool();
-
     virtual bool PersistStatistics();
 
     virtual bool RestoreStatistics();
@@ -517,17 +498,17 @@ class Dedupv1d : public dedupv1::base::memory::NewHandlerListener, public dedupv
     /**
      * Get the uptime of the system (seconds since last restart)
      */
-   inline double uptime() const;
+    inline double uptime() const;
 
-   /**
-    * Get the servicetime of the system (sum of all uptimes of dedupv1d on this machine)
-    */
-   inline double servicetime() const;
+    /**
+     * Get the servicetime of the system (sum of all uptimes of dedupv1d on this machine)
+     */
+    inline double servicetime() const;
 
-   /**
-    * Returns a copy of the stop context.
-    */
-   inline dedupv1::StopContext GetStopContext();
+    /**
+     * Returns a copy of the stop context.
+     */
+    inline dedupv1::StopContext GetStopContext();
 
 #ifdef DEDUPV1D_TEST
     void ClearData();
@@ -543,8 +524,9 @@ inline double Dedupv1d::uptime() const {
 }
 
 inline double Dedupv1d::servicetime() const {
-    if (last_service_time_ >= 0)
+    if (last_service_time_ >= 0) {
         return last_service_time_ + uptime();
+    }
     return -1.0;
 }
 
@@ -610,10 +592,6 @@ const dedupv1::StartContext& Dedupv1d::start_context() const {
 
 dedupv1::InfoStore* Dedupv1d::info_store() {
     return &this->info_store_;
-}
-
-dedupv1::base::Threadpool* Dedupv1d::threadpool() {
-    return &this->threads_;
 }
 
 }

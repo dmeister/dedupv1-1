@@ -42,7 +42,7 @@ using dedupv1::base::LOOKUP_FOUND;
 using dedupv1::base::LOOKUP_NOT_FOUND;
 using dedupv1::base::lookup_result;
 using dedupv1::base::Index;
-using dedupv1::base::IndexCursor;
+using dedupv1::base::IndexIterator;
 using dedupv1::base::strutil::To;
 using dedupv1::base::strutil::ToString;
 using dedupv1::base::strutil::EndsWith;
@@ -67,7 +67,6 @@ bool Dedupv1dUserInfo::Start(const StartContext& start_context) {
     CHECK(this->started_ == false, "User info already started");
 
     CHECK(this->info_ != NULL, "Info storage not set");
-    CHECK(this->info_->SupportsCursor(), "Index doesn't support cursor");
     CHECK(this->info_->IsPersistent(), "User info index should be persistent");
 
     INFO("Start dedupv1d user info");
@@ -97,25 +96,22 @@ bool Dedupv1dUserInfo::Start(const StartContext& start_context) {
         INFO("Found user " << new_user.name() << " (pre configured)");
     }
 
-    IndexCursor* cursor = this->info_->CreateCursor();
+    IndexIterator* cursor = this->info_->CreateIterator();
     CHECK(cursor, "Cannot create cursor");
 
     // start dynamic users
-    enum lookup_result ir = cursor->First();
-    CHECK(ir != LOOKUP_ERROR, "Cannot read user info");
-    while (ir == LOOKUP_FOUND) {
         UserInfoData user_info;
-        CHECK(cursor->Get(NULL, NULL, &user_info), "Get user info value");
-
+    enum lookup_result ir = cursor->Next(NULL, NULL, &user_info);
+    while (ir == LOOKUP_FOUND) {
         Dedupv1dUser new_user(false);
         CHECK(new_user.ParseFrom(user_info), "Failed to configure user: " << new_user.DebugString());
         CHECK(this->CheckUser(new_user), "User not valid: " << new_user.DebugString());
         CHECK(this->RegisterUser(new_user), "cannot register user: " << new_user.DebugString());
         INFO("Found user " << new_user.name() << " (dynamic)");
 
-        ir = cursor->Next();
-        CHECK(ir != LOOKUP_ERROR, "Cannot read volume info storage");
+        ir = cursor->Next(NULL, NULL, &user_info);
     }
+        CHECK(ir != LOOKUP_ERROR, "Cannot read user info storage");
     delete cursor;
     this->started_ = true;
     return true;

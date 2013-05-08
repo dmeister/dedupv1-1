@@ -46,11 +46,6 @@
 #include <base/index.h>
 #include <core/storage.h>
 #include <core/chunk_index.h>
-#include <base/disk_hash_index.h>
-#include <base/hash_index.h>
-#include <base/tc_hash_index.h>
-#include <base/tc_hash_mem_index.h>
-#include <base/tc_btree_index.h>
 #include <core/container_storage.h>
 #include <core/dedup_system.h>
 #include <core/dedup_volume.h>
@@ -62,7 +57,6 @@
 #include <core/static_chunker.h>
 #include <core/rabin_chunker.h>
 #include <core/fingerprinter.h>
-#include <base/threadpool.h>
 #include <base/logging.h>
 #include <base/fileutil.h>
 #include <base/callback.h>
@@ -114,7 +108,6 @@ using std::vector;
 using dedupv1::base::File;
 using dedupv1::base::Option;
 using dedupv1::base::make_option;
-using dedupv1::base::Threadpool;
 using dedupv1d::monitor::MonitorSystem;
 using dedupv1::DedupSystem;
 using dedupv1::base::strutil::ToStorageUnit;
@@ -131,8 +124,6 @@ LOGGER("Dedupv1d");
 MAKE_LOGGER(g_stats_logger, "Dedupv1dStats");
 
 namespace dedupv1d {
-
-const uint32_t Dedupv1d::kDefaultThreadpoolSize = 32;
 
 Dedupv1d::Dedupv1d() :
     dedupv1::base::memory::NewHandlerListener() {
@@ -193,9 +184,6 @@ Dedupv1d::Dedupv1d() :
 
     this->max_memory = 0;
     startup_tick_count_ = tbb::tick_count::now();
-
-    // TODO (dmeister): This should not be an set options call
-    this->threads_.SetOption("size", ToString(kDefaultThreadpoolSize));
 
     this->dedup_system_ = new DedupSystem();
     this->monitor_ = new MonitorSystem();
@@ -269,7 +257,7 @@ Option<DirtyFileData> ReadDirtyFile(const std::string& filename) {
     File* dirty_file = File::Open(filename, O_RDWR, 0);
     CHECK(dirty_file, "Unable to open dirty file: " << filename << ", error " << strerror(errno));
 
-    if (!dirty_file->ReadSizedMessage(0, &dirty_data, 8 * 4096, true)) {
+    if (!dirty_file->ReadSizedMessage(0, &dirty_data, 8 * 4096, true).valid()) {
         ERROR("Failed to read dirty file: " << filename);
         delete dirty_file;
         return false;
@@ -572,7 +560,8 @@ bool Dedupv1d::Start(const StartContext& preliminary_start_context, bool no_log_
 
     CHECK(this->info_store_.Start(start_context_), "Failed to start info store");
 
-    CHECK(this->dedup_system_->Start(start_context_, &info_store_, &threads_), "Cannot start dedup subsystem");
+    CHECK(this->dedup_system_->Start(start_context_, &info_store_),
+        "Cannot start dedup subsystem");
 
     if (this->group_info_) {
         CHECK(this->group_info_->Start(start_context_), "Cannot start group info");
@@ -590,8 +579,6 @@ bool Dedupv1d::Start(const StartContext& preliminary_start_context, bool no_log_
     }
 
     CHECK(RestoreStatistics(), "Failed to restore statistics");
-
-    CHECK(this->threads_.Start(), "Cannot start threadpool");
 
     this->state_ = DIRTY_REPLAY;
 
@@ -627,7 +614,7 @@ bool Dedupv1d::Run() {
 
     CHECK(this->dedup_system_->Run(), "Cannot run dedup system");
 
-    CHECK(this->scheduler_.Start(&threads_), "Cannot start scheduler");
+    CHECK(this->scheduler_.Start(NULL), "Cannot start scheduler");
     CHECK(this->scheduler_.Run(), "Cannot run scheduler");
 
     ScheduleOptions options(this->stats_persist_interval_);
@@ -649,14 +636,16 @@ bool Dedupv1d::Run() {
 
 bool Dedupv1d::Wait() {
     CHECK(this->state_ == RUNNING, "Illegal state: " << this->state_);
-    CHECK(this->stop_condition_lock_.AcquireLock(), "Failed to acquire stop condition lock");
+    CHECK(this->stop_condition_lock_.AcquireLock(),
+        "Failed to acquire stop condition lock");
 
     bool failed = false;
     if (!stop_condition_.ConditionWait(&stop_condition_lock_)) {
         ERROR("Cannot wait for system stop");
         failed = true;
     }
-    CHECK(this->stop_condition_lock_.ReleaseLock(), "Failed to release stop condition lock");
+    CHECK(this->stop_condition_lock_.ReleaseLock(),
+        "Failed to release stop condition lock");
     return !failed;
 }
 
@@ -700,9 +689,6 @@ Dedupv1d::~Dedupv1d() {
         delete dedup_system_;
         this->dedup_system_ = NULL;
     }
-    if (!this->threads_.Stop()) {
-        ERROR("cannot close threadpool");
-    }
     if (this->lockfile_handle_) {
         string lockfile_path = lockfile_handle_->path();
         Option<bool> exists = File::Exists(lockfile_path);
@@ -721,7 +707,8 @@ bool Dedupv1d::LoadOptions(const string& filename) {
     INFO("Load configuration from " << filename);
 
     ConfigLoader config_load(NewCallback(this, &Dedupv1d::SetOption));
-    CHECK(config_load.ProcessFile(filename), "Cannot process configuration file: " << filename);
+    CHECK(config_load.ProcessFile(filename),
+        "Cannot process configuration file: " << filename);
     this->config_data_ = config_load.config_data();
     return true;
 }
@@ -795,9 +782,6 @@ bool Dedupv1d::SetOption(const string& option_name, const string& option) {
             return this->monitor_->SetOption(monitor_name, option);
         }
         return true;
-    }
-    if (StartsWith(option_name, "threadpool.")) {
-        return this->threads_.SetOption(option_name.substr(strlen("threadpool.")), option);
     }
     if (StartsWith(option_name, "volume-info.")) {
         return this->volume_info_->SetOption(option_name.substr(strlen("volume-info.")), option);
@@ -945,10 +929,6 @@ bool Dedupv1d::Stop() {
         }
     }
 
-    if (!this->threads_.Stop()) {
-        ERROR("Cannot stop threadpool");
-        failed = true;
-    }
     if (old_state != CREATED && old_state != STARTING) {
         // we only clean the dirty state if everything has been fine up to now
         // if we use the fast shutdown, we mark the system as dirty

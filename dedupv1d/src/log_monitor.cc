@@ -66,10 +66,7 @@ string LogMonitorAdapter::Monitor() {
     if (!log) {
         return "null";
     }
-    uint64_t open_event_count = log->log_id() - log->replay_id();
-    int64_t remaining_free_log = 0;
-    CHECK_RETURN_JSON(log->GetRemainingFreeLogPlaces(&remaining_free_log),
-        "Failed to get remaining free log places");
+    int64_t open_event_count = log->log_id() - log->replay_id();
 
     sstr << "{" << std::endl;
 
@@ -80,7 +77,6 @@ string LogMonitorAdapter::Monitor() {
     }
     sstr << "\"replaying\": \"" << ToString(log_replayer_->is_replaying()) << "\"," << std::endl;
     sstr << "\"open events\": " << open_event_count << "," << std::endl;
-    sstr << "\"free event places\": " << remaining_free_log << "," << std::endl;
     sstr << "\"last message\": " << message << std::endl;
     sstr << "}" << std::endl;
 

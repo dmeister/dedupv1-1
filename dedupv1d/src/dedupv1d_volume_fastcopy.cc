@@ -146,7 +146,8 @@ bool Dedupv1dVolumeFastCopy::FastCopyThreadRunner() {
         if (!fastcopy_queue_.try_pop(target_id)) {
 
             CHECK(lock_.AcquireLock(), "Failed to acquire lock");
-            timed_bool tb = change_condition_.ConditionWaitTimeout(&lock_, kQueueRetryTimeout);
+            timed_bool tb = change_condition_.ConditionWaitTimeout(&lock_,
+                kQueueRetryTimeout, dedupv1::base::timeunit::SECONDS);
             if (tb == dedupv1::base::TIMED_FALSE) {
                 WARNING("Failed to wait for change condition");
             }

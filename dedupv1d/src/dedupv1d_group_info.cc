@@ -40,7 +40,7 @@ using dedupv1::base::LOOKUP_ERROR;
 using dedupv1::base::LOOKUP_FOUND;
 using dedupv1::base::LOOKUP_NOT_FOUND;
 using dedupv1::base::lookup_result;
-using dedupv1::base::IndexCursor;
+using dedupv1::base::IndexIterator;
 using dedupv1::base::strutil::To;
 using dedupv1::base::strutil::ToString;
 using dedupv1::base::strutil::EndsWith;
@@ -66,7 +66,6 @@ bool Dedupv1dGroupInfo::Start(const StartContext& start_context) {
     CHECK(this->started_ == false, "Group info already started");
 
     CHECK(this->info_ != NULL, "Info storage not set");
-    CHECK(this->info_->SupportsCursor(), "Index doesn't support cursor");
     CHECK(this->info_->IsPersistent(), "Group info index should be persistent");
 
     INFO("Start dedupv1d group info");
@@ -96,25 +95,22 @@ bool Dedupv1dGroupInfo::Start(const StartContext& start_context) {
         INFO("Found group " << new_group.name() << " (pre configured)");
     }
 
-    IndexCursor* cursor = this->info_->CreateCursor();
+    IndexIterator* cursor = this->info_->CreateIterator();
     CHECK(cursor, "Cannot create cursor");
 
     // start dynamic groups
-    enum lookup_result ir = cursor->First();
-    CHECK(ir != LOOKUP_ERROR, "Cannot read group info");
+    GroupInfoData group_info;
+    enum lookup_result ir = cursor->Next(NULL, NULL, &group_info);
     while (ir == LOOKUP_FOUND) {
-        GroupInfoData group_info;
-        CHECK(cursor->Get(NULL, NULL, &group_info), "Get group info value");
-
         Dedupv1dGroup new_group(false);
         CHECK(new_group.ParseFrom(group_info), "Failed to configure group: " << new_group.DebugString());
         CHECK(this->CheckGroup(new_group), "Group not valid: " << new_group.DebugString());
         CHECK(this->RegisterGroup(new_group), "Failed to register group: " << new_group.DebugString());
         INFO("Found group " << new_group.name() << " (dynamic): " << new_group.DebugString());
 
-        ir = cursor->Next();
-        CHECK(ir != LOOKUP_ERROR, "Cannot read volume info storage");
+        ir = cursor->Next(NULL, NULL, &group_info);
     }
+    CHECK(ir != LOOKUP_ERROR, "Cannot read group info storage");
     delete cursor;
     this->started_ = true;
     return true;

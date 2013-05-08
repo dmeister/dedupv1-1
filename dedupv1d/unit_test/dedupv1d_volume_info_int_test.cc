@@ -196,7 +196,7 @@ TEST_F(Dedupv1dVolumeInfoIntegrationTest, WriteDetach) {
     ASSERT_TRUE(ds->Start(dedupv1::StartContext())) << "Cannot start application";
     ASSERT_TRUE(ds->Run());
 
-    ThreadUtil::Sleep(1);
+    ThreadUtil::Sleep(1, dedupv1::base::timeunit::SECONDS);
 
     ASSERT_TRUE(ds->log_replayer()->Stop(dedupv1::StopContext())); // stop the log replayer. We manually replay the log.
 

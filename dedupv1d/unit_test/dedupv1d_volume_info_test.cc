@@ -169,13 +169,11 @@ protected:
     void SetDefaultOptions(Dedupv1dVolumeInfo* vi) {
         ASSERT_TRUE(vi->SetOption("type", "sqlite-disk-btree"));
         ASSERT_TRUE(vi->SetOption("filename", "work/dedupv1_volume_info"));
-        ASSERT_TRUE(vi->SetOption("max-item-count", "64K"));
     }
 
     void SetTargetInfoOptions(Dedupv1dTargetInfo* ti) {
         ASSERT_TRUE(ti->SetOption("type", "sqlite-disk-btree"));
         ASSERT_TRUE(ti->SetOption("filename", "work/dedupv1_target_info"));
-        ASSERT_TRUE(ti->SetOption("max-item-count", "64K"));
         ASSERT_TRUE(ti->SetOption("target", "2"));
         ASSERT_TRUE(ti->SetOption("target.name", "iqn.2010.05.example"));
         ASSERT_TRUE(ti->SetOption("target", "3"));
@@ -189,7 +187,6 @@ protected:
     void SetGroupInfoOptions(Dedupv1dGroupInfo* gi) {
         ASSERT_TRUE(gi->SetOption("type", "sqlite-disk-btree"));
         ASSERT_TRUE(gi->SetOption("filename", "work/dedupv1_group_info"));
-        ASSERT_TRUE(gi->SetOption("max-item-count", "64K"));
         ASSERT_TRUE(gi->SetOption("group", "Default"));
         ASSERT_TRUE(gi->SetOption("group", "a"));
         ASSERT_TRUE(gi->SetOption("group", "b"));
@@ -278,7 +275,7 @@ TEST_F(Dedupv1dVolumeInfoTest, PreconfiguredWithBlockSize) {
 }
 
 TEST_F(Dedupv1dVolumeInfoTest, Attach) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->Start(dedupv1::StartContext(), group_info, target_info, &dedup_system));
@@ -295,7 +292,7 @@ TEST_F(Dedupv1dVolumeInfoTest, Attach) {
 }
 
 TEST_F(Dedupv1dVolumeInfoTest, SetDefaultVolumeCommandThreadCount) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillOnce(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillOnce(Return(true));
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->SetOption("default-thread-count", "13"));
     ASSERT_TRUE(volume_info->Start(dedupv1::StartContext(), group_info, target_info, &dedup_system));
@@ -309,7 +306,7 @@ TEST_F(Dedupv1dVolumeInfoTest, SetDefaultVolumeCommandThreadCount) {
 }
 
 TEST_F(Dedupv1dVolumeInfoTest, AttachWithOwnFilterChain) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->Start(dedupv1::StartContext(), group_info, target_info, &dedup_system));
@@ -329,7 +326,7 @@ TEST_F(Dedupv1dVolumeInfoTest, AttachWithOwnFilterChain) {
 }
 
 TEST_F(Dedupv1dVolumeInfoTest, AttachPersistantAfterClose) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->Start(dedupv1::StartContext(), group_info, target_info, &dedup_system));
@@ -348,7 +345,7 @@ TEST_F(Dedupv1dVolumeInfoTest, AttachPersistantAfterClose) {
 }
 
 TEST_F(Dedupv1dVolumeInfoTest, AttachPersistantAfterCloseWithBlockSize) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->Start(dedupv1::StartContext(), group_info, target_info, &dedup_system));
@@ -368,7 +365,7 @@ TEST_F(Dedupv1dVolumeInfoTest, AttachPersistantAfterCloseWithBlockSize) {
 }
 
 TEST_F(Dedupv1dVolumeInfoTest, AttachWithGroups) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->Start(dedupv1::StartContext(), group_info, target_info, &dedup_system));
@@ -387,7 +384,7 @@ TEST_F(Dedupv1dVolumeInfoTest, AttachWithGroups) {
 }
 
 TEST_F(Dedupv1dVolumeInfoTest, AttachWithTargets) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->Start(dedupv1::StartContext(), group_info, target_info, &dedup_system));
@@ -406,7 +403,7 @@ TEST_F(Dedupv1dVolumeInfoTest, AttachWithTargets) {
 }
 
 TEST_F(Dedupv1dVolumeInfoTest, Detach) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillOnce(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillOnce(Return(true));
     EXPECT_CALL(storage, Flush(_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
@@ -419,7 +416,7 @@ TEST_F(Dedupv1dVolumeInfoTest, Detach) {
 
     Restart();
 
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_DETACH,_,_,_,_)).WillOnce(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_DETACH,_,_)).WillOnce(Return(true));
     ASSERT_TRUE(volume_info->DetachVolume(0));
 
     ASSERT_TRUE(volume_info->FindVolume(0, NULL) == NULL) << "Shouldn't find volume 0 after detach";
@@ -594,8 +591,8 @@ TEST_F(Dedupv1dVolumeInfoTest, AttachedDoubleDeviceName) {
 
 TEST_F(Dedupv1dVolumeInfoTest, ReattachWithVolumeInDetachingState) {
     EXPECT_LOGGING(dedupv1::test::ERROR).Repeatedly();
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).Times(1).WillRepeatedly(Return(true));
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_DETACH,_,_,_,_)).Times(1).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).Times(1).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_DETACH,_,_)).Times(1).WillRepeatedly(Return(true));
     EXPECT_CALL(storage, Flush(_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
@@ -616,9 +613,7 @@ TEST_F(Dedupv1dVolumeInfoTest, ReattachWithVolumeInDetachingState) {
 
     // volume is no in detaching state
     Dedupv1dVolumeDetacher* detacher = volume_info->detacher();
-    bool detaching_state = false;
-    ASSERT_TRUE(detacher->IsDetaching(1, &detaching_state));
-    ASSERT_TRUE(detaching_state);
+    ASSERT_TRUE(detacher->IsDetaching(1).value());
 
     list <pair <string, string> > options2;
     options2.push_back( make_pair("id", "1"));
@@ -630,8 +625,8 @@ TEST_F(Dedupv1dVolumeInfoTest, ReattachWithVolumeInDetachingState) {
 }
 
 TEST_F(Dedupv1dVolumeInfoTest, ReattachAfterVolumeLeftDetachingState) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).Times(2).WillRepeatedly(Return(true));
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_DETACH,_,_,_,_)).Times(1).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).Times(2).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_DETACH,_,_)).Times(1).WillRepeatedly(Return(true));
     EXPECT_CALL(storage, Flush(_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
@@ -702,8 +697,8 @@ TEST_F(Dedupv1dVolumeInfoTest, AttachDoubleToSameGroup) {
 
 TEST_F(Dedupv1dVolumeInfoTest, ReattachGroup) {
     EXPECT_LOGGING(dedupv1::test::ERROR).Repeatedly();
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_DETACH,_,_,_,_)).Times(1).WillRepeatedly(Return(true));
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).Times(2).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_DETACH,_,_)).Times(1).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).Times(2).WillRepeatedly(Return(true));
     EXPECT_CALL(storage, Flush(_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
@@ -754,8 +749,8 @@ TEST_F(Dedupv1dVolumeInfoTest, Run) {
 }
 
 TEST_F(Dedupv1dVolumeInfoTest, RunWithAttachAndDetach) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).Times(1).WillRepeatedly(Return(true));
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_DETACH,_,_,_,_)).Times(1).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).Times(1).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_DETACH,_,_)).Times(1).WillRepeatedly(Return(true));
     EXPECT_CALL(block_index, DeleteBlockInfo(_, _)).WillRepeatedly(Return(DELETE_NOT_FOUND));
     EXPECT_CALL(storage, Flush(_)).WillRepeatedly(Return(true));
 
@@ -774,17 +769,15 @@ TEST_F(Dedupv1dVolumeInfoTest, RunWithAttachAndDetach) {
     // volume is no in detaching state
 
     Dedupv1dVolumeDetacher* detacher = volume_info->detacher();
-    bool detaching_state = false;
-    ASSERT_TRUE(detacher->IsDetaching(0, &detaching_state));
-    ASSERT_TRUE(detaching_state) << "Volume 0 is not in detaching state directly after the detachment";
+    ASSERT_TRUE(detacher->IsDetaching(0).value());
     sleep(5);
 
     ASSERT_TRUE(volume_info->Stop(dedupv1::StopContext::FastStopContext()));
 }
 
 TEST_F(Dedupv1dVolumeInfoTest, RunWithAttachAndDetachWithDetachingFinish) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).Times(1).WillRepeatedly(Return(true));
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_DETACH,_,_,_,_)).Times(1).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).Times(1).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_DETACH,_,_)).Times(1).WillRepeatedly(Return(true));
     EXPECT_CALL(block_index, DeleteBlockInfo(_, _)).WillRepeatedly(Return(DELETE_NOT_FOUND));
     EXPECT_CALL(storage, Flush(_)).WillRepeatedly(Return(true));
 
@@ -816,13 +809,11 @@ TEST_F(Dedupv1dVolumeInfoTest, RunWithAttachAndDetachWithDetachingFinish) {
     sleep(6);
     ASSERT_TRUE(volume_info->Stop(dedupv1::StopContext::FastStopContext()));
 
-    bool detaching_state = false;
-    ASSERT_TRUE(detacher->IsDetaching(0, &detaching_state));
-    ASSERT_FALSE(detaching_state) << "Volume 0 should not be in detaching mode anymore";
+    ASSERT_FALSE(detacher->IsDetaching(0).value());
 }
 
 TEST_F(Dedupv1dVolumeInfoTest, AddToGroup) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->SetOption("volume.id","0"));
@@ -862,7 +853,7 @@ TEST_F(Dedupv1dVolumeInfoTest, AddToGroup) {
 }
 
 TEST_F(Dedupv1dVolumeInfoTest, AddToTarget) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->SetOption("volume.id","0"));
@@ -907,7 +898,7 @@ TEST_F(Dedupv1dVolumeInfoTest, AddToTarget) {
  * the middle of the test.
  */
 TEST_F(Dedupv1dVolumeInfoTest, AddGroupPersisting) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH, _, _,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH, _, _)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->SetOption("volume.id","0"));
@@ -956,7 +947,7 @@ TEST_F(Dedupv1dVolumeInfoTest, AddGroupPersisting) {
  * the middle of the test.
  */
 TEST_F(Dedupv1dVolumeInfoTest, AddTargetPersisting) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH, _, _,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH, _, _)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->SetOption("volume.id","0"));
@@ -999,7 +990,7 @@ TEST_F(Dedupv1dVolumeInfoTest, AddTargetPersisting) {
 
 TEST_F(Dedupv1dVolumeInfoTest, AddGroupDouble) {
     EXPECT_LOGGING(dedupv1::test::ERROR).Matches("already assigned").Once();
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->SetOption("volume.id","0"));
@@ -1022,7 +1013,7 @@ TEST_F(Dedupv1dVolumeInfoTest, AddGroupDouble) {
 
 TEST_F(Dedupv1dVolumeInfoTest, AddTargetDouble) {
     EXPECT_LOGGING(dedupv1::test::ERROR).Matches("already assigned").Once();
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->SetOption("volume.id","0"));
@@ -1045,7 +1036,7 @@ TEST_F(Dedupv1dVolumeInfoTest, AddTargetDouble) {
 
 TEST_F(Dedupv1dVolumeInfoTest, AddGroupDoubleToSameGroup) {
     EXPECT_LOGGING(dedupv1::test::ERROR).Repeatedly();
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->SetOption("volume.id","0"));
@@ -1068,7 +1059,7 @@ TEST_F(Dedupv1dVolumeInfoTest, AddGroupDoubleToSameGroup) {
 
 TEST_F(Dedupv1dVolumeInfoTest, AddTargetDoubleToSameGroup) {
     EXPECT_LOGGING(dedupv1::test::ERROR).Repeatedly();
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->SetOption("volume.id","0"));
@@ -1091,7 +1082,7 @@ TEST_F(Dedupv1dVolumeInfoTest, AddTargetDoubleToSameGroup) {
 
 TEST_F(Dedupv1dVolumeInfoTest, AddGroupToPreconfiguredVolume) {
     EXPECT_LOGGING(dedupv1::test::ERROR).Repeatedly();
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->SetOption("volume.id","0"));
@@ -1106,7 +1097,7 @@ TEST_F(Dedupv1dVolumeInfoTest, AddGroupToPreconfiguredVolume) {
 
 TEST_F(Dedupv1dVolumeInfoTest, AddTargetToPreconfiguredVolume) {
     EXPECT_LOGGING(dedupv1::test::ERROR).Repeatedly();
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->SetOption("volume.id","0"));
@@ -1121,7 +1112,7 @@ TEST_F(Dedupv1dVolumeInfoTest, AddTargetToPreconfiguredVolume) {
 
 TEST_F(Dedupv1dVolumeInfoTest, AddGroupToNonExistingVolume) {
     EXPECT_LOGGING(dedupv1::test::ERROR).Repeatedly();
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->SetOption("volume.id","0"));
@@ -1136,7 +1127,7 @@ TEST_F(Dedupv1dVolumeInfoTest, AddGroupToNonExistingVolume) {
 
 TEST_F(Dedupv1dVolumeInfoTest, AddTargetToNonExistingVolume) {
     EXPECT_LOGGING(dedupv1::test::ERROR).Repeatedly();
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->SetOption("volume.id","0"));
@@ -1150,7 +1141,7 @@ TEST_F(Dedupv1dVolumeInfoTest, AddTargetToNonExistingVolume) {
 }
 
 TEST_F(Dedupv1dVolumeInfoTest, RemoveFromGroup) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->SetOption("volume.id","0"));
@@ -1188,7 +1179,7 @@ TEST_F(Dedupv1dVolumeInfoTest, RemoveFromGroup) {
 }
 
 TEST_F(Dedupv1dVolumeInfoTest, RemoveFromTarget) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->SetOption("volume.id","0"));
@@ -1233,7 +1224,7 @@ TEST_F(Dedupv1dVolumeInfoTest, RemoveFromTarget) {
  * the middle of the test.
  */
 TEST_F(Dedupv1dVolumeInfoTest, RemoveGroupPersisting) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->SetOption("volume.id", "0"));
@@ -1274,7 +1265,7 @@ TEST_F(Dedupv1dVolumeInfoTest, RemoveGroupPersisting) {
 
 TEST_F(Dedupv1dVolumeInfoTest, RemoveGroupFromPreconfiguredVolume) {
     EXPECT_LOGGING(dedupv1::test::ERROR).Repeatedly();
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->SetOption("volume.id","0"));
@@ -1289,7 +1280,7 @@ TEST_F(Dedupv1dVolumeInfoTest, RemoveGroupFromPreconfiguredVolume) {
 
 TEST_F(Dedupv1dVolumeInfoTest, RemoveNotExistingGroup) {
     EXPECT_LOGGING(dedupv1::test::ERROR).Repeatedly();
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->SetOption("volume.id","0"));
@@ -1340,7 +1331,7 @@ TEST_F(Dedupv1dVolumeInfoTest, RemoveNotExistingGroup) {
 }
 
 TEST_F(Dedupv1dVolumeInfoTest, MaintenanceModeOutsideRunningState) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->SetOption("volume.id","0"));
@@ -1383,7 +1374,7 @@ TEST_F(Dedupv1dVolumeInfoTest, MaintenanceModeOutsideRunningState) {
  * running mode.
  */
 TEST_F(Dedupv1dVolumeInfoTest, MaintenanceModeInRunningStateWithoutRestart) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->SetOption("volume.id","0"));
@@ -1424,7 +1415,7 @@ TEST_F(Dedupv1dVolumeInfoTest, MaintenanceModeInRunningStateWithoutRestart) {
 }
 
 TEST_F(Dedupv1dVolumeInfoTest, PrintStatistics) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     SetDefaultOptions(volume_info);
     ASSERT_TRUE(volume_info->SetOption("volume.id","0"));
@@ -1453,7 +1444,7 @@ TEST_F(Dedupv1dVolumeInfoTest, PrintStatistics) {
 }
 
 TEST_F(Dedupv1dVolumeInfoTest, TargetMismatch) {
-    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_,_,_)).WillRepeatedly(Return(true));
+    EXPECT_CALL(log, CommitEvent(EVENT_TYPE_VOLUME_ATTACH,_,_)).WillRepeatedly(Return(true));
 
     // close the default target info, we need here a special config
     delete target_info;
@@ -1465,7 +1456,6 @@ TEST_F(Dedupv1dVolumeInfoTest, TargetMismatch) {
     ASSERT_TRUE(target_info);
     ASSERT_TRUE(target_info->SetOption("type", "sqlite-disk-btree"));
     ASSERT_TRUE(target_info->SetOption("filename", "work/dedupv1_target_info"));
-    ASSERT_TRUE(target_info->SetOption("max-item-count", "64K"));
     ASSERT_TRUE(target_info->SetOption("target", "1"));
     ASSERT_TRUE(target_info->SetOption("target.name", "iqn.2010-06.de.pc2:dedupv1"));
     ASSERT_TRUE(target_info->SetOption("target", "2"));
@@ -1503,7 +1493,6 @@ TEST_F(Dedupv1dVolumeInfoTest, TargetMismatch) {
     ASSERT_TRUE(target_info);
     ASSERT_TRUE(target_info->SetOption("type", "sqlite-disk-btree"));
     ASSERT_TRUE(target_info->SetOption("filename", "work/dedupv1_target_info"));
-    ASSERT_TRUE(target_info->SetOption("max-item-count", "64K"));
     ASSERT_TRUE(target_info->SetOption("target", "1"));
     ASSERT_TRUE(target_info->SetOption("target.name", "iqn.2010-06.de.pc2:dedupv1"));
     ASSERT_TRUE(target_info->SetOption("target", "2"));
