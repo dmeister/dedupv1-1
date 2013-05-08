@@ -25,7 +25,6 @@
 
 #include <base/base.h>
 #include <base/locks.h>
-#include <base/tc_hash_index.h>
 #include <base/index.h>
 #include <base/logging.h>
 

@@ -32,10 +32,7 @@
 #include <base/logging.h>
 #include <base/disk_hash_index.h>
 #include <base/hash_index.h>
-#include <base/tc_hash_index.h>
 #include <base/tc_hash_mem_index.h>
-#include <base/tc_btree_index.h>
-#include <base/tc_fixed_index.h>
 #include <base/fixed_index.h>
 #include <base/sqlite_index.h>
 #include <base/leveldb_index.h>
@@ -79,10 +76,7 @@ bytestring make_bytestring(const std::string& s) {
 void RegisterDefaults() {
     dedupv1::base::DiskHashIndex::RegisterIndex();
     dedupv1::base::HashIndex::RegisterIndex();
-    dedupv1::base::TCHashIndex::RegisterIndex();
-    dedupv1::base::TCBTreeIndex::RegisterIndex();
     dedupv1::base::TCMemHashIndex::RegisterIndex();
-    dedupv1::base::TCFixedIndex::RegisterIndex();
     dedupv1::base::FixedIndex::RegisterIndex();
     dedupv1::base::SqliteIndex::RegisterIndex();
     dedupv1::base::LeveldbIndex::RegisterIndex();
