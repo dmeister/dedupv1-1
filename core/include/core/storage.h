@@ -28,10 +28,12 @@
 #include <stdint.h>
 #include <map>
 #include <string>
+#include <list>
 
 #include <core/idle_detector.h>
 #include <core/log.h>
 #include <core/statistics.h>
+#include <core/container.h>
 
 namespace dedupv1 {
 
@@ -43,7 +45,40 @@ class DedupSystem;
  */
 namespace chunkstore {
 
-/*
+  class StorageRequest {
+  private:
+    const void* key_;
+    uint32_t key_size_;
+
+    const void* data_;
+    uint32_t data_size_;
+
+    bool is_indexed_;
+
+    uint64_t address_;
+  public:
+    StorageRequest(const void* key, uint32_t key_size,
+        const void* data, uint32_t data_size,
+        bool is_indexed);
+
+    inline const void* key() const;
+
+    inline uint32_t key_size() const;
+
+    inline const void* data() const;
+
+    inline uint32_t data_size() const;
+
+    inline bool is_indexed() const ;
+
+    inline uint64_t address() const;
+
+    inline void set_address(uint64_t a);
+
+    std::string DebugString() const;
+};
+
+ /*
  * Type for the commit state of a address
  */
 enum storage_commit_state {
@@ -125,11 +160,6 @@ public:
     virtual bool Stop(const dedupv1::StopContext& stop_context);
 
     /**
-     * Waits if the container is currently in the write cache or in the bg committer
-     */
-    virtual enum storage_commit_state IsCommittedWait(uint64_t address) = 0;
-
-    /**
      * Checks if a given address is committed or not
      * @param address
      * @return
@@ -139,10 +169,8 @@ public:
     /**
      * @return true iff ok, otherwise an error has occurred
          */
-        virtual bool WriteNew(const void* key, size_t key_size, const void* data,
-                size_t data_size,
-                bool is_indexed,
-                uint64_t* address,
+        virtual bool WriteNew(
+            std::list<StorageRequest>* requests,
                 dedupv1::base::ErrorContext* ec) = 0;
 
     /**
@@ -151,13 +179,22 @@ public:
      *
      * @return true iff ok, otherwise an error has occurred
      */
-    virtual dedupv1::base::Option<uint32_t> Read(uint64_t address,
+    virtual dedupv1::base::Option<uint32_t> ReadChunk(uint64_t address,
                                                  const void* key, size_t key_size,
                                                  void* data,
                                                  uint32_t offset,
                                                  uint32_t size,
                                                  dedupv1::base::ErrorContext* ec) = 0;
 
+    /**
+     * Do not call this method when you hold a container or a meta data lock.
+     *
+     * @param container
+     * @return
+     */
+    virtual dedupv1::base::lookup_result ReadContainer(Container* container,
+        bool use_write_cache) = 0;
+    
     /**
      * Deletes the record from the storage system.
      *
@@ -197,7 +234,41 @@ public:
     virtual uint64_t GetActiveStorageDataSize() = 0;
 
     virtual bool CheckIfFull();
+
+    virtual uint32_t container_size() const = 0;
+
+#ifdef DEDUPV1_CORE_TEST
+    virtual void ClearData();
+#endif
 };
+
+    const void* StorageRequest::key() const {
+      return key_;
+    }
+
+    uint32_t StorageRequest::key_size() const {
+      return key_size_;
+    }
+
+    const void* StorageRequest::data() const {
+      return data_;
+    }
+
+    uint32_t StorageRequest::data_size() const {
+      return data_size_;
+    }
+
+    bool StorageRequest::is_indexed() const {
+      return is_indexed_;
+    }
+
+    uint64_t StorageRequest::address() const {
+      return address_;
+    }
+
+    void StorageRequest::set_address(uint64_t a) {
+      address_ = a;
+    }
 
 }
 }

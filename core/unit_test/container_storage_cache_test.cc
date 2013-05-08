@@ -30,6 +30,7 @@
 #include <base/index.h>
 #include <core/container.h>
 #include <core/log.h>
+#include <core/fixed_log.h>
 #include <core/storage.h>
 #include <base/strutil.h>
 #include <base/logging.h>
@@ -90,14 +91,12 @@ protected:
         EXPECT_CALL(system, idle_detector()).WillRepeatedly(Return(idle_detector));
         EXPECT_CALL(system, info_store()).WillRepeatedly(Return(&info_store));
         EXPECT_CALL(system, chunk_index()).WillRepeatedly(Return(&chunk_index));
-        EXPECT_CALL(chunk_index, ChangePinningState(_,_,_)).WillRepeatedly(Return(LOOKUP_FOUND));
 
-        log = new Log();
+        log = new dedupv1::log::FixedLog();
         ASSERT_TRUE(log->SetOption("filename", "work/log"));
         ASSERT_TRUE(log->SetOption("max-log-size", "1M"));
         ASSERT_TRUE(log->SetOption("info.type", "sqlite-disk-btree"));
         ASSERT_TRUE(log->SetOption("info.filename", "work/log-info"));
-        ASSERT_TRUE(log->SetOption("info.max-item-count", "16"));
         ASSERT_TRUE(log->Start(StartContext(), &system));
         EXPECT_CALL(system, log()).WillRepeatedly(Return(log));
 
@@ -127,11 +126,9 @@ protected:
         ASSERT_TRUE(storage->SetOption("gc", "greedy"));
         ASSERT_TRUE(storage->SetOption("gc.type","sqlite-disk-btree"));
         ASSERT_TRUE(storage->SetOption("gc.filename", "work/merge-candidates"));
-        ASSERT_TRUE(storage->SetOption("gc.max-item-count", "64"));
         ASSERT_TRUE(storage->SetOption("alloc", "memory-bitmap"));
         ASSERT_TRUE(storage->SetOption("alloc.type","sqlite-disk-btree"));
         ASSERT_TRUE(storage->SetOption("alloc.filename", "work/container-bitmap"));
-        ASSERT_TRUE(storage->SetOption("alloc.max-item-count", "2K"));
     }
 
     virtual void TearDown() {
@@ -164,7 +161,7 @@ TEST_F(ContainerStorageCacheTest, Simple) {
     lookup_result lr = read_cache->GetCache(1, &cache_entry);
     ASSERT_EQ(LOOKUP_NOT_FOUND, lr);
     ASSERT_TRUE(cache_entry.is_set());
-    Container container(1, storage->GetContainerSize(), false);
+    Container container(1, storage->container_size(), false);
 
     ASSERT_TRUE(read_cache->CopyToReadCache(container, &cache_entry));
 
@@ -181,7 +178,7 @@ TEST_F(ContainerStorageCacheTest, SimpleWithReplace) {
         ASSERT_EQ(LOOKUP_NOT_FOUND, lr);
         ASSERT_TRUE(cache_entry.is_set());
 
-        Container container(i, storage->GetContainerSize(), false);
+        Container container(i, storage->container_size(), false);
 
         ASSERT_TRUE(read_cache->CopyToReadCache(container, &cache_entry));
     }
@@ -198,7 +195,7 @@ TEST_F(ContainerStorageCacheTest, GetCache) {
     lookup_result lr = read_cache->GetCache(1, &cache_entry);
     ASSERT_EQ(LOOKUP_NOT_FOUND, lr);
     ASSERT_TRUE(cache_entry.is_set());
-    Container container(1, storage->GetContainerSize(), false);
+    Container container(1, storage->container_size(), false);
     ASSERT_TRUE(read_cache->CopyToReadCache(container, &cache_entry));
 
     const Container* cache_container = NULL;
@@ -221,7 +218,7 @@ TEST_F(ContainerStorageCacheTest, CheckCacheWithUpdate) {
     ASSERT_EQ(LOOKUP_NOT_FOUND, lr);
     ASSERT_TRUE(cache_entry.is_set());
 
-    Container container(1, storage->GetContainerSize(), false);
+    Container container(1, storage->container_size(), false);
     ASSERT_TRUE(read_cache->CopyToReadCache(container, &cache_entry));
 
     lr = read_cache->CheckCache(1, &cache_container, true, true, &cache_entry);

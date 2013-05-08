@@ -59,7 +59,7 @@ LOGGER("Container");
 namespace dedupv1 {
 namespace chunkstore {
 
-bool Container::UnserializeMetadata(bool verify_checksum) {
+bool Container::UnserializeMetadata() {
     DCHECK(this->data_, "Container not inited");
 
     this->items_.clear();
@@ -67,10 +67,10 @@ bool Container::UnserializeMetadata(bool verify_checksum) {
     this->active_data_size_ = kMetaDataSize;
 
     ContainerData container_data;
-    CHECK(ParseSizedMessage(&container_data, this->data_, kMetaDataSize, verify_checksum).valid(),
+    CHECK(ParseSizedMessage(&container_data, this->data_, kMetaDataSize, true).valid(),
         "Cannot parse data: " << container_data.InitializationErrorString());
 
-    if (verify_checksum && container_data.has_checksum() && !this->metaDataOnly_) {
+    if (!this->metaDataOnly_) {
         // we can only check the checksum if we have all data
         AdlerChecksum adler;
         adler.Update(this->data_ + kMetaDataSize, this->container_size_ - kMetaDataSize);
@@ -152,7 +152,7 @@ bool Container::UnserializeMetadata(bool verify_checksum) {
     return true;
 }
 
-size_t Container::SerializeMetadata(bool calculate_checksum) {
+bool Container::SerializeMetadata() {
     DCHECK(this->data_, "Container not inited");
     DCHECK(!metaDataOnly_, "Cannot serialize metadata in metadata-only mode");
 
@@ -174,27 +174,32 @@ size_t Container::SerializeMetadata(bool calculate_checksum) {
         if (item->is_indexed()) {
           item_data->set_indexed(true);
         }
-        TRACE("" << item->DebugString() << ": " << item_data->ShortDebugString() << ", size " << item_data->ByteSize());
+        TRACE("" << item->DebugString() << ": " <<
+            item_data->ShortDebugString() << ", size " << item_data->ByteSize());
     }
 
     if (this->commit_time_ > 0) {
         container_data.set_commit_time(this->commit_time_);
     }
-    if (calculate_checksum) {
         AdlerChecksum adler;
         adler.Update(this->data_ + kMetaDataSize, this->container_size_ - kMetaDataSize);
         container_data.set_checksum(adler.checksum());
-        TRACE("Container id " << this->primary_id_ << " has now checksum " << container_data.checksum());
-    }
+        TRACE("Container id " << this->primary_id_ <<
+            " has now checksum " << container_data.checksum());
 
-    Option<size_t> meta_data_size = SerializeSizedMessage(container_data, this->data_, kMetaDataSize, calculate_checksum);
-    CHECK_RETURN(meta_data_size.valid(), 0, "Cannot serialize data: " << this->DebugString());
+    Option<size_t> meta_data_size = SerializeSizedMessage(container_data,
+        this->data_,
+        kMetaDataSize,
+        true);
+    CHECK_RETURN(meta_data_size.valid(), 0, "Cannot serialize data: " <<
+        this->DebugString());
 
-    TRACE("Container metadata: size " << meta_data_size.value() << ", items " << container_data.items_size());
+    TRACE("Container metadata: size " << meta_data_size.value() <<
+        ", items " << container_data.items_size());
 
-    return meta_data_size.value();
-
+    return true;
 }
+
 Container::Container(uint64_t id, size_t container_size, bool metadata_only) {
     this->data_ = NULL;
     this->pos_ = 0;
@@ -219,7 +224,6 @@ Container::Container(uint64_t id, size_t container_size, bool metadata_only) {
         this->stored_ = false;
         this->metaDataOnly_ = false;
         this->commit_time_ = 0;
-
     } else {
         this->data_ = new byte[kMetaDataSize];
         memset(this->data_, 0, kMetaDataSize);
@@ -298,20 +302,6 @@ bool Container::CopyRawData(const ContainerItem* item, void* dest, uint32_t chun
     DCHECK(this->data_, "Container not inited");
     CHECK(metaDataOnly_ == false, "Container has only loaded meta data");
 
-    TRACE("Read item " << item->key_string() << ":" <<
-        "offset " << item->offset_ <<
-        ", item size " << item->item_size_ <<
-        ", raw size " << item->raw_size_ <<
-        ", chunk offset " << chunk_offset <<
-        ", dest size " << size);
-    DCHECK(item->offset() + item->item_size() <= container_size_,
-        "Illegal item: " << item->DebugString());
-    DCHECK(chunk_offset + size <= item->raw_size(),
-        "Illegal item request: " <<
-        "offset " << chunk_offset <<
-        ", size " << size <<
-        ", item " << item->DebugString());
-
     ContainerItemValueData item_data;
     Option<size_t> message_size = ParseSizedMessage(&item_data, this->data_ + item->offset(), item->item_size(), false);
     CHECK(message_size.valid(), "cannot parse sized message");
@@ -320,6 +310,7 @@ bool Container::CopyRawData(const ContainerItem* item, void* dest, uint32_t chun
         ", message size " << message_size.value() <<
         ", data offset " << item->offset_ + message_size.value() <<
         ", stored sha1 " << sha1(data_ + item->offset_ + message_size.value(), item_data.on_disk_size()));
+
     size_t data_offset = item->offset_ + message_size.value();
 
     if (!item_data.has_compression() || item_data.compression() == COMPRESSION_NO) {
@@ -327,7 +318,11 @@ bool Container::CopyRawData(const ContainerItem* item, void* dest, uint32_t chun
             "Illegal item size: " << item->DebugString() <<
             ", item data " << item_data.ShortDebugString());
 
-        DCHECK(chunk_offset + size <= item_data.on_disk_size(), "Illegal destination size");
+        DCHECK(chunk_offset + size <= item_data.on_disk_size(),
+            "Illegal destination size: " <<
+            "chunk offset " << chunk_offset <<
+            ", size " << size <<
+            ", data " << item_data.ShortDebugString());
         DCHECK(data_offset + item_data.on_disk_size() <= container_size_, "Illegal source offset");
         memcpy(dest, this->data_ + data_offset + chunk_offset, size);
     } else {
@@ -414,9 +409,9 @@ bool Container::CopyItem(const Container& parent_container, const ContainerItem&
     return true;
 }
 
-bool Container::AddItem(const byte* key,
+bool Container::AddItem(const void* key,
     size_t key_size,
-    const byte* data,
+    const void* data,
     size_t data_size,
     bool is_indexed,
     Compression* comp) {
@@ -515,7 +510,7 @@ bool Container::AddItem(const byte* key,
     return true;
 }
 
-ContainerItem::ContainerItem(const byte* key, size_t key_size,
+ContainerItem::ContainerItem(const void* key, size_t key_size,
                              size_t offset,
                              size_t raw_size,
                              size_t item_size,
@@ -642,7 +637,7 @@ bool Container::Equals(const Container& container) const {
     return true;
 }
 
-bool Container::LoadFromFile(File* file, off_t offset, bool verify_checksum) {
+bool Container::LoadFromFile(File* file, off_t offset) {
     CHECK(file, "File not set");
     DCHECK(this->data_, "Container not inited");
 
@@ -665,7 +660,7 @@ bool Container::LoadFromFile(File* file, off_t offset, bool verify_checksum) {
     }
 
     uint64_t container_id = this->primary_id(); // unserialize metadata might change primary id
-    CHECK(this->UnserializeMetadata(verify_checksum), "Failed to unserialize container: " <<
+    CHECK(this->UnserializeMetadata(), "Failed to unserialize container: " <<
         "container id " << container_id <<
         ", (partially loaded) container " << this->DebugString() <<
         ", offset " << offset);
@@ -679,7 +674,7 @@ bool Container::LoadFromFile(File* file, off_t offset, bool verify_checksum) {
     return true;
 }
 
-bool Container::StoreToFile(File* file, off_t offset, bool calculate_checksum) {
+bool Container::StoreToFile(File* file, off_t offset) {
     DCHECK(file, "File not set");
     DCHECK(this->primary_id() != Storage::ILLEGAL_STORAGE_ADDRESS && this->primary_id() != Storage::EMPTY_DATA_STORAGE_ADDRESS && this->primary_id() != 0,
         "Illegal container id " << this->primary_id());
@@ -690,7 +685,7 @@ bool Container::StoreToFile(File* file, off_t offset, bool calculate_checksum) {
         this->commit_time_ = std::time(&this->commit_time_);
     }
 
-    CHECK(this->SerializeMetadata(calculate_checksum), "Cannot serialize container: " << this->DebugString());
+    CHECK(this->SerializeMetadata(), "Cannot serialize container: " << this->DebugString());
     CHECK(file->Write(offset, this->data_, this->container_size_)
         == (ssize_t) this->container_size_, "Container write failed: " << this->DebugString());
     this->stored_ = true;
@@ -845,7 +840,6 @@ std::string Container::DebugString() const {
         }
     }
     s += ", item count " + ToString(item_count());
-    s += ", total data size " + ToString(total_data_size());
     s += ", active data size " + ToString(active_data_size()) + ", position " + ToString(data_position());
     if (this->commit_time_ > 0) {
         char buf[64]; // 26 bytes should be enough

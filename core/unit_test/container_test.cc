@@ -95,7 +95,8 @@ protected:
         for (int i = 4; i < 8; i++) {
             // Use small items to avoid an overflow
             DEBUG("Add " << i << ", " << crc(test_data[i], 16 * 1024));
-            ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024, true, comp))
+            ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
+                    (byte *) test_data[i], (size_t) 16 * 1024, true, comp))
             << "Add item " << i << " failed";
         }
 
@@ -122,7 +123,8 @@ protected:
         for (int i = 0; i < count; i++) {
             // Use small items to avoid an overflow
             DEBUG("Add " << i << ": " << crc(test_data[i], 16 * 1024));
-            ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024, true, comp))
+            ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
+                    (byte *) test_data[i], (size_t) 16 * 1024, true, comp))
             << "Add item " << i << " failed";
         }
 
@@ -142,6 +144,7 @@ protected:
 
     virtual void TearDown() {
     }
+
 };
 
 TEST_F(ContainerTest, AddItem) {
@@ -150,8 +153,8 @@ TEST_F(ContainerTest, AddItem) {
         size_t old_pos = container.data_position();
         // Use small items to avoid an overflow
         ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
-              (byte *) test_data[i],
-              (size_t) 16 * 1024, true, NULL))
+                (byte *) test_data[i],
+                (size_t) 16 * 1024, true, NULL))
         << "Add item " << i << " failed";
         ASSERT_GT(container.data_position(), old_pos);
         ASSERT_EQ(container.item_count(), (uint32_t) i + 1);
@@ -175,8 +178,8 @@ TEST_F(ContainerTest, AddItemRandomFingerprints) {
         size_t old_pos = container.data_position();
         // Use small items to avoid an overflow
         ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
-              (byte *) test_data[i],
-              (size_t) 16 * 1024, true, NULL))
+                (byte *) test_data[i],
+                (size_t) 16 * 1024, true, NULL))
         << "Add item " << i << " failed";
         ASSERT_GT(container.data_position(), old_pos);
         ASSERT_EQ(container.item_count(), (uint32_t) i + 1);
@@ -192,13 +195,16 @@ TEST_F(ContainerTest, NoLineFeedInDebugString) {
     Container container(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     for (int i = 0; i < 4; i++) {
         // Use small items to avoid an overflow
-        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
+        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
+                (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
         << "Add item " << i << " failed";
     }
 
-    dedupv1::base::File* f = dedupv1::base::File::Open("work/container", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+    dedupv1::base::File* f = dedupv1::base::File::Open("work/container",
+        O_RDWR | O_CREAT,
+        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
     ASSERT_TRUE(f);
-    ASSERT_TRUE(container.StoreToFile(f, 0, true));
+    ASSERT_TRUE(container.StoreToFile(f, 0));
     delete f;
     f = NULL;
 
@@ -210,18 +216,19 @@ TEST_F(ContainerTest, SerializeContainer) {
     Container container(0, CONTAINER_SIZE, false);
     for (int i = 0; i < 4; i++) {
         // Use small items to avoid an overflow
-        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
+        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
+                (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
         << "Add item " << i << " failed";
     }
 
-    ASSERT_TRUE(container.SerializeMetadata(true));
+    ASSERT_TRUE(container.SerializeMetadata());
 
     Container container2(0, CONTAINER_SIZE, false);
 
     // Transfer data
     memcpy(container2.mutable_data(), container.mutable_data(), CONTAINER_SIZE);
 
-    container2.UnserializeMetadata(true);
+    container2.UnserializeMetadata();
     ASSERT_EQ(container2.item_count(), (uint32_t) 4);
     ASSERT_TRUE(container2.Equals(container)) << "Containers should be equal";
 }
@@ -230,7 +237,8 @@ TEST_F(ContainerTest, CopyFrom) {
     Container container(0, CONTAINER_SIZE, false);
     for (int i = 0; i < 4; i++) {
         // Use small items to avoid an overflow
-        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
+        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
+                (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
         << "Add item " << i << " failed";
     }
 
@@ -241,42 +249,50 @@ TEST_F(ContainerTest, CopyFrom) {
 }
 
 TEST_F(ContainerTest, CompressRandom) {
-    dedupv1::base::Compression* comp = dedupv1::base::Compression::NewCompression(dedupv1::base::Compression::COMPRESSION_ZLIB_1);
+    dedupv1::base::Compression* comp = dedupv1::base::Compression::NewCompression(
+        dedupv1::base::Compression::COMPRESSION_ZLIB_1);
     ASSERT_NO_FATAL_FAILURE(CompressionRandomTest(comp));
 }
 
 TEST_F(ContainerTest, CompressUnique) {
-    dedupv1::base::Compression* comp = dedupv1::base::Compression::NewCompression(dedupv1::base::Compression::COMPRESSION_ZLIB_1);
+    dedupv1::base::Compression* comp = dedupv1::base::Compression::NewCompression(
+        dedupv1::base::Compression::COMPRESSION_ZLIB_1);
     ASSERT_NO_FATAL_FAILURE(CompressionUniqueTest(comp));
 }
 
 TEST_F(ContainerTest, CompressBZ2Random) {
-    dedupv1::base::Compression* comp = dedupv1::base::Compression::NewCompression(dedupv1::base::Compression::COMPRESSION_BZ2);
+    dedupv1::base::Compression* comp = dedupv1::base::Compression::NewCompression(
+        dedupv1::base::Compression::COMPRESSION_BZ2);
     ASSERT_NO_FATAL_FAILURE(CompressionRandomTest(comp));
 }
 
 TEST_F(ContainerTest, CompressBZ2Unique) {
-    dedupv1::base::Compression* comp = dedupv1::base::Compression::NewCompression(dedupv1::base::Compression::COMPRESSION_BZ2);
+    dedupv1::base::Compression* comp = dedupv1::base::Compression::NewCompression(
+        dedupv1::base::Compression::COMPRESSION_BZ2);
     ASSERT_NO_FATAL_FAILURE(CompressionUniqueTest(comp));
 }
 
 TEST_F(ContainerTest, CompressLZ4Random) {
-    dedupv1::base::Compression* comp = dedupv1::base::Compression::NewCompression(dedupv1::base::Compression::COMPRESSION_LZ4);
+    dedupv1::base::Compression* comp = dedupv1::base::Compression::NewCompression(
+        dedupv1::base::Compression::COMPRESSION_LZ4);
     ASSERT_NO_FATAL_FAILURE(CompressionRandomTest(comp));
 }
 
 TEST_F(ContainerTest, CompressLZ4Unique) {
-    dedupv1::base::Compression* comp = dedupv1::base::Compression::NewCompression(dedupv1::base::Compression::COMPRESSION_LZ4);
+    dedupv1::base::Compression* comp = dedupv1::base::Compression::NewCompression(
+        dedupv1::base::Compression::COMPRESSION_LZ4);
     ASSERT_NO_FATAL_FAILURE(CompressionUniqueTest(comp));
 }
 
 TEST_F(ContainerTest, CompressSnappyRandom) {
-    dedupv1::base::Compression* comp = dedupv1::base::Compression::NewCompression(dedupv1::base::Compression::COMPRESSION_SNAPPY);
+    dedupv1::base::Compression* comp = dedupv1::base::Compression::NewCompression(
+        dedupv1::base::Compression::COMPRESSION_SNAPPY);
     ASSERT_NO_FATAL_FAILURE(CompressionRandomTest(comp));
 }
 
 TEST_F(ContainerTest, CompressSnappyUnique) {
-    dedupv1::base::Compression* comp = dedupv1::base::Compression::NewCompression(dedupv1::base::Compression::COMPRESSION_SNAPPY);
+    dedupv1::base::Compression* comp = dedupv1::base::Compression::NewCompression(
+        dedupv1::base::Compression::COMPRESSION_SNAPPY);
     ASSERT_NO_FATAL_FAILURE(CompressionUniqueTest(comp));
 }
 
@@ -284,20 +300,25 @@ TEST_F(ContainerTest, StoreAndLoad) {
     Container container(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     for (int i = 0; i < 4; i++) {
         // Use small items to avoid an overflow
-        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
+        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
+                (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
         << "Add item " << i << " failed";
     }
 
-    dedupv1::base::File* f = dedupv1::base::File::Open("work/container", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+    dedupv1::base::File* f = dedupv1::base::File::Open("work/container",
+        O_RDWR | O_CREAT,
+        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
     ASSERT_TRUE(f);
-    ASSERT_TRUE(container.StoreToFile(f, 0, true));
+    ASSERT_TRUE(container.StoreToFile(f, 0));
     delete f;
     f = NULL;
 
-    f = dedupv1::base::File::Open("work/container", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+    f = dedupv1::base::File::Open("work/container",
+        O_RDWR | O_CREAT,
+        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
     ASSERT_TRUE(f);
     Container container2(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
-    ASSERT_TRUE(container2.LoadFromFile(f, 0, true));
+    ASSERT_TRUE(container2.LoadFromFile(f, 0));
     delete f;
     f = NULL;
 
@@ -310,23 +331,29 @@ TEST_F(ContainerTest, AddAfterLoad) {
     Container container(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     for (int i = 0; i < 3; i++) {
         // Use small items to avoid an overflow
-        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
+        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
+                (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
         << "Add item " << i << " failed";
     }
 
-    dedupv1::base::File* f = dedupv1::base::File::Open("work/container", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+    dedupv1::base::File* f = dedupv1::base::File::Open("work/container",
+        O_RDWR | O_CREAT,
+        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
     ASSERT_TRUE(f);
-    ASSERT_TRUE(container.StoreToFile(f, 0, true));
+    ASSERT_TRUE(container.StoreToFile(f, 0));
     delete f;
     f = NULL;
 
-    f = dedupv1::base::File::Open("work/container", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+    f = dedupv1::base::File::Open("work/container",
+        O_RDWR | O_CREAT,
+        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
     ASSERT_TRUE(f);
     Container container2(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
-    ASSERT_TRUE(container2.LoadFromFile(f, 0, true));
+    ASSERT_TRUE(container2.LoadFromFile(f, 0));
 
     ASSERT_FALSE(
-        container2.AddItem((byte *) &test_fp[3], sizeof(test_fp[3]), (byte *) test_data[3], (size_t) 16 * 1024, true, NULL)) <<
+        container2.AddItem((byte *) &test_fp[3], sizeof(test_fp[3]), (byte *) test_data[3],
+            (size_t) 16 * 1024, true, NULL)) <<
     "It is not allowed to add items to an loaded container";
     delete f;
 
@@ -338,18 +365,22 @@ TEST_F(ContainerTest, AddAfterStore) {
     Container container(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     for (int i = 0; i < 3; i++) {
         // Use small items to avoid an overflow
-        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
+        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
+                (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
         << "Add item " << i << " failed";
     }
 
-    dedupv1::base::File* f = dedupv1::base::File::Open("work/container", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+    dedupv1::base::File* f = dedupv1::base::File::Open("work/container",
+        O_RDWR | O_CREAT,
+        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
     ASSERT_TRUE(f);
-    ASSERT_TRUE(container.StoreToFile(f, 0, true));
+    ASSERT_TRUE(container.StoreToFile(f, 0));
     delete f;
     f = NULL;
 
     // Add last
-    ASSERT_FALSE(container.AddItem((byte *) &test_fp[3], sizeof(test_fp[3]), (byte *) test_data[3], (size_t) 16 * 1024, true, NULL));
+    ASSERT_FALSE(container.AddItem((byte *) &test_fp[3], sizeof(test_fp[3]), (byte *) test_data[3],
+            (size_t) 16 * 1024, true, NULL));
 }
 
 TEST_F(ContainerTest, StoreMinimalChunks) {
@@ -366,7 +397,7 @@ TEST_F(ContainerTest, StoreMinimalChunks) {
         ASSERT_TRUE(container.AddItem(fp, key_size, test_data[0], data_size, true, NULL));
         i++;
     }
-    ASSERT_TRUE(container.SerializeMetadata(true));
+    ASSERT_TRUE(container.SerializeMetadata());
     ASSERT_GT(i, 500) << "A normal container should take more than 1000 chunks";
 }
 
@@ -384,7 +415,7 @@ TEST_F(ContainerTest, StoreMinimalCompressableChunks) {
         ASSERT_TRUE(container.AddItem(fp, key_size, test_data[0], data_size, true, NULL));
         i++;
     }
-    ASSERT_TRUE(container.SerializeMetadata(true));
+    ASSERT_TRUE(container.SerializeMetadata());
     ASSERT_GT(i, 750) << "A normal container should take more than 1000 chunks";
 }
 
@@ -393,7 +424,8 @@ TEST_F(ContainerTest, DeleteItem) {
                         CONTAINER_SIZE, false);
     for (int i = 0; i < 4; i++) {
         // Use small items to avoid an overflow
-        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
+        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
+                (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
         << "Add item " << i << " failed";
     }
 
@@ -414,16 +446,15 @@ TEST_F(ContainerTest, AddItemAfterDeleteItem) {
     Container container(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     for (int i = 0; i < 2; i++) {
         // Use small items to avoid an overflow
-        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024, true, NULL));
+        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
+                (byte *) test_data[i], (size_t) 16 * 1024, true, NULL));
     }
     ASSERT_TRUE(container.DeleteItem((byte *) &test_fp[1], sizeof(test_fp[1])));
     for (int i = 2; i < 4; i++) {
         // Use small items to avoid an overflow
-        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024, true, NULL));
+        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
+                (byte *) test_data[i], (size_t) 16 * 1024, true, NULL));
     }
-
-    ASSERT_GT(container.active_data_size(), 3U * (16 * 1024));
-    ASSERT_LE(container.active_data_size(), 3U * ((16 + 2) * 1024));
 
     ASSERT_TRUE(container.FindItem((byte *) &test_fp[1], sizeof(test_fp[1])) == NULL);
     ASSERT_TRUE(container.FindItem((byte *) &test_fp[1], sizeof(test_fp[1]), true) != NULL);
@@ -434,7 +465,8 @@ TEST_F(ContainerTest, ActiveDataSizeAfterStoreLoad) {
     for (int i = 0; i < 4; i++) {
         DEBUG("After adding " << (i + 1) << ": " << container.active_data_size());
         // Use small items to avoid an overflow
-        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
+        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
+                (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
         << "Add item " << i << " failed";
     }
     DEBUG("After adding all" << container.active_data_size());
@@ -442,16 +474,18 @@ TEST_F(ContainerTest, ActiveDataSizeAfterStoreLoad) {
     uint32_t old_active_data_size = container.active_data_size();
     ASSERT_GT(old_active_data_size,  4U * 16 * 1024); // no compression for this test, please
 
-    dedupv1::base::File* f = dedupv1::base::File::Open("work/container", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+    dedupv1::base::File* f = dedupv1::base::File::Open("work/container",
+        O_RDWR | O_CREAT,
+        S_IRUSR | S_IWUSR);
     ASSERT_TRUE(f);
-    ASSERT_TRUE(container.StoreToFile(f, 0, true));
+    ASSERT_TRUE(container.StoreToFile(f, 0));
     delete f;
     f = NULL;
 
     f = dedupv1::base::File::Open("work/container", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
     ASSERT_TRUE(f);
     Container container2(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
-    ASSERT_TRUE(container2.LoadFromFile(f, 0, true));
+    ASSERT_TRUE(container2.LoadFromFile(f, 0));
     delete f;
     f = NULL;
 
@@ -463,7 +497,8 @@ TEST_F(ContainerTest, DeleteItemAfterLoad) {
     Container container(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     for (int i = 0; i < 4; i++) {
         // Use small items to avoid an overflow
-        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
+        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
+                (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
         << "Add item " << i << " failed";
     }
 
@@ -472,16 +507,18 @@ TEST_F(ContainerTest, DeleteItemAfterLoad) {
 
     ASSERT_TRUE(container.DeleteItem((byte *) &test_fp[2], sizeof(test_fp[2])));
 
-    dedupv1::base::File* f = dedupv1::base::File::Open("work/container", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+    dedupv1::base::File* f = dedupv1::base::File::Open("work/container",
+        O_RDWR | O_CREAT,
+        S_IRUSR | S_IWUSR);
     ASSERT_TRUE(f);
-    ASSERT_TRUE(container.StoreToFile(f, 0, true));
+    ASSERT_TRUE(container.StoreToFile(f, 0));
     delete f;
     f = NULL;
 
     f = dedupv1::base::File::Open("work/container", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
     ASSERT_TRUE(f);
     Container container2(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
-    ASSERT_TRUE(container2.LoadFromFile(f, 0, true));
+    ASSERT_TRUE(container2.LoadFromFile(f, 0));
     delete f;
     f = NULL;
 
@@ -496,14 +533,16 @@ TEST_F(ContainerTest, MergeContainer) {
     Container container1(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     for (int i = 0; i < 2; i++) {
         // Use small items to avoid an overflow
-        ASSERT_TRUE(container1.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
+        ASSERT_TRUE(container1.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
+                (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
         << "Add item " << i << " failed";
     }
 
     Container container2(Container::kLeastValidContainerId + 1, CONTAINER_SIZE, false);
     for (int i = 2; i < 4; i++) {
         // Use small items to avoid an overflow
-        ASSERT_TRUE(container2.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
+        ASSERT_TRUE(container2.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
+                (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
         << "Add item " << i << " failed";
     }
 
@@ -531,14 +570,16 @@ TEST_F(ContainerTest, MergeContainerSwitched) {
     Container container1(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     for (int i = 0; i < 2; i++) {
         // Use small items to avoid an overflow
-        ASSERT_TRUE(container1.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
+        ASSERT_TRUE(container1.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
+                (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
         << "Add item " << i << " failed";
     }
 
     Container container2(Container::kLeastValidContainerId + 1, CONTAINER_SIZE, false);
     for (int i = 2; i < 4; i++) {
         // Use small items to avoid an overflow
-        ASSERT_TRUE(container2.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
+        ASSERT_TRUE(container2.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
+                (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
         << "Add item " << i << " failed";
     }
 
@@ -568,20 +609,23 @@ TEST_F(ContainerTest, LoadOnlyMetaData) {
     Container container(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     for (int i = 0; i < 3; i++) {
         // Use small items to avoid an overflow
-        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
+        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
+                (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
         << "Add item " << i << " failed";
     }
 
-    dedupv1::base::File* f = dedupv1::base::File::Open("work/container", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+    dedupv1::base::File* f = dedupv1::base::File::Open("work/container",
+        O_RDWR | O_CREAT,
+        S_IRUSR | S_IWUSR);
     ASSERT_TRUE(f);
-    ASSERT_TRUE(container.StoreToFile(f, 0, true));
+    ASSERT_TRUE(container.StoreToFile(f, 0));
     delete f;
     f = NULL;
 
     f = dedupv1::base::File::Open("work/container", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
     ASSERT_TRUE(f);
     Container container2(Container::kLeastValidContainerId, CONTAINER_SIZE, true);
-    ASSERT_TRUE(container2.LoadFromFile(f, 0, true));
+    ASSERT_TRUE(container2.LoadFromFile(f, 0));
 
     ContainerItem* item = container2.FindItem((byte *) &test_fp[0], sizeof(test_fp[0]));
     ASSERT_TRUE(item) << "Should find the item";
@@ -589,8 +633,8 @@ TEST_F(ContainerTest, LoadOnlyMetaData) {
 
     byte result[16 * 1024];
     memset(result, 0, 16 * 1024);
-    ASSERT_FALSE(container2.CopyRawData(item, result, 0, 16 * 1024)) << "Data access should fail in metadata mode";
-
+    ASSERT_FALSE(container2.CopyRawData(item, result, 0, 16 *
+            1024)) << "Data access should fail in metadata mode";
     delete f;
     f = NULL;
 }
@@ -599,7 +643,8 @@ TEST_F(ContainerTest, CopyFromMetaData) {
     Container container(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
     for (int i = 0; i < 3; i++) {
         // Use small items to avoid an overflow
-        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
+        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
+                (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
         << "Add item " << i << " failed";
     }
 
@@ -616,14 +661,17 @@ TEST_F(ContainerTest, CommitTime) {
 
     for (int i = 0; i < 4; i++) {
         // Use small items to avoid an overflow
-        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]), (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
+        ASSERT_TRUE(container.AddItem((byte *) &test_fp[i], sizeof(test_fp[i]),
+                (byte *) test_data[i], (size_t) 16 * 1024, true, NULL))
         << "Add item " << i << " failed";
     }
     ASSERT_EQ(container.commit_time(), 0) << "Commit time should not be set now";
 
-    dedupv1::base::File* f = dedupv1::base::File::Open("work/container", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+    dedupv1::base::File* f = dedupv1::base::File::Open("work/container",
+        O_RDWR | O_CREAT,
+        S_IRUSR | S_IWUSR);
     ASSERT_TRUE(f);
-    ASSERT_TRUE(container.StoreToFile(f, 0, true));
+    ASSERT_TRUE(container.StoreToFile(f, 0));
     delete f;
     f = NULL;
 
@@ -633,7 +681,7 @@ TEST_F(ContainerTest, CommitTime) {
     f = dedupv1::base::File::Open("work/container", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
     ASSERT_TRUE(f);
     Container container2(Container::kLeastValidContainerId, CONTAINER_SIZE, false);
-    ASSERT_TRUE(container2.LoadFromFile(f, 0, true));
+    ASSERT_TRUE(container2.LoadFromFile(f, 0));
     ASSERT_EQ(container2.commit_time(), t) << "Commit time should be preserved";
 
     delete f;

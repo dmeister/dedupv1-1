@@ -144,8 +144,10 @@ class ContainerStorageWriteCache : public dedupv1::StatisticProvider {
      * @param write_lock
      * @return
      */
-    dedupv1::base::lookup_result GetWriteCacheContainer(uint64_t address, Container** write_container,
-            dedupv1::base::ReadWriteLock** write_cache_lock, bool write_lock);
+    dedupv1::base::lookup_result GetWriteCacheContainer(uint64_t address,
+        Container** write_container,
+            dedupv1::base::ReadWriteLock** write_cache_lock,
+            bool write_lock);
 
     /**
      * The write cache lock is acquired when the method returns successfully.
@@ -165,7 +167,8 @@ class ContainerStorageWriteCache : public dedupv1::StatisticProvider {
      * @param write_cache_lock
      * @return
      */
-    bool GetWriteCacheContainerByIndex(int index, Container** write_container,
+    bool GetWriteCacheContainerByIndex(int index,
+        Container** write_container,
             dedupv1::base::ReadWriteLock** write_cache_lock);
 
     inline std::vector<Container*>& GetCache();

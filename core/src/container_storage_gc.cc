@@ -150,8 +150,8 @@ bool GreedyContainerGCStrategy::Start(const StartContext& start_context, Contain
     touched_set_.SetSeconds(this->eviction_timeout_);
 
     this->storage_ = storage;
-    container_size_ = storage->GetContainerSize();
-    container_data_size_ = storage->GetContainerSize() - Container::kMetaDataSize;
+    container_size_ = storage->container_size();
+    container_data_size_ = storage->container_size() - Container::kMetaDataSize;
 
     if (merge_candidate_data_size_threshold_ == 0) {
         this->merge_candidate_data_size_threshold_ = (0.40 * container_data_size_);

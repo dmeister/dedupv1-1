@@ -34,16 +34,11 @@ class MockStorage : public dedupv1::chunkstore::Storage {
         MOCK_METHOD2(Start, bool(const dedupv1::StartContext& start_context, dedupv1::DedupSystem* system));
         MOCK_METHOD0(Stop, bool());
 
-        MOCK_METHOD1(IsCommittedWait, dedupv1::chunkstore::storage_commit_state(uint64_t address));
         MOCK_METHOD1(IsCommitted, dedupv1::chunkstore::storage_commit_state(uint64_t address));
+        MOCK_METHOD2(WriteNew, bool(std::list<dedupv1::chunkstore::StorageRequest>*,
+              dedupv1::base::ErrorContext* ec));
 
-        MOCK_METHOD7(WriteNew, bool(const void* key, size_t key_size, const void* data,
-                size_t data_size,
-                bool is_indexed,
-                uint64_t* address,
-                dedupv1::base::ErrorContext* ec));
-
-        MOCK_METHOD7(Read, dedupv1::base::Option<uint32_t>(uint64_t address,
+        MOCK_METHOD7(ReadChunk, dedupv1::base::Option<uint32_t>(uint64_t address,
               const void* key, size_t key_size,
                 void* data,
                 uint32_t offset,
@@ -58,7 +53,12 @@ class MockStorage : public dedupv1::chunkstore::Storage {
               dedupv1::base::ErrorContext* ec));
         MOCK_METHOD1(Flush, bool(dedupv1::base::ErrorContext* ec));
 
+        MOCK_METHOD2(ReadContainer, dedupv1::base::lookup_result(dedupv1::chunkstore::Container* container,
+              bool use_write_cache));
+
         MOCK_METHOD0(GetActiveStorageDataSize, uint64_t());
+
+        MOCK_CONST_METHOD0(container_size, uint32_t());
 };
 
 #endif /* STORAGE_MOCK_H_ */

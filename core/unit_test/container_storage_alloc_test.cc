@@ -93,16 +93,12 @@ protected:
     ContainerStorage* storage;
     DedupSystem* system;
     dedupv1::MemoryInfoStore info_store;
-    dedupv1::base::Threadpool tp;
 
     byte test_data[16][TEST_DATA_SIZE];
     uint64_t test_adress[164];
     uint64_t test_fp[16];
 
     virtual void SetUp() {
-        ASSERT_TRUE(tp.SetOption("size", "8"));
-        ASSERT_TRUE(tp.Start());
-
         system = NULL;
         storage = NULL;
         alloc = NULL;
@@ -117,7 +113,7 @@ protected:
     }
 
     void CreateSystem(const std::string& configuration) {
-        system = dedupv1::DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp);
+        system = dedupv1::DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store);
         ASSERT_TRUE(system);
 
         storage = dynamic_cast<ContainerStorage*>(system->storage());
@@ -134,7 +130,8 @@ protected:
         alloc = NULL;
         storage = NULL;
 
-        system = dedupv1::DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, true);
+        system = dedupv1::DedupSystemTest::CreateDefaultSystemWithOptions(
+            GetParam(), &info_store, true, true);
         ASSERT_TRUE(system);
 
         storage = dynamic_cast<ContainerStorage*>(system->storage());
@@ -157,9 +154,9 @@ protected:
         for (int i = 0; i < count; i++) {
             // Use small items to avoid an overflow
             ASSERT_TRUE(container->AddItem((byte *) &test_fp[begin + i],
-                  sizeof(test_fp[begin + i]),
-                  (byte *) test_data[begin + i], (size_t) 16 * 1024,
-                  true, NULL))
+                    sizeof(test_fp[begin + i]),
+                    (byte *) test_data[begin + i], (size_t) 16 * 1024,
+                    true, NULL))
             << "Add item " << begin + i << " failed";
         }
     }
@@ -266,7 +263,7 @@ TEST_P(MemoryBitmapAllocatorTest, Overflow) {
     }
 
     for (int i = 0; i < 32; i++) {
-        ASSERT_TRUE(alloc->FreeAddress(address_map[i], false));
+        ASSERT_TRUE(alloc->FreeAddress(address_map[i]));
 
         DEBUG("Free count " << alloc->free_count());
     }
@@ -317,7 +314,7 @@ TEST_P(MemoryBitmapAllocatorTest, OnCommitAndFree) {
     ASSERT_EQ(free_areas - 1000, alloc->free_count());
 
     for (int i = 0; i < 1000; i++) {
-        ASSERT_TRUE(alloc->FreeAddress(address_map[i], false));
+        ASSERT_TRUE(alloc->FreeAddress(address_map[i]));
         Option<bool> b = alloc->IsAddressFree(address_map[i]);
         ASSERT_TRUE(b.valid());
         ASSERT_TRUE(b.value());

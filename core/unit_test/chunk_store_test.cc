@@ -39,6 +39,7 @@
 #include <core/chunk_store.h>
 #include <core/log_consumer.h>
 #include <core/log.h>
+#include <core/fixed_log.h>
 #include <test_util/log_assert.h>
 #include "container_storage_test_helper.h"
 #include <test/dedup_system_mock.h>
@@ -46,6 +47,7 @@
 
 using std::string;
 using dedupv1::log::Log;
+using dedupv1::log::FixedLog;
 using std::tr1::make_tuple;
 using testing::Return;
 using testing::_;
@@ -76,14 +78,11 @@ protected:
         EXPECT_CALL(system, info_store()).WillRepeatedly(Return(&info_store));
         EXPECT_CALL(system, chunk_index()).WillRepeatedly(Return(&chunk_index));
 
-        EXPECT_CALL(chunk_index, ChangePinningState(_,_,_)).WillRepeatedly(Return(LOOKUP_FOUND));
-
-        log = new Log();
+        log = new FixedLog();
         ASSERT_TRUE(log->SetOption("filename", "work/log"));
         ASSERT_TRUE(log->SetOption("max-log-size", "1M"));
         ASSERT_TRUE(log->SetOption("info.type", "sqlite-disk-btree"));
         ASSERT_TRUE(log->SetOption("info.filename", "work/log-info"));
-        ASSERT_TRUE(log->SetOption("info.max-item-count", "16"));
         ASSERT_TRUE(log->Start(StartContext(), &system));
         EXPECT_CALL(system, log()).WillRepeatedly(Return(log));
 

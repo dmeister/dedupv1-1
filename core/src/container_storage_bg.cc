@@ -71,6 +71,7 @@ using dedupv1::base::strutil::ToString;
 using std::make_pair;
 using dedupv1::base::Option;
 using dedupv1::base::make_option;
+using dedupv1::base::timeunit::SECONDS;
 
 LOGGER("ContainerStorage");
 
@@ -92,7 +93,7 @@ timed_bool ContainerStorageBackgroundCommitter::ProcessContainer(Container* work
     pair<Container*, ContainerStorageAddressData> c;
     c.first = NULL;
 
-    timed_bool result = this->handover_store_.Get(&c, 1);
+    timed_bool result = this->handover_store_.Get(&c, 1, SECONDS);
     // The container has been removed from handover_store by this get
     if (result == TIMED_FALSE) {
         ERROR("Failed to wait for handover");
@@ -197,7 +198,8 @@ timed_bool ContainerStorageBackgroundCommitter::Handover(Container* c, const Con
 
     // Put container to the store, wait if handover container is used by other thread's container
     TRACE("Waiting for ready container");
-    timed_bool result = this->handover_store_.Put(make_pair(c, address), 1);
+    timed_bool result = this->handover_store_.Put(make_pair(c, address),
+        1, SECONDS);
     CHECK_RETURN(result != TIMED_FALSE, TIMED_FALSE, "Cannot handover container");
     if (result == TIMED_TIMEOUT) {
         DEBUG("Put Timeout");
@@ -219,9 +221,11 @@ timed_bool ContainerStorageBackgroundCommitter::Handover(Container* c, const Con
     return TIMED_TRUE;
 }
 
-dedupv1::base::timed_bool ContainerStorageBackgroundCommitter::CommitFinishedConditionWaitTimeout(uint32_t s) {
+dedupv1::base::timed_bool ContainerStorageBackgroundCommitter::CommitFinishedConditionWaitTimeout(
+    uint32_t s, dedupv1::base::timeunit::TimeUnit timeunit) {
     CHECK_RETURN(this->commit_finished_condition_lock_.AcquireLock(), TIMED_FALSE, "Failed to acquire lock");
-    dedupv1::base::timed_bool b = commit_finished_condition_.ConditionWaitTimeout(&commit_finished_condition_lock_, s);
+    dedupv1::base::timed_bool b = commit_finished_condition_.ConditionWaitTimeout(
+        &commit_finished_condition_lock_, s, timeunit);
     CHECK_RETURN(this->commit_finished_condition_lock_.ReleaseLock(), TIMED_FALSE, "Failed to release lock");
     return b;
 }
@@ -240,7 +244,7 @@ bool ContainerStorageBackgroundCommitter::Start(ContainerStorage* storage) {
     this->current_container_.resize(this->thread_count_);
     for (size_t i = 0; i < this->thread_count_; i++) {
         this->current_container_[i] = new Container(Storage::ILLEGAL_STORAGE_ADDRESS,
-            storage->GetContainerSize(), false);
+            storage->container_size(), false);
     }
     this->run_state_ = STARTING;
     return true;
@@ -337,7 +341,7 @@ bool ContainerStorageBackgroundCommitter::WaitUntilProcessedContainerFinished() 
             handover_container_set.erase(address);
         }
 
-        timed_bool tb = CommitFinishedConditionWaitTimeout(1);
+        timed_bool tb = CommitFinishedConditionWaitTimeout(1, SECONDS);
         CHECK(tb != TIMED_FALSE, "Failed to wait for commit finish condition");
     }
     return true;

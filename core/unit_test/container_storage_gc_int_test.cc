@@ -87,7 +87,6 @@ protected:
     USE_LOGGING_EXPECTATION();
 
     dedupv1::MemoryInfoStore info_store;
-    dedupv1::base::Threadpool tp;
 
     DedupSystem* system;
     DedupSystem* crashed_system;
@@ -103,10 +102,7 @@ protected:
         container_gc = NULL;
         storage = NULL;
 
-        ASSERT_TRUE(tp.SetOption("size", "8"));
-        ASSERT_TRUE(tp.Start());
-
-        system = dedupv1::DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp);
+        system = dedupv1::DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store);
         ASSERT_TRUE(system);
 
         storage = dynamic_cast<ContainerStorage*>(system->storage());
@@ -127,7 +123,7 @@ protected:
         storage = NULL;
         container_gc = NULL;
 
-        system =  dedupv1::DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, true, true, true);
+        system =  dedupv1::DedupSystemTest::CreateDefaultSystemWithOptions(GetParam(), &info_store, true, true, true, true);
 
         storage = dynamic_cast<ContainerStorage*>(system->storage());
         ASSERT_TRUE(storage);
@@ -142,7 +138,7 @@ protected:
         storage = NULL;
         container_gc = NULL;
 
-        system = dedupv1::DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, true, false, false);
+        system = dedupv1::DedupSystemTest::CreateDefaultSystemWithOptions(GetParam(), &info_store, true, true, false, false);
 
         storage = dynamic_cast<ContainerStorage*>(system->storage());
         ASSERT_TRUE(storage);
@@ -174,8 +170,8 @@ bool ContainerRead(ContainerStorage* storage, uint64_t container_id) {
     for (int j = 0; j < 4; j++) {
         storage->GetReadCache()->ClearCache();
         for (int i = 0; i < 4; i++) {
-            Container c(i, storage->GetContainerSize(), false);
-            CHECK(storage->ReadContainer(&c), "Failed to read container");
+            Container c(i, storage->container_size(), false);
+            CHECK(storage->ReadContainer(&c, true), "Failed to read container");
             DEBUG("Read container: " << c.DebugString());
         }
     }
@@ -235,6 +231,4 @@ TEST_P(GreedyContainerGCStrategyIntegrationTest, MergeWithReading) {
 
 INSTANTIATE_TEST_CASE_P(GreedyContainerGCStrategy,
     GreedyContainerGCStrategyIntegrationTest,
-    ::testing::Values(
-        "data/dedupv1_test.conf",
-        "data/dedupv1_leveldb_test.conf"));
+    ::testing::Values("data/dedupv1_test.conf"));

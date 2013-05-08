@@ -455,10 +455,9 @@ class MemoryBitmapContainerStorageAllocator : public ContainerStorageAllocator {
          * This is used during dirty Replay.
          *
          * @param address The address to mark as used
-         * @param is_crash_replay if true the system is recovering from a crash
          * @return true iff o.k.
          */
-        bool MarkAddressUsed(const ContainerStorageAddressData& address, bool is_crash_replay);
+        bool MarkAddressUsed(const ContainerStorageAddressData& address);
 
     public:
         /**
@@ -509,7 +508,11 @@ class MemoryBitmapContainerStorageAllocator : public ContainerStorageAllocator {
         virtual enum alloc_result OnNewContainer(const Container& container, bool is_new_container,
                 ContainerStorageAddressData* new_address);
 
-        virtual bool OnAbortContainer(const Container& container, const ContainerStorageAddressData& new_address);
+        virtual bool OnCommitContainer(const Container& container, 
+          const ContainerStorageAddressData& new_address);
+
+        virtual bool OnAbortContainer(const Container& container, 
+          const ContainerStorageAddressData& new_address);
 
         /**
          * The new address is already known to the allocator since OnCommit is called.
@@ -541,9 +544,10 @@ class MemoryBitmapContainerStorageAllocator : public ContainerStorageAllocator {
          * Is acquiring the file lock
          * TODO (dmeister) Why is it public?
          */
-        bool FreeAddress(const ContainerStorageAddressData& address, bool is_crash_replay);
+        bool FreeAddress(const ContainerStorageAddressData& address);
 
-        dedupv1::base::Option<bool> IsAddressFree(const ContainerStorageAddressData& address);
+        dedupv1::base::Option<bool> IsAddressFree(
+            const ContainerStorageAddressData& address);
 
         /**
          *

@@ -15,7 +15,8 @@
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with dedupv1. If not, see http://www.gnu.org/licenses/.
+ * You should have received a copy of the GNU General Public License along with dedupv1. If not, see
+ ***http://www.gnu.org/licenses/.
  */
 
 #include <string>
@@ -30,6 +31,7 @@
 #include <base/index.h>
 #include <core/container.h>
 #include <core/log.h>
+#include <core/fixed_log.h>
 #include <core/storage.h>
 #include <base/strutil.h>
 #include <base/logging.h>
@@ -86,14 +88,13 @@ protected:
         EXPECT_CALL(system, idle_detector()).WillRepeatedly(Return(idle_detector));
         EXPECT_CALL(system, info_store()).WillRepeatedly(Return(&info_store));
         EXPECT_CALL(system, chunk_index()).WillRepeatedly(Return(&chunk_index));
-        EXPECT_CALL(chunk_index, ChangePinningState(_,_,_)).WillRepeatedly(Return(LOOKUP_FOUND));
+        EXPECT_CALL(chunk_index, Put(_, _)).WillRepeatedly(Return(true));
 
-        log = new Log();
+        log = new dedupv1::log::FixedLog();
         ASSERT_TRUE(log->SetOption("filename", "work/log"));
         ASSERT_TRUE(log->SetOption("max-log-size", "1M"));
         ASSERT_TRUE(log->SetOption("info.type", "sqlite-disk-btree"));
         ASSERT_TRUE(log->SetOption("info.filename", "work/log-info"));
-        ASSERT_TRUE(log->SetOption("info.max-item-count", "16"));
         ASSERT_TRUE(log->Start(StartContext(), &system));
         EXPECT_CALL(system, log()).WillRepeatedly(Return(log));
 
@@ -104,24 +105,21 @@ protected:
     void SetDefaultStorageOptions(Storage* storage) {
         ASSERT_TRUE(storage->SetOption("filename", "work/container-data-1"));
         ASSERT_TRUE(storage->SetOption("filename", "work/container-data-2"));
-        ASSERT_TRUE(storage->SetOption("meta-data", "static-disk-hash"));
-        ASSERT_TRUE(storage->SetOption("meta-data.page-size", "2K"));
-        ASSERT_TRUE(storage->SetOption("meta-data.size", "4M"));
+        ASSERT_TRUE(storage->SetOption("meta-data", "leveldb-disk-lsm"));
         ASSERT_TRUE(storage->SetOption("meta-data.filename", "work/container-metadata"));
         ASSERT_TRUE(storage->SetOption("size", "1G"));
 
         ASSERT_TRUE(storage->SetOption("gc", "greedy"));
-        ASSERT_TRUE(storage->SetOption("gc.type","sqlite-disk-btree"));
+        ASSERT_TRUE(storage->SetOption("gc.type","leveldb-disk-lsm"));
         ASSERT_TRUE(storage->SetOption("gc.filename", "work/merge-candidates"));
-        ASSERT_TRUE(storage->SetOption("gc.max-item-count", "64"));
         ASSERT_TRUE(storage->SetOption("alloc", "memory-bitmap"));
-        ASSERT_TRUE(storage->SetOption("alloc.type","sqlite-disk-btree"));
+        ASSERT_TRUE(storage->SetOption("alloc.type","leveldb-disk-lsm"));
         ASSERT_TRUE(storage->SetOption("alloc.filename", "work/container-bitmap"));
-        ASSERT_TRUE(storage->SetOption("alloc.max-item-count", "2K"));
     }
 
     void CreateContainerStorageOptions(::std::tr1::tuple<int, bool> options) {
-        this->storage = dynamic_cast<ContainerStorage*>(Storage::Factory().Create("container-storage"));
+        this->storage =
+            dynamic_cast<ContainerStorage*>(Storage::Factory().Create("container-storage"));
         ASSERT_TRUE(this->storage);
         ASSERT_NO_FATAL_FAILURE(SetDefaultStorageOptions(storage));
 
@@ -129,7 +127,8 @@ protected:
         bool use_earlist_free_write_cache = ::std::tr1::get<1>(options);
 
         if (write_container_count > 0) {
-            ASSERT_TRUE(this->storage->SetOption("write-container-count", ToString(write_container_count)));
+            ASSERT_TRUE(this->storage->SetOption("write-container-count",
+                    ToString(write_container_count)));
         }
         if (!use_earlist_free_write_cache) {
             ASSERT_TRUE(this->storage->SetOption("write-cache.strategy", "round-robin"));
@@ -139,6 +138,8 @@ protected:
 
         this->write_cache = this->storage->GetWriteCache();
         ASSERT_TRUE(this->write_cache);
+
+        EXPECT_CALL(system, storage()).WillRepeatedly(Return(storage));
     }
 
     virtual void TearDown() {
@@ -163,6 +164,7 @@ protected:
             container_helper = NULL;
         }
     }
+
 };
 
 TEST_F(ContainerStorageWriteCacheTest, RoundRobin) {
@@ -171,17 +173,9 @@ TEST_F(ContainerStorageWriteCacheTest, RoundRobin) {
     ASSERT_TRUE(write_cache);
 
     for (int i = 0; i < 8; i++) {
-        byte* d = container_helper->data(i);
-        ASSERT_TRUE(d);
-        ASSERT_TRUE(storage->WriteNew(container_helper->fingerprint(i).data(),
-                container_helper->fingerprint(i).size(),
-                d,
-                TEST_DATA_SIZE,
-                true,
-                container_helper->mutable_data_address(i),
-                NO_EC))
-        << "Write " << i << " failed";
-        ASSERT_EQ((i % storage->GetWriteCache()->GetSize()) + 1, container_helper->data_address(i));
+        container_helper->WriteDefaultData(&system, i, 1);
+        ASSERT_EQ((i % storage->GetWriteCache()->GetSize()) + 1,
+            container_helper->data_address(i));
         DEBUG("Wrote index " << i << ", container id " << container_helper->data_address(i));
     }
 }
@@ -192,16 +186,7 @@ TEST_F(ContainerStorageWriteCacheTest, EarliestFreeWithoutLocking) {
     ASSERT_TRUE(write_cache);
 
     for (int i = 0; i < 8; i++) {
-        byte* d = container_helper->data(i);
-        ASSERT_TRUE(d);
-        ASSERT_TRUE(storage->WriteNew(container_helper->fingerprint(i).data(),
-                container_helper->fingerprint(i).size(),
-                d,
-                TEST_DATA_SIZE,
-                true,
-                container_helper->mutable_data_address(i),
-                NO_EC))
-        << "Write " << i << " failed";
+        container_helper->WriteDefaultData(&system, i, 1);
         ASSERT_EQ(1, container_helper->data_address(i));
         DEBUG("Wrote index " << i << ", container id " << container_helper->data_address(i));
     }
@@ -213,15 +198,7 @@ TEST_F(ContainerStorageWriteCacheTest, EarliestFreeWithLocking) {
     ASSERT_TRUE(write_cache);
 
     for (int i = 0; i < 8; i++) {
-        byte* d = container_helper->data(i);
-        ASSERT_TRUE(d);
-        ASSERT_TRUE(storage->WriteNew(container_helper->fingerprint(i).data(),
-                container_helper->fingerprint(i).size(),
-                d,
-                TEST_DATA_SIZE,
-                true,
-                container_helper->mutable_data_address(i),
-                NO_EC)) << "Write " << i << " failed";
+        container_helper->WriteDefaultData(&system, i, 1);
         ASSERT_EQ(i + 1, container_helper->data_address(i));
         DEBUG("Wrote index " << i << ", container id " << container_helper->data_address(i));
 

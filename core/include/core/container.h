@@ -37,6 +37,7 @@
 namespace dedupv1 {
 namespace chunkstore {
 
+
 /**
  * A container item stored the chunk data of exactly one chunk.
  * The key of the container items is the fingerprint of the chunk data.
@@ -99,7 +100,7 @@ class ContainerItem {
         /**
          * Constructor
          */
-        ContainerItem(const byte* key,
+        ContainerItem(const void* key,
             size_t key_size,
             size_t offset,
             size_t raw_size,
@@ -212,8 +213,9 @@ private:
 
     /**
      * Primary id of the container.
-     * During merge operations, the primary id of the container can change. The new primary id
-     * is the least used container id of both containers. Used here means that there exists a non-deleted item with that
+     * During merge operations, the primary id of the container can change.
+     * The new primary id is the least used container id of both containers.
+     * Used here means that there exists a non-deleted item with that
      * container id. All other used
      * ids are collected into the secondary id list.
      */
@@ -221,8 +223,9 @@ private:
 
     /**
      * Secondary ids of the container.
-     * If two containers are merged, the least used container id is the new primary id and all other used
-     * ids become the new secondary ids. All id that are not used anymore are not used anymore and should be deleted
+     * If two containers are merged, the least used container id is the new
+     * primary id and all other used ids become the new secondary ids.
+     * All id that are not used anymore are not used anymore and should be deleted
      * from the container storage meta data index during merge.
      */
     std::set<uint64_t> secondary_ids_;
@@ -241,16 +244,20 @@ private:
 
     /**
      * Flag signaling if the container is already stored or not.
-     * If a container is stored, the operations allowed are limited, e.g. adding a new
-     * item is forbidden. The only mutable allowed operation is the merging of two containers into a
+     * If a container is stored, the operations allowed are limited, e.g.
+     * adding a new
+     * item is forbidden. The only mutable allowed operation is the
+     * merging of two containers into a
      * new container.
      */
     bool stored_;
 
     /**
      * container data.
-     * This includes the meta data part that is not updated and written during the in-memory
-     * operations). The meta data part is only serialized and unserializes during load and read operations.
+     * This includes the meta data part that is not updated and
+     * written during the in-memory
+     * operations). The meta data part is only serialized and
+     * unserializes during load and read operations.
      */
     byte* data_;
 
@@ -264,7 +271,8 @@ private:
      * Time the container has been committed or merged.
      * Set to "0" if the container has not been committed before.
      *
-     * As the commit time uses the system clock, it should only be used for documentation purposes.
+     * As the commit time uses the system clock, it should only be used
+     * for documentation purposes.
      */
     time_t commit_time_;
 
@@ -274,7 +282,9 @@ private:
      */
     inline byte* mutable_data();
 
-    static void InsertItemSorted(std::vector<ContainerItem*>* items, ContainerItem* item);
+    static void InsertItemSorted(std::vector<ContainerItem*>* items,
+                                 ContainerItem* item);
+
 public:
     static const uint64_t kLeastValidContainerId = 1;
 
@@ -312,25 +322,26 @@ public:
 
     /**
      * @return true iff ok, otherwise an error has occurred
-     */
-    void Reuse(uint64_t id);
+         */
+        void Reuse(uint64_t id);
 
-    bool CopyItem(const Container& parent_container, const ContainerItem& item);
+        bool CopyItem(const Container& parent_container, const ContainerItem& item);
 
-    /**
+        /**
      * @return true iff ok, otherwise an error has occurred
          */
-        bool AddItem(const byte* key, size_t key_size,
-                const byte* data, size_t data_size,
+        bool AddItem(const void* key, size_t key_size,
+                const void* data, size_t data_size,
                 bool is_indexed,
                 dedupv1::base::Compression* comp);
 
-    /**
+        /**
      * @return true iff ok, otherwise an error has occurred
      */
     bool DeleteItem(const byte* key, size_t key_size);
 
     inline std::vector<ContainerItem*>& items();
+
     inline const std::vector<ContainerItem*>& items() const;
 
     /**
@@ -343,10 +354,10 @@ public:
 
     inline uint32_t data_position() const;
 
-    inline uint32_t total_data_size() const;
     inline uint32_t active_data_size() const;
 
     inline uint32_t item_count() const;
+
     inline size_t container_size() const;
 
     inline std::time_t commit_time() const;
@@ -355,70 +366,71 @@ public:
      * Unserialized metadata from the beginning section of the container
      * @return 0 means error, otherwise the length of the meta data
      */
-    bool UnserializeMetadata(bool verify_checksum);
+    bool UnserializeMetadata();
 
     /**
      * Serializes the metadata to the beginning section of the container
      * @return 0 means error, otherwise the length of the meta data
      */
-    size_t SerializeMetadata(bool calculate_checksum);
-
-    /**
-     * Stores the container to the given file at the given offset. Every
-     * contents at the given position is overwritten without any further notice.
-     *
-     * The container must be valid (id set, etc) for this method.
-     *
-     * @param file file to store the container to
-     * @param offset offset inside the file to store the container
-     * @param calculate_checksum calculates the checksum of the given container and
-     * store the checksum besides the data.
-     * @return true iff ok, otherwise an error has occurred
-     */
-    bool StoreToFile(dedupv1::base::File* file, off_t offset, bool calculate_checksum);
+    bool SerializeMetadata();
 
     /**
      * Loads the container from the given file at the given offset.
-     * The primary id of the container must be set to the primary or any secondary id of the container
+     * The primary id of the container must be set to the primary or any
+     * secondary id of the container
      * at that data position.
-     * The primary id is changed to the stored primary id if a secondary id has been set.
+     * The primary id is changed to the stored primary id if a secondary id
+     * has been set.
      *
      * @param file
      * @param offset
-     * @param verify_checksum iff true, the checksum of the container on disk
+     * @param verify_checksum iff true, the checksum of the container on
+     * disk
      * should be verified.
      * @return true iff ok, otherwise an error has occurred
-     */
-    bool LoadFromFile(dedupv1::base::File* file, off_t offset, bool verify_checksum);
+         */
+        bool StoreToFile(dedupv1::base::File* file, off_t offset);
 
-    bool CopyFrom(const Container& container, bool copyId = false);
+        /**
+         * Loads the container from the given file at the given offset.
+         * The primary id of the container must be set to the primary or any secondary id of the container
+         * at that data position.
+         * The primary id is changed to the stored primary id if a secondary id has been set.
+         *
+         * @param file
+         * @param offset
+         * @param verify_checksum iff true, the checksum of the container on disk
+         * should be verified.
+         */
+        bool LoadFromFile(dedupv1::base::File* file, off_t offset);
 
-    /**
-     * Tests for equality.
-     * The next pointer (used for C style linked lists) is not part of the equality
-     * definition.
-     * @param container
-     * @return
-     */
-    bool Equals(const Container& container) const;
+        bool CopyFrom(const Container& container, bool copyId = false);
 
-    /**
-     * Checks (using a simple heuristic) if the container is too full to add a new
-     * item with the given fp_size and the given data size.
-     *
-     * @param fp_size
-     * @param data_size
-     * @return
-     */
-    inline bool IsFull(size_t fp_size, size_t data_size);
+        /**
+         * Tests for equality.
+         * The next pointer (used for C style linked lists) is not part of the equality
+         * definition.
+         * @param container
+         * @return
+         */
+        bool Equals(const Container& container) const;
 
-    /**
-     * Copies the raw (uncompressed) data of the given container item.
-     *
-     * @param item
-     * @param dest
-     * @param offset offset of the data to copy within the container item
-     * @param dest_size
+        /**
+         * Checks (using a simple heuristic) if the container is too full to add a new
+         * item with the given fp_size and the given data size.
+         *
+         * @param fp_size
+         * @param data_size
+         * @return
+         */
+        inline bool IsFull(size_t fp_size, size_t data_size);
+
+        /**
+         * Copies the raw (uncompressed) data of the given container item.
+         *
+         * @param item
+         * @param dest
+         * @param dest_size
      * @return true iff ok, otherwise an error has occurred
      */
     bool CopyRawData(const ContainerItem* item,
@@ -434,7 +446,9 @@ public:
      * @param find_deleted
      * @return
      */
-    const ContainerItem* FindItem(const void* fp, size_t fp_size, bool find_deleted = false) const;
+    const ContainerItem* FindItem(const void* fp,
+                                  size_t fp_size,
+                                  bool find_deleted = false) const;
 
     /**
      * Seareches for an item with the given fingerprint in the container.
@@ -443,7 +457,9 @@ public:
      * @param find_deleted
      * @return
      */
-    ContainerItem* FindItem(const void* fp, size_t fp_size, bool find_deleted = false);
+    ContainerItem* FindItem(const void* fp,
+                            size_t fp_size,
+                            bool find_deleted = false);
 
     /**
      * Merges the both containers into a new container
@@ -451,25 +467,25 @@ public:
      * @param container1
      * @param container2
      * @return true iff ok, otherwise an error has occurred
-     */
-    bool MergeContainer(const Container& container1, const Container& container2);
+         */
+        bool MergeContainer(const Container& container1, const Container& container2);
 
-    /**
-     * Checks if the container has the given id as primary or secondary id.
-     *
-     * @param id
-     * @return
-     */
-    bool HasId(uint64_t id) const;
+        /**
+         * Checks if the container has the given id as primary or secondary id.
+         *
+         * @param id
+         * @return
+         */
+        bool HasId(uint64_t id) const;
 
-    std::string DebugString() const;
+        std::string DebugString() const;
 
-    inline bool is_stored() const;
+        inline bool is_stored() const;
 
-    inline bool is_metadata_only() const;
+        inline bool is_metadata_only() const;
 };
 
-uint32_t Container::item_count() const {
+uint32_t Container::item_count() const  {
     return this->item_count_;
 }
 
@@ -539,10 +555,6 @@ const std::set<uint64_t>& Container::secondary_ids() const {
 
 uint32_t Container::data_position() const {
     return this->pos_;
-}
-
-uint32_t Container::total_data_size() const {
-    return this->pos_ - kMetaDataSize;
 }
 
 uint32_t Container::active_data_size() const {

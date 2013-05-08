@@ -15,7 +15,8 @@
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with dedupv1. If not, see http://www.gnu.org/licenses/.
+ * You should have received a copy of the GNU General Public License along with dedupv1. If not, see
+ ***http://www.gnu.org/licenses/.
  */
 
 #include <string>
@@ -30,6 +31,7 @@
 #include <base/index.h>
 #include <core/container.h>
 #include <core/log.h>
+#include <core/fixed_log.h>
 #include <core/storage.h>
 #include <base/strutil.h>
 #include <base/logging.h>
@@ -105,14 +107,11 @@ protected:
         EXPECT_CALL(system, info_store()).WillRepeatedly(Return(&info_store));
         EXPECT_CALL(system, chunk_index()).WillRepeatedly(Return(&chunk_index));
 
-        EXPECT_CALL(chunk_index, ChangePinningState(_,_,_)).WillRepeatedly(Return(LOOKUP_FOUND));
-
-        log = new Log();
+        log = new dedupv1::log::FixedLog();
         ASSERT_TRUE(log->SetOption("filename", "work/log"));
         ASSERT_TRUE(log->SetOption("max-log-size", "1M"));
         ASSERT_TRUE(log->SetOption("info.type", "sqlite-disk-btree"));
         ASSERT_TRUE(log->SetOption("info.filename", "work/log-info"));
-        ASSERT_TRUE(log->SetOption("info.max-item-count", "16"));
         ASSERT_TRUE(log->Start(StartContext(), &system));
         EXPECT_CALL(system, log()).WillRepeatedly(Return(log));
 
@@ -135,15 +134,15 @@ protected:
         if (explicit_file_size >= 2) {
             ASSERT_TRUE(storage->SetOption("filesize", "512M"));
         }
-        ASSERT_TRUE(storage->SetOption("meta-data", "tc-disk-btree"));
+        ASSERT_TRUE(storage->SetOption("meta-data", "leveldb-disk-lsm"));
         ASSERT_TRUE(storage->SetOption("meta-data.filename", "work/container-metadata"));
         ASSERT_TRUE(storage->SetOption("container-size", "512K"));
         ASSERT_TRUE(storage->SetOption("size", "1G"));
         ASSERT_TRUE(storage->SetOption("gc", "greedy"));
-        ASSERT_TRUE(storage->SetOption("gc.type","tc-disk-btree"));
+        ASSERT_TRUE(storage->SetOption("gc.type","leveldb-disk-lsm"));
         ASSERT_TRUE(storage->SetOption("gc.filename", "work/merge-candidates"));
         ASSERT_TRUE(storage->SetOption("alloc", "memory-bitmap"));
-        ASSERT_TRUE(storage->SetOption("alloc.type","tc-disk-btree"));
+        ASSERT_TRUE(storage->SetOption("alloc.type","leveldb-disk-lsm"));
         ASSERT_TRUE(storage->SetOption("alloc.filename", "work/container-bitmap"));
 
         if (!use_compression.empty()) {
@@ -175,7 +174,7 @@ protected:
 
         for (i = 0; i < TEST_DATA_COUNT; i++) {
             size_t result_size = TEST_DATA_SIZE;
-            Option<uint32_t> r = storage->Read(container_helper->data_address(i),
+            Option<uint32_t> r = storage->ReadChunk(container_helper->data_address(i),
                 container_helper->fingerprint(i).data(),
                 container_helper->fingerprint(i).size(),
                 result, 0, result_size, NO_EC);
@@ -227,7 +226,7 @@ protected:
             memset(result, 0, TEST_DATA_SIZE);
             result_size = TEST_DATA_SIZE;
 
-            Option<uint32_t> r = storage->Read(container_helper->data_address(i),
+            Option<uint32_t> r = storage->ReadChunk(container_helper->data_address(i),
                 container_helper->fingerprint(i).data(),
                 container_helper->fingerprint(i).size(),
                 result,
@@ -263,6 +262,7 @@ protected:
             idle_detector = NULL;
         }
     }
+
 };
 
 TEST_P(ContainerStorageTest, Create) {
@@ -300,34 +300,6 @@ TEST_P(ContainerStorageTest, SimpleReadWrite) {
 
     WriteTestData(storage);
     ReadTestData(storage);
-}
-
-/**
- * Simple test where we read the data twice.
- * Additionally we also check if the cache was hit. In particular, we want to test if a read
- * using a sessin adds the container to the read cache.
- */
-TEST_P(ContainerStorageTest, SimpleReread) {
-    ASSERT_TRUE(storage->Start(StartContext(), &system));
-    ASSERT_TRUE(storage->Run());
-
-    WriteTestData(storage);
-
-    ContainerStorageReadCache* read_cache = storage->GetReadCache();
-    ASSERT_TRUE(read_cache->ClearCache());
-
-    uint32_t cache_hits_before = read_cache->stats().cache_hits_;
-
-    ReadTestData(storage);
-
-    uint32_t cache_hits_after1 = read_cache->stats().cache_hits_;
-    ReadTestData(storage);
-
-    uint32_t cache_hits_after2 = read_cache->stats().cache_hits_;
-    EXPECT_GT(cache_hits_after1, cache_hits_before) << "We should observe cache hits during the read: " << read_cache->PrintStatistics();
-    EXPECT_GT(cache_hits_after2, cache_hits_after1) << "We should observe cache hits during the re-read: " << read_cache->PrintStatistics();
-    EXPECT_GT(cache_hits_after2 - cache_hits_after1, cache_hits_after1 - cache_hits_before) << "We should see more cache hits in the re-read" <<
-    " then in the first: " << read_cache->PrintStatistics();
 }
 
 TEST_P(ContainerStorageTest, SimpleCrash) {
@@ -514,95 +486,6 @@ TEST_P(ContainerStorageTest, DeleteAfterFlush) {
     ReadDeletedTestData(storage);
 }
 
-TEST_P(ContainerStorageTest, WriteFull) {
-    EXPECT_LOGGING(dedupv1::test::WARN).Matches("Container storage full").Repeatedly();
-    EXPECT_LOGGING(dedupv1::test::ERROR).Matches("Write.*failed").Repeatedly();
-
-    int explicit_file_size = std::tr1::get<1>(GetParam());
-    if (explicit_file_size) {
-        INFO("Skip test");
-        return;
-    }
-    ASSERT_TRUE(storage->SetOption("size", "32M"));
-    ASSERT_TRUE(storage->Start(StartContext(), &system));
-    ASSERT_TRUE(storage->Run());
-
-    ASSERT_TRUE(container_helper->WriteDefaultData(storage, NULL, 0, TEST_DATA_COUNT));
-    ASSERT_TRUE(container_helper->WriteDefaultData(storage, NULL, 0, TEST_DATA_COUNT));
-    ASSERT_FALSE(container_helper->WriteDefaultData(storage, NULL, 0, TEST_DATA_COUNT));
-    // System should be full now
-
-    // Delete a bit out of it
-    // Actually, this are move operations. It tests if move operations are also possible
-    // if the system is full
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(4),
-            container_helper->fingerprint(4).data(),
-            container_helper->fingerprint(4).size(), NO_EC));
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(3),
-            container_helper->fingerprint(3).data(),
-            container_helper->fingerprint(3).size(), NO_EC));
-
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(1),
-            container_helper->fingerprint(1).data(),
-            container_helper->fingerprint(1).size(), NO_EC));
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(0),
-            container_helper->fingerprint(0).data(),
-            container_helper->fingerprint(0).size(), NO_EC));
-
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(8),
-            container_helper->fingerprint(8).data(),
-            container_helper->fingerprint(8).size(), NO_EC));
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(9),
-            container_helper->fingerprint(9).data(),
-            container_helper->fingerprint(9).size(), NO_EC));
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(12),
-            container_helper->fingerprint(12).data(),
-            container_helper->fingerprint(12).size(), NO_EC));
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(13),
-            container_helper->fingerprint(13).data(),
-            container_helper->fingerprint(13).size(), NO_EC));
-
-    sleep(5);
-    ASSERT_TRUE(storage->Flush(NO_EC));
-
-    bool aborted = false;
-    bool result = storage->TryMergeContainer(container_helper->data_address(2), container_helper->data_address(13), &aborted);
-    ASSERT_TRUE(result);
-    ASSERT_FALSE(aborted);
-}
-
-bool ReadAndCheckContainer(ContainerStorage* storage, tbb::atomic<bool>* stop_flag,
-                           ContainerTestHelper* container_helper) {
-
-    byte* data_buffer = new byte[512 * 1024];
-    size_t data_size = 512 * 1024;
-    bool failed = false;
-
-    while (!(*stop_flag) && !failed) {
-        data_size = 512 * 1024;
-        Option<uint32_t> r =
-            storage->Read(container_helper->data_address(14),
-                container_helper->fingerprint(14).data(),
-                container_helper->fingerprint(14).size(),
-                data_buffer, 0, data_size, NO_EC);
-        if (!r.valid()) {
-            failed = true;
-        }
-    }
-    delete[] data_buffer;
-    return !failed;
-}
-
-bool LookupAndCheckContainer(ContainerStorage* storage, tbb::atomic<bool>* stop_flag, uint64_t container_id) {
-    while (!(*stop_flag)) {
-        pair<lookup_result, ContainerStorageAddressData> container_address =
-            storage->LookupContainerAddressWait(container_id, NULL, false);
-        CHECK(container_address.first == LOOKUP_FOUND, "Failed to lookup container address: " << container_id);
-        TRACE("Found address: " << container_address.second.DebugString());
-    }
-    return true;
-}
-
 TEST_P(ContainerStorageTest, Extend) {
     ASSERT_TRUE(storage->Start(StartContext(), &system));
     ASSERT_TRUE(storage->Run());
@@ -626,7 +509,8 @@ TEST_P(ContainerStorageTest, Extend) {
     ASSERT_TRUE(storage->SetOption("filename", "work/container-data-4"));
 
     StartContext start_context;
-    start_context.set_create(StartContext::NON_CREATE).set_dirty(StartContext::DIRTY).set_force(StartContext::FORCE);
+    start_context.set_create(StartContext::NON_CREATE).set_dirty(StartContext::DIRTY).set_force(
+        StartContext::FORCE);
     ASSERT_TRUE(storage->Start(start_context, &system));
     ASSERT_TRUE(log->PerformDirtyReplay());
     ASSERT_TRUE(storage->Run());
@@ -764,7 +648,8 @@ TEST_P(ContainerStorageTest, DoubleExtend) {
     ASSERT_TRUE(storage->SetOption("filename", "work/container-data-4"));
 
     StartContext start_context;
-    start_context.set_create(StartContext::NON_CREATE).set_dirty(StartContext::DIRTY).set_force(StartContext::FORCE);
+    start_context.set_create(StartContext::NON_CREATE).set_dirty(StartContext::DIRTY).set_force(
+        StartContext::FORCE);
     ASSERT_TRUE(storage->Start(start_context, &system));
     ASSERT_TRUE(log->PerformDirtyReplay());
     ASSERT_TRUE(storage->Run());
@@ -783,7 +668,8 @@ TEST_P(ContainerStorageTest, DoubleExtend) {
     ASSERT_TRUE(storage->SetOption("filename", "work/container-data-5"));
     ASSERT_TRUE(storage->SetOption("filename", "work/container-data-6"));
 
-    start_context.set_create(StartContext::NON_CREATE).set_dirty(StartContext::DIRTY).set_force(StartContext::FORCE);
+    start_context.set_create(StartContext::NON_CREATE).set_dirty(StartContext::DIRTY).set_force(
+        StartContext::FORCE);
     ASSERT_TRUE(storage->Start(start_context, &system));
     ASSERT_TRUE(log->PerformDirtyReplay());
     ASSERT_TRUE(storage->Run());
@@ -819,7 +705,8 @@ TEST_P(ContainerStorageTest, ExtendWithExplicitSize) {
     ASSERT_TRUE(storage->SetOption("filename", "work/container-data-4"));
 
     StartContext start_context;
-    start_context.set_create(StartContext::NON_CREATE).set_dirty(StartContext::DIRTY).set_force(StartContext::FORCE);
+    start_context.set_create(StartContext::NON_CREATE).set_dirty(StartContext::DIRTY).set_force(
+        StartContext::FORCE);
     ASSERT_TRUE(storage->Start(start_context, &system));
     ASSERT_TRUE(log->PerformDirtyReplay());
     ASSERT_TRUE(storage->Run());
@@ -856,8 +743,10 @@ TEST_P(ContainerStorageTest, ExtendWithIllegalExplicitSize) {
     ASSERT_TRUE(storage->SetOption("filesize", "1G"));
 
     StartContext start_context;
-    start_context.set_create(StartContext::NON_CREATE).set_dirty(StartContext::DIRTY).set_force(StartContext::FORCE);
-    ASSERT_FALSE(storage->Start(start_context, &system)) << "Should fail because we didn't change the total size";
+    start_context.set_create(StartContext::NON_CREATE).set_dirty(StartContext::DIRTY).set_force(
+        StartContext::FORCE);
+    ASSERT_FALSE(storage->Start(start_context,
+            &system)) << "Should fail because we didn't change the total size";
 }
 
 TEST_P(ContainerStorageTest, ExtendWithoutChangingSize) {
@@ -880,8 +769,10 @@ TEST_P(ContainerStorageTest, ExtendWithoutChangingSize) {
     ASSERT_TRUE(storage->SetOption("filename", "work/container-data-4"));
 
     StartContext start_context;
-    start_context.set_create(StartContext::NON_CREATE).set_dirty(StartContext::DIRTY).set_force(StartContext::FORCE);
-    ASSERT_FALSE(storage->Start(start_context, &system)) << "Should fail because we didn't change the total size";
+    start_context.set_create(StartContext::NON_CREATE).set_dirty(StartContext::DIRTY).set_force(
+        StartContext::FORCE);
+    ASSERT_FALSE(storage->Start(start_context,
+            &system)) << "Should fail because we didn't change the total size";
 }
 
 TEST_P(ContainerStorageTest, IllegalExplicitSize) {
@@ -947,213 +838,9 @@ TEST_P(ContainerStorageTest, ChangeExplcitSizeOfExistingFileWithForce) {
     ASSERT_TRUE(storage->SetOption("filesize", "1G"));
 
     StartContext start_context;
-    start_context.set_create(StartContext::NON_CREATE).set_dirty(StartContext::DIRTY).set_force(StartContext::FORCE);
+    start_context.set_create(StartContext::NON_CREATE).set_dirty(StartContext::DIRTY).set_force(
+        StartContext::FORCE);
     ASSERT_FALSE(storage->Start(start_context, &system));
-}
-
-/**
- * Tests if the merged of a chain of containers happens without race conditions when the container
- * container is read in a paralell thread
- * This test might be flaky as we are trying to hit a race condition.
- */
-TEST_P(ContainerStorageTest, ReadDuringMerge) {
-    ASSERT_TRUE(storage->Start(StartContext(), &system));
-    ASSERT_TRUE(storage->Run());
-
-    WriteTestData(storage);
-
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(4),
-            container_helper->fingerprint(4).data(),
-            container_helper->fingerprint(4).size(), NO_EC));
-
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(1),
-            container_helper->fingerprint(1).data(),
-            container_helper->fingerprint(1).size(), NO_EC));
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(0),
-            container_helper->fingerprint(0).data(),
-            container_helper->fingerprint(0).size(), NO_EC));
-
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(8),
-            container_helper->fingerprint(8).data(),
-            container_helper->fingerprint(8).size(), NO_EC));
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(9),
-            container_helper->fingerprint(9).data(),
-            container_helper->fingerprint(9).size(), NO_EC));
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(12),
-            container_helper->fingerprint(12).data(),
-            container_helper->fingerprint(12).size(), NO_EC));
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(13),
-            container_helper->fingerprint(13).data(),
-            container_helper->fingerprint(13).size(), NO_EC));
-
-    ASSERT_TRUE(storage->Flush(NO_EC));
-
-    bool aborted = false;
-    ASSERT_TRUE(storage->TryMergeContainer(container_helper->data_address(0), container_helper->data_address(3), &aborted));
-    ASSERT_FALSE(aborted);
-
-    aborted = false;
-    ASSERT_TRUE(storage->TryMergeContainer(container_helper->data_address(10), container_helper->data_address(14), &aborted));
-    ASSERT_FALSE(aborted);
-
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(2),
-            container_helper->fingerprint(2).data(),
-            container_helper->fingerprint(2).size(), NO_EC));
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(10),
-            container_helper->fingerprint(10).data(),
-            container_helper->fingerprint(10).size(), NO_EC));
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(11),
-            container_helper->fingerprint(11).data(),
-            container_helper->fingerprint(11).size(), NO_EC));
-
-    tbb::atomic<bool> stop_flag;
-    stop_flag = false;
-    Thread<bool> read_thread(NewRunnable(&ReadAndCheckContainer,
-                                 storage,
-                                 &stop_flag,
-                                 container_helper), "lookup thread");
-    ASSERT_TRUE(read_thread.Start());
-
-    ThreadUtil::Sleep(rand() % 1500, ThreadUtil::MILLISECONDS);
-
-    int i = 0;
-    do {
-        aborted = false;
-        i++;
-        ASSERT_TRUE(storage->TryMergeContainer(container_helper->data_address(0), 4, &aborted));
-    } while (aborted && (i < 30));
-
-    ASSERT_FALSE(aborted);
-
-    stop_flag = true;
-
-    bool result = false;
-    ASSERT_TRUE(read_thread.Join(&result));
-    ASSERT_TRUE(result);
-}
-
-/**
- * Tests if the merged of a chain of containers happens without race conditions when the container
- * address is lookuped up in between.
- * This test might be flaky as we are trying to hit a race condition.
- */
-TEST_P(ContainerStorageTest, LookupDuringMerge) {
-    ASSERT_TRUE(storage->Start(StartContext(), &system));
-    ASSERT_TRUE(storage->Run());
-
-    WriteTestData(storage);
-
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(4),
-            container_helper->fingerprint(4).data(),
-            container_helper->fingerprint(4).size(), NO_EC));
-
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(1),
-            container_helper->fingerprint(1).data(),
-            container_helper->fingerprint(1).size(), NO_EC));
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(0),
-            container_helper->fingerprint(0).data(),
-            container_helper->fingerprint(0).size(), NO_EC));
-
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(8),
-            container_helper->fingerprint(8).data(),
-            container_helper->fingerprint(8).size(), NO_EC));
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(9),
-            container_helper->fingerprint(9).data(),
-            container_helper->fingerprint(9).size(), NO_EC));
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(12),
-            container_helper->fingerprint(12).data(),
-            container_helper->fingerprint(12).size(), NO_EC));
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(13),
-            container_helper->fingerprint(13).data(),
-            container_helper->fingerprint(13).size(), NO_EC));
-
-    ASSERT_TRUE(storage->Flush(NO_EC));
-
-    bool aborted = false;
-    ASSERT_TRUE(storage->TryMergeContainer(container_helper->data_address(0), container_helper->data_address(3), &aborted));
-    ASSERT_FALSE(aborted);
-
-    aborted = false;
-    ASSERT_TRUE(storage->TryMergeContainer(container_helper->data_address(10), container_helper->data_address(14), &aborted));
-    ASSERT_FALSE(aborted);
-
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(2),
-            container_helper->fingerprint(2).data(),
-            container_helper->fingerprint(2).size(), NO_EC));
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(10),
-            container_helper->fingerprint(10).data(),
-            container_helper->fingerprint(10).size(), NO_EC));
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(11),
-            container_helper->fingerprint(11).data(),
-            container_helper->fingerprint(11).size(), NO_EC));
-
-    tbb::atomic<bool> stop_flag;
-    stop_flag = false;
-    Thread<bool> lookup_thread(NewRunnable(&LookupAndCheckContainer, storage, &stop_flag, container_helper->data_address(14)), "lookup thread");
-    ASSERT_TRUE(lookup_thread.Start());
-
-    aborted = false;
-    ASSERT_TRUE(storage->TryMergeContainer(container_helper->data_address(0), 4, &aborted));
-    ASSERT_FALSE(aborted);
-
-    stop_flag = true;
-
-    bool result = false;
-    ASSERT_TRUE(lookup_thread.Join(&result));
-    ASSERT_TRUE(result);
-}
-
-TEST_P(ContainerStorageTest, DeleteAfterMerge) {
-    ASSERT_TRUE(storage->Start(StartContext(), &system));
-    ASSERT_TRUE(storage->Run());
-
-    WriteTestData(storage);
-
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(4),
-            container_helper->fingerprint(4).data(),
-            container_helper->fingerprint(4).size(), NO_EC));
-
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(1),
-            container_helper->fingerprint(1).data(),
-            container_helper->fingerprint(1).size(), NO_EC));
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(0),
-            container_helper->fingerprint(0).data(),
-            container_helper->fingerprint(0).size(), NO_EC));
-
-    ASSERT_TRUE(storage->Flush(NO_EC));
-
-    bool aborted = false;
-    ASSERT_TRUE(storage->TryMergeContainer(container_helper->data_address(0), container_helper->data_address(3), &aborted));
-    ASSERT_FALSE(aborted);
-
-    pair<lookup_result, ContainerStorageAddressData> old_address0 =
-        storage->LookupContainerAddress(container_helper->data_address(0), NULL, false);
-    ASSERT_EQ(old_address0.first, LOOKUP_FOUND);
-    pair<lookup_result, ContainerStorageAddressData> old_address3 =
-        storage->LookupContainerAddress(container_helper->data_address(3), NULL, false);
-    ASSERT_EQ(old_address3.first, LOOKUP_FOUND);
-
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(3),
-            container_helper->fingerprint(3).data(),
-            container_helper->fingerprint(3).size(), NO_EC));
-
-    // here we test the COW property
-    pair<lookup_result, ContainerStorageAddressData> new_address0 =
-        storage->LookupContainerAddress(container_helper->data_address(0), NULL, false);
-    ASSERT_EQ(new_address0.first, LOOKUP_FOUND);
-    pair<lookup_result, ContainerStorageAddressData> new_address3 =
-        storage->LookupContainerAddress(container_helper->data_address(3), NULL, false);
-    ASSERT_EQ(new_address3.first, LOOKUP_FOUND);
-
-    ASSERT_FALSE(old_address0.second.file_index() == new_address0.second.file_index() &&
-        old_address0.second.file_offset() == new_address0.second.file_offset()) <<
-    "container of item 0 hasn't changed during merge";
-    ASSERT_FALSE(old_address3.second.file_index() == new_address3.second.file_index() &&
-        old_address3.second.file_offset() == new_address3.second.file_offset()) <<
-    "container of item 3 hasn't changed during merge";
-    ASSERT_TRUE(new_address0.second.file_index() == new_address3.second.file_index() &&
-        new_address0.second.file_offset() == new_address3.second.file_offset()) <<
-    "address of item 0 and item 3 should be the same after the merge";
 }
 
 TEST_P(ContainerStorageTest, NextContainerIDAfterClose) {
@@ -1237,190 +924,6 @@ TEST_P(ContainerStorageTest, CommitOnStorageClose) {
     ReadTestData(storage);
 }
 
-TEST_P(ContainerStorageTest, IsCommited) {
-    ASSERT_TRUE(storage->Start(StartContext(), &system));
-    ASSERT_TRUE(storage->Run());
-
-    WriteTestData(storage);
-
-    ASSERT_EQ(STORAGE_ADDRESS_COMMITED, storage->IsCommitted(1));
-    ASSERT_EQ(STORAGE_ADDRESS_NOT_COMMITED, storage->IsCommitted(500));
-}
-
-TEST_P(ContainerStorageTest, IsCommittedOnFlush) {
-    ASSERT_TRUE(storage->Start(StartContext(), &system));
-    ASSERT_TRUE(storage->Run());
-
-    ASSERT_TRUE(storage->WriteNew(container_helper->fingerprint(0).data(),
-            container_helper->fingerprint(0).size(), container_helper->data(0), TEST_DATA_SIZE, true,
-            container_helper->mutable_data_address(0), NO_EC))
-    << "Write " << 0 << " failed";
-    ASSERT_EQ(STORAGE_ADDRESS_NOT_COMMITED, storage->IsCommitted(1)) << "Container shouldn't be committed before flush";
-
-    ASSERT_TRUE(storage->Flush(NO_EC));
-    ASSERT_EQ(STORAGE_ADDRESS_COMMITED, storage->IsCommitted(1)) << "Container should be comitted after flush";
-}
-
-TEST_P(ContainerStorageTest, IsCommittedWaitOnFlush) {
-    ASSERT_TRUE(storage->Start(StartContext(), &system));
-    ASSERT_TRUE(storage->Run());
-
-    ASSERT_TRUE(storage->WriteNew(container_helper->fingerprint(0).data(),
-            container_helper->fingerprint(0).size(), container_helper->data(0), TEST_DATA_SIZE, true,
-            container_helper->mutable_data_address(0), NO_EC))
-    << "Write " << 0 << " failed";
-    ASSERT_EQ(STORAGE_ADDRESS_COMMITED, storage->IsCommittedWait(1)) << "Container should be comitted after IsCommittedWait";
-}
-
-TEST_P(ContainerStorageTest, Merge) {
-    ASSERT_TRUE(storage->Start(StartContext(), &system));
-    ASSERT_TRUE(storage->Run());
-
-    WriteTestData(storage);
-
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(4),
-            container_helper->fingerprint(4).data(),
-            container_helper->fingerprint(4).size(), NO_EC));
-
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(1),
-            container_helper->fingerprint(1).data(),
-            container_helper->fingerprint(1).size(), NO_EC));
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(0),
-            container_helper->fingerprint(0).data(),
-            container_helper->fingerprint(0).size(), NO_EC));
-
-    ASSERT_TRUE(storage->Flush(NO_EC));
-
-    pair<lookup_result, ContainerStorageAddressData> old_address0 =
-        storage->LookupContainerAddress(container_helper->data_address(0), NULL, false);
-    ASSERT_EQ(old_address0.first, LOOKUP_FOUND);
-    pair<lookup_result, ContainerStorageAddressData> old_address3 =
-        storage->LookupContainerAddress(container_helper->data_address(3), NULL, false);
-    ASSERT_EQ(old_address3.first, LOOKUP_FOUND);
-
-    bool aborted = false;
-    ASSERT_TRUE(storage->TryMergeContainer(container_helper->data_address(0), container_helper->data_address(3), &aborted));
-    ASSERT_FALSE(aborted);
-
-    // here we test the COW property
-    pair<lookup_result, ContainerStorageAddressData> new_address0 =
-        storage->LookupContainerAddress(container_helper->data_address(0), NULL, false);
-    ASSERT_EQ(new_address0.first, LOOKUP_FOUND);
-    pair<lookup_result, ContainerStorageAddressData> new_address3 =
-        storage->LookupContainerAddress(container_helper->data_address(3), NULL, false);
-    ASSERT_EQ(new_address3.first, LOOKUP_FOUND);
-
-    ASSERT_FALSE(old_address0.second.file_index() == new_address0.second.file_index() &&
-        old_address0.second.file_offset() == new_address0.second.file_offset()) <<
-    "container of item 0 hasn't changed during merge";
-    ASSERT_FALSE(old_address3.second.file_index() == new_address3.second.file_index() &&
-        old_address3.second.file_offset() == new_address3.second.file_offset()) <<
-    "container of item 3 hasn't changed during merge";
-    ASSERT_TRUE(new_address0.second.file_index() == new_address3.second.file_index() &&
-        new_address0.second.file_offset() == new_address3.second.file_offset()) <<
-    "address of item 0 and item 3 should be the same after the merge";
-    int i = 0;
-
-    byte result[2][TEST_DATA_SIZE];
-    memset(result, 0, 2 * TEST_DATA_SIZE);
-
-    size_t result_size[2];
-    result_size[0] = TEST_DATA_SIZE;
-    result_size[1] = TEST_DATA_SIZE;
-
-    for (i = 0; i < 2; i++) {
-        Option<uint32_t> r = storage->Read(container_helper->data_address(i + 2),
-            container_helper->fingerprint(i + 2).data(),
-            container_helper->fingerprint(i + 2).size(), result[i],
-            0, result_size[i], NO_EC);
-        ASSERT_TRUE(r.valid()) << "Read " << (i + 2) << " failed";
-        DEBUG("Read CRC " << (i + 2) << " - " << crc(result[i], r.value()));
-        ASSERT_TRUE(r.value() == TEST_DATA_SIZE) << "Read " << i << " error";
-        ASSERT_TRUE(memcmp(container_helper->data(i + 2), result[i], r.value()) == 0) <<
-        "Compare " << (i + 2) << " error";
-    }
-}
-
-/**
- * This unit tests verify the behavior of the merge operations during a crash.
- */
-TEST_P(ContainerStorageTest, MergeWithCrash) {
-    ASSERT_TRUE(storage->Start(StartContext(), &system));
-    ASSERT_TRUE(storage->Run());
-
-    WriteTestData(storage);
-
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(4),
-            container_helper->fingerprint(4).data(),
-            container_helper->fingerprint(4).size(), NO_EC));
-
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(1),
-            container_helper->fingerprint(1).data(),
-            container_helper->fingerprint(1).size(), NO_EC));
-    ASSERT_TRUE(storage->DeleteChunk(container_helper->data_address(0),
-            container_helper->fingerprint(0).data(),
-            container_helper->fingerprint(0).size(), NO_EC));
-
-    ASSERT_TRUE(storage->Flush(NO_EC));
-
-    pair<lookup_result, ContainerStorageAddressData> old_address0 =
-        storage->LookupContainerAddress(container_helper->data_address(0), NULL, false);
-    ASSERT_EQ(old_address0.first, LOOKUP_FOUND);
-    pair<lookup_result, ContainerStorageAddressData> old_address3 =
-        storage->LookupContainerAddress(container_helper->data_address(3), NULL, false);
-    ASSERT_EQ(old_address3.first, LOOKUP_FOUND);
-
-    bool aborted = false;
-    ASSERT_TRUE(storage->TryMergeContainer(container_helper->data_address(0), container_helper->data_address(3), &aborted));
-    ASSERT_FALSE(aborted);
-
-    // here we test the COW property
-    pair<lookup_result, ContainerStorageAddressData> new_address0 =
-        storage->LookupContainerAddress(container_helper->data_address(0), NULL, false);
-    ASSERT_EQ(new_address0.first, LOOKUP_FOUND);
-    pair<lookup_result, ContainerStorageAddressData> new_address3 =
-        storage->LookupContainerAddress(container_helper->data_address(3), NULL, false);
-    ASSERT_EQ(new_address3.first, LOOKUP_FOUND);
-
-    ASSERT_FALSE(old_address0.second.file_index() == new_address0.second.file_index() &&
-        old_address0.second.file_offset() == new_address0.second.file_offset()) <<
-    "container of item 0 hasn't changed during merge";
-    ASSERT_FALSE(old_address3.second.file_index() == new_address3.second.file_index() &&
-        old_address3.second.file_offset() == new_address3.second.file_offset()) <<
-    "container of item 3 hasn't changed during merge";
-    ASSERT_TRUE(new_address0.second.file_index() == new_address3.second.file_index() &&
-        new_address0.second.file_offset() == new_address3.second.file_offset()) <<
-    "address of item 0 and item 3 should be the same after the merge";
-
-    // introduce a invalid state. This simulates the state when the system crashes
-    // during the LogAck update routine.
-    uint64_t container_id = container_helper->data_address(3);
-    ASSERT_EQ(PUT_OK, storage->meta_data_index()->Put(&container_id, sizeof(container_id), old_address3.second));
-
-    ASSERT_NO_FATAL_FAILURE(Restart());
-
-    // verify data
-    int i = 0;
-
-    byte result[2][TEST_DATA_SIZE];
-    memset(result, 0, 2 * TEST_DATA_SIZE);
-
-    size_t result_size[2];
-    result_size[0] = TEST_DATA_SIZE;
-    result_size[1] = TEST_DATA_SIZE;
-
-    for (i = 0; i < 2; i++) {
-        Option<uint32_t> r = storage->Read(container_helper->data_address(i + 2),
-            container_helper->fingerprint(i + 2).data(),
-            container_helper->fingerprint(i + 2).size(), result[i],
-            0, result_size[i], NO_EC);
-        ASSERT_TRUE(r.valid()) << "Read " << (i + 2) << " failed";
-        DEBUG("Read CRC " << (i + 2) << " - " << crc(result[i], r.value()));
-        EXPECT_TRUE(r.value() == TEST_DATA_SIZE) << "Read " << i << " error";
-        EXPECT_TRUE(memcmp(container_helper->data(i + 2), result[i], r.value()) == 0) << "Compare " << (i + 2) << " error";
-    }
-}
-
 TEST_P(ContainerStorageTest, MergeWithSameContainerId) {
     EXPECT_LOGGING(dedupv1::test::ERROR).Matches("merge").Once();
 
@@ -1436,7 +939,8 @@ TEST_P(ContainerStorageTest, MergeWithSameContainerId) {
     ASSERT_TRUE(storage->Flush(NO_EC));
 
     bool aborted = false;
-    ASSERT_FALSE(storage->TryMergeContainer(container_helper->data_address(0), container_helper->data_address(0), &aborted));
+    ASSERT_FALSE(storage->TryMergeContainer(container_helper->data_address(0),
+            container_helper->data_address(0), &aborted));
     ASSERT_FALSE(aborted);
 }
 
@@ -1460,9 +964,9 @@ TEST_P(ContainerStorageTest, MergeWithSameContainerLock) {
     memset(buffer, 0, 1024);
     uint64_t key1 = 1;
     uint64_t key2 = 2;
-    Container container1(container_id1, storage->GetContainerSize(), false);
+    Container container1(container_id1, storage->container_size(), false);
     ASSERT_TRUE(container1.AddItem(reinterpret_cast<const byte*>(&key1), sizeof(key1), buffer, 1024, true, NULL));
-    Container container2(container_id2, storage->GetContainerSize(), false);
+    Container container2(container_id2, storage->container_size(), false);
     ASSERT_TRUE(container2.AddItem(reinterpret_cast<const byte*>(&key2), sizeof(key2), buffer, 1024, true, NULL));
 
     ContainerStorageAddressData address1;
@@ -1474,7 +978,8 @@ TEST_P(ContainerStorageTest, MergeWithSameContainerLock) {
     ASSERT_TRUE(storage->CommitContainer(&container1, address1));
     ASSERT_TRUE(storage->CommitContainer(&container2, address2));
 
-    GreedyContainerGCStrategy* gc = static_cast<GreedyContainerGCStrategy*>(storage->GetGarbageCollection());
+    GreedyContainerGCStrategy* gc =
+        static_cast<GreedyContainerGCStrategy*>(storage->GetGarbageCollection());
     ASSERT_TRUE(gc);
 
     uint64_t bucket = 0;
@@ -1507,21 +1012,6 @@ TEST_P(ContainerStorageTest, WriteReadRead) {
     ReadTestData(storage);
 }
 
-TEST_P(ContainerStorageTest, Timeout) {
-    ASSERT_TRUE(storage->Start(StartContext(), &system));
-    ASSERT_TRUE(storage->Run());
-    if (storage->HasCommitTimeout() == false) {
-        return;
-    }
-    WriteTestData(storage);
-
-    sleep(2 * storage->GetTimeoutSeconds());
-
-    for (size_t i = 0; i < TEST_DATA_COUNT; i++) {
-        ASSERT_EQ(storage->IsCommitted(container_helper->data_address(i)), STORAGE_ADDRESS_COMMITED);
-    }
-}
-
 TEST_P(ContainerStorageTest, ReadContainer) {
     ASSERT_TRUE(storage->Start(StartContext(), &system));
     ASSERT_TRUE(storage->Run());
@@ -1531,38 +1021,21 @@ TEST_P(ContainerStorageTest, ReadContainer) {
 
     for (int i = 0; i < TEST_DATA_COUNT; i++) {
         Container container(container_helper->data_address(i),
-                            storage->GetContainerSize(), false);
+                            storage->container_size(), false);
 
-        enum lookup_result r = storage->ReadContainer(&container);
+        enum lookup_result r = storage->ReadContainer(&container, true);
         ASSERT_EQ(r, LOOKUP_FOUND);
 
-        ContainerItem* item = container.FindItem(container_helper->fingerprint(i).data(), container_helper->fingerprint(i).size());
-        ASSERT_TRUE(item);
-    }
-}
-
-TEST_P(ContainerStorageTest, ReadContainerWithCache) {
-    ASSERT_TRUE(storage->Start(StartContext(), &system));
-    ASSERT_TRUE(storage->Run());
-    WriteTestData(storage);
-    ASSERT_TRUE(storage->Flush(NO_EC)); // data is now committed
-
-    for (int i = 0; i < TEST_DATA_COUNT; i++) {
-        Container container(container_helper->data_address(i),
-                            storage->GetContainerSize(), false);
-
-        enum lookup_result r = storage->ReadContainerWithCache(
-            &container);
-        ASSERT_EQ(LOOKUP_FOUND, r) << "container " << container.DebugString();
-
-        ContainerItem* item = container.FindItem(container_helper->fingerprint(i).data(), container_helper->fingerprint(i).size());
+        ContainerItem* item = container.FindItem(container_helper->fingerprint(
+                i).data(), container_helper->fingerprint(i).size());
         ASSERT_TRUE(item);
     }
 }
 
 INSTANTIATE_TEST_CASE_P(ContainerStorage,
     StorageTest,
-    ::testing::Values("container-storage;filename=work/container-data;meta-data=static-disk-hash;meta-data.page-size=2K;meta-data.size=4M;meta-data.filename=work/container-meta"));
+    ::testing::Values(
+        "container-storage;filename=work/container-data;meta-data=static-disk-hash;meta-data.page-size=2K;meta-data.size=4M;meta-data.filename=work/container-meta"));
 
 INSTANTIATE_TEST_CASE_P(ContainerStorage,
     ContainerStorageTest,

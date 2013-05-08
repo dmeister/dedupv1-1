@@ -31,6 +31,7 @@
 
 #include <set>
 
+using std::list;
 using std::string;
 using std::set;
 using dedupv1::blockindex::BlockMapping;
@@ -38,6 +39,7 @@ using dedupv1::blockindex::BlockMappingItem;
 using dedupv1::chunkindex::ChunkMapping;
 using dedupv1::chunkindex::ChunkIndex;
 using dedupv1::chunkstore::Storage;
+using dedupv1::chunkstore::StorageRequest;
 using dedupv1::DedupSystem;
 
 LOGGER("ContainerTestHelper");
@@ -118,9 +120,12 @@ bool ContainerTestHelper::WriteDefaultData(Storage* s, ChunkIndex* chunk_index, 
     for (int i = offset; i < (offset + count); i++) {
         byte* d = this->data(i);
         CHECK(d, "Date not set");
-        CHECK(s->WriteNew(&this->fp_[i], sizeof(this->fp_[i]), d, this->test_data_size_, true, &this->addresses_[i], NO_EC),
+        StorageRequest r(&this->fp_[i], sizeof(this->fp_[i]), d, this->test_data_size_, true);
+        list<StorageRequest> request_list;
+        request_list.push_back(r);
+        CHECK(s->WriteNew(&request_list, NO_EC),
             "Write " << i << " failed");
-
+        addresses_[i] = request_list.front().address();
         if (chunk_index != NULL) {
             ChunkMapping mapping(
                 reinterpret_cast<const byte*>(&this->fp_[i]), sizeof(this->fp_[i]));

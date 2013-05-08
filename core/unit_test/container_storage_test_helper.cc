@@ -64,7 +64,6 @@ void SetDefaultStorageOptions(Storage* storage, ::std::tr1::tuple<int, int, bool
     ASSERT_TRUE(storage->SetOption("meta-data", "sqlite-disk-btree"));
     ASSERT_TRUE(storage->SetOption("meta-data.filename", "work/container-metadata"));
     ASSERT_TRUE(storage->SetOption("meta-data.cache-size", "2K"));
-    ASSERT_TRUE(storage->SetOption("meta-data.max-item-count", "8M"));
     ASSERT_TRUE(storage->SetOption("container-size", "512K"));
     ASSERT_TRUE(storage->SetOption("size", "1G"));
 
@@ -84,21 +83,17 @@ void SetDefaultStorageOptions(Storage* storage, ::std::tr1::tuple<int, int, bool
         ASSERT_TRUE(storage->SetOption("gc", "greedy"));
         ASSERT_TRUE(storage->SetOption("gc.type","sqlite-disk-btree"));
         ASSERT_TRUE(storage->SetOption("gc.filename", "work/merge-candidates"));
-        ASSERT_TRUE(storage->SetOption("gc.max-item-count", "64"));
         ASSERT_TRUE(storage->SetOption("alloc", "bitmap"));
         ASSERT_TRUE(storage->SetOption("alloc.type","sqlite-disk-btree"));
         ASSERT_TRUE(storage->SetOption("alloc.filename", "work/container-bitmap"));
-        ASSERT_TRUE(storage->SetOption("alloc.max-item-count", "2K"));
     } else {
         ASSERT_TRUE(storage->SetOption("size", "1G"));
         ASSERT_TRUE(storage->SetOption("gc", "greedy"));
         ASSERT_TRUE(storage->SetOption("gc.type","sqlite-disk-btree"));
         ASSERT_TRUE(storage->SetOption("gc.filename", "work/merge-candidates"));
-        ASSERT_TRUE(storage->SetOption("gc.max-item-count", "64"));
         ASSERT_TRUE(storage->SetOption("alloc", "memory-bitmap"));
         ASSERT_TRUE(storage->SetOption("alloc.type","sqlite-disk-btree"));
         ASSERT_TRUE(storage->SetOption("alloc.filename", "work/container-bitmap"));
-        ASSERT_TRUE(storage->SetOption("alloc.max-item-count", "2K"));
     }
     if (write_container_count > 0) {
         ASSERT_TRUE(storage->SetOption("write-container-count", ToString(write_container_count)));
@@ -110,7 +105,6 @@ void SetDefaultStorageOptions(ChunkStore* chunk_store, ::std::tr1::tuple<int, in
     ASSERT_TRUE(chunk_store->SetOption("filename", "work/container-data-2"));
     ASSERT_TRUE(chunk_store->SetOption("meta-data", "sqlite-disk-btree"));
     ASSERT_TRUE(chunk_store->SetOption("meta-data.filename", "work/container-metadata"));
-    ASSERT_TRUE(chunk_store->SetOption("meta-data.max-item-count", "8M"));
     ASSERT_TRUE(chunk_store->SetOption("meta-data.cache-size", "2K"));
     ASSERT_TRUE(chunk_store->SetOption("container-size", "512K"));
     ASSERT_TRUE(chunk_store->SetOption("size", "1G"));
@@ -131,21 +125,17 @@ void SetDefaultStorageOptions(ChunkStore* chunk_store, ::std::tr1::tuple<int, in
         ASSERT_TRUE(chunk_store->SetOption("gc", "greedy"));
         ASSERT_TRUE(chunk_store->SetOption("gc.type","sqlite-disk-btree"));
         ASSERT_TRUE(chunk_store->SetOption("gc.filename", "work/merge-candidates"));
-        ASSERT_TRUE(chunk_store->SetOption("gc.max-item-count", "64"));
         ASSERT_TRUE(chunk_store->SetOption("alloc", "bitmap"));
         ASSERT_TRUE(chunk_store->SetOption("alloc.type","sqlite-disk-btree"));
         ASSERT_TRUE(chunk_store->SetOption("alloc.filename", "work/container-bitmap"));
-        ASSERT_TRUE(chunk_store->SetOption("alloc.max-item-count", "2K"));
     } else {
         ASSERT_TRUE(chunk_store->SetOption("size", "1G"));
         ASSERT_TRUE(chunk_store->SetOption("gc", "greedy"));
         ASSERT_TRUE(chunk_store->SetOption("gc.type","sqlite-disk-btree"));
         ASSERT_TRUE(chunk_store->SetOption("gc.filename", "work/merge-candidates"));
-        ASSERT_TRUE(chunk_store->SetOption("gc.max-item-count", "64"));
         ASSERT_TRUE(chunk_store->SetOption("alloc", "memory-bitmap"));
         ASSERT_TRUE(chunk_store->SetOption("alloc.type","sqlite-disk-btree"));
         ASSERT_TRUE(chunk_store->SetOption("alloc.filename", "work/container-bitmap"));
-        ASSERT_TRUE(chunk_store->SetOption("alloc.max-item-count", "2K"));
     }
     if (write_container_count > 0) {
         ASSERT_TRUE(chunk_store->SetOption("write-container-count", ToString(write_container_count)));

@@ -42,6 +42,7 @@
 using std::string;
 using std::stringstream;
 using std::vector;
+using std::list;
 using dedupv1::base::ProfileTimer;
 using dedupv1::blockindex::BlockMappingItem;
 using dedupv1::log::Log;
@@ -73,7 +74,8 @@ bool ChunkStore::Init(const string& storage_type) {
     CHECK(storage_type.size() > 0, "Storage type not set");
 
     this->chunk_storage_ = Storage::Factory().Create(storage_type);
-    CHECK(this->chunk_storage_, "Failed to create storage instance \"" << storage_type << "\"");
+    CHECK(this->chunk_storage_, 
+        "Failed to create storage instance \"" << storage_type << "\"");
     return true;
 }
 
@@ -109,33 +111,51 @@ ChunkStore::~ChunkStore() {
     }
 }
 
-bool ChunkStore::WriteBlock(ChunkMapping* chunk_mapping,
+bool ChunkStore::WriteBlock(
+    vector<ChunkMapping>* chunk_mappings,
                             ErrorContext* ec) {
     ProfileTimer timer(this->stats_.time_);
 
-    CHECK(chunk_mapping, "Chunk mapping not set");
-    CHECK(chunk_mapping->chunk() != NULL,
-        "Chunk not set: " << chunk_mapping->DebugString());
+    list<StorageRequest> requests;
 
-    if (!chunk_mapping->is_known_chunk() &&
-        chunk_mapping->data_address() == Storage::ILLEGAL_STORAGE_ADDRESS) {
+    vector<ChunkMapping>::iterator i;
+    for (i = chunk_mappings->begin(); i != chunk_mappings->end(); i++) {
+        CHECK(i->chunk() != NULL,
+          "Chunk not set: " << i->DebugString());
+
+    if (!i->is_known_chunk() &&
+        i->data_address() == Storage::ILLEGAL_STORAGE_ADDRESS) {
         // write to storage if necessary
-        uint64_t new_address = Storage::ILLEGAL_STORAGE_ADDRESS;
-        CHECK(chunk_storage_->WriteNew(chunk_mapping->fingerprint(),
-                chunk_mapping->fingerprint_size(),
-                chunk_mapping->chunk()->data(),
-                chunk_mapping->chunk()->size(),
-                chunk_mapping->is_indexed(),
-                &new_address, ec),
-            "Storing of new chunk failed: chunk " << chunk_mapping->DebugString());
-        CHECK(new_address != Storage::ILLEGAL_STORAGE_ADDRESS, "Write failed: " <<
-            "Illegal storage address: " << new_address << ", chunk " << chunk_mapping->DebugString());
-        chunk_mapping->set_data_address(new_address);
+        requests.push_back(StorageRequest(i->fingerprint(),
+              i->fingerprint_size(),
+              i->chunk()->data(),
+              i->chunk()->size(),
+              i->is_indexed()));
         this->stats_.storage_real_writes_++;
-        this->stats_.storage_real_writes_bytes_ += chunk_mapping->chunk()->size();
-    }
+        this->stats_.storage_real_writes_bytes_ += i->chunk()->size();
+      }
     this->stats_.storage_total_writes_++;
-    this->stats_.storage_total_writes_bytes_ += chunk_mapping->chunk()->size();
+    this->stats_.storage_total_writes_bytes_ += i->chunk()->size();
+    }
+
+    if (!requests.empty()) {
+      CHECK(chunk_storage_->WriteNew(&requests, ec),
+        "Storing of new chunk data failed");
+      list<StorageRequest>::iterator current_request = requests.begin();
+      for (i = chunk_mappings->begin(); i != chunk_mappings->end(); i++) {
+        if (!i->is_known_chunk() &&
+          i->data_address() == Storage::ILLEGAL_STORAGE_ADDRESS) {
+
+          i->set_data_address(current_request->address());
+
+          TRACE("Finished writing chunk data: " <<
+              "" << i->DebugString() <<
+              ", storage request " << current_request->DebugString());
+          current_request++;
+        }
+        }
+    }
+
 
     return true;
 }
@@ -161,7 +181,7 @@ bool ChunkStore::ReadBlock(BlockMappingItem* item,
     if (item->data_address() == Storage::EMPTY_DATA_STORAGE_ADDRESS) { // Null Chunk
         memset(buffer, 0, size);
     } else {
-        Option<uint32_t> read_result = chunk_storage_->Read(item->data_address(),
+        Option<uint32_t> read_result = chunk_storage_->ReadChunk(item->data_address(),
             item->fingerprint(),
             item->fingerprint_size(),
             buffer,
@@ -169,7 +189,10 @@ bool ChunkStore::ReadBlock(BlockMappingItem* item,
             size,
             ec);
         CHECK(read_result.valid() && read_result.value() == size,
-            "Reading of chunk failed: " << item->DebugString());
+            "Reading of chunk failed: " << item->DebugString() <<
+            ", request offset " << offset <<
+            ", request size " << size <<
+            ", read result " << read_result.value());
     }
     this->stats_.storage_reads_++;
     this->stats_.storage_reads_bytes_ += size;
@@ -233,6 +256,15 @@ string ChunkStore::PrintTrace() {
     sstr << "}";
     return sstr.str();
 }
+
+#ifdef DEDUPV1_CORE_TEST
+    void ChunkStore::ClearData() {
+      if (chunk_storage_) {
+        chunk_storage_->ClearData();
+      }
+    }
+#endif
+
 
 }
 }

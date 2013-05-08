@@ -15,50 +15,51 @@
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along with dedupv1. If not, see http://www.gnu.org/licenses/.
+ * You should have received a copy of the GNU General Public License along with dedupv1. If not, see
+ * http://www.gnu.org/licenses/.
  */
 
 #ifndef CONTAINER_STORAGE_H__
 #define CONTAINER_STORAGE_H__
 
-#include <core/dedup.h>
-#include <core/storage.h>
-#include <core/log_consumer.h>
-#include <core/idle_detector.h>
+#include <base/barrier.h>
+#include <base/cache_strategy.h>
+#include <base/compress.h>
+#include <base/fileutil.h>
+#include <base/handover_store.h>
+#include <base/index.h>
+#include <base/locks.h>
+#include <base/profile.h>
+#include <base/thread.h>
+#include <base/uuid.h>
+#include <core/chunk_index.h>
 #include <core/container.h>
+#include <core/container_storage_alloc.h>
 #include <core/container_storage_bg.h>
 #include <core/container_storage_cache.h>
 #include <core/container_storage_write_cache.h>
-#include <core/container_storage_alloc.h>
-#include <base/fileutil.h>
-#include <base/compress.h>
-#include <base/cache_strategy.h>
-#include <base/locks.h>
-#include <base/index.h>
-#include <base/thread.h>
-#include <base/handover_store.h>
-#include <base/profile.h>
-#include <base/barrier.h>
+#include <core/dedup.h>
+#include <core/idle_detector.h>
 #include <core/info_store.h>
-#include <core/chunk_index.h>
-#include <base/uuid.h>
+#include <core/log_consumer.h>
+#include <core/storage.h>
 
 #include <tbb/atomic.h>
 
-#include <vector>
 #include <ctime>
+#include <vector>
 
-#include <tbb/concurrent_unordered_map.h>
 #include <gtest/gtest_prod.h>
+#include <tbb/concurrent_unordered_map.h>
 
 #include "dedupv1.pb.h"
 
-namespace dedupv1 {
-
+namespace dedupv1
+{
 class DedupSystem;
 
-namespace chunkstore {
-
+namespace chunkstore
+{
 // declare classes (inside the namespace)
 class ContainerItem;
 class ContainerStorage;
@@ -68,85 +69,22 @@ class ContainerStorageAllocator;
 class ContainerStorageReadCache;
 class ContainerStorageWriteCache;
 
-class ContainerStorageMetadataCache;
-
-/**
- * Cache state stores the commit state of container ids.
- * This is used to increase the performance the IsCommit calls
- */
-class ContainerStorageMetadataCache {
-private:
-    static const size_t kDefaultCacheSize = 1024;
-
-    /**
-     * Reference to the storage system
-     */
-    ContainerStorage* storage_;
-
-    /**
-     * Mutex to protect the members
-     */
-    tbb::spin_mutex mutex_;
-
-    /**
-     * map from a container id to the most recently checked commit state
-     */
-    std::map<uint64_t, enum storage_commit_state> commit_state_map_;
-
-    /**
-     * replacement strategy
-     */
-    dedupv1::base::LRUCacheStrategy<uint64_t> cache_strategy_;
-
-    /**
-     * size of the cache
-     */
-    size_t cache_size_;
-public:
-    /**
-     * Constructor
-     * @param storage
-     * @return
-     */
-    explicit ContainerStorageMetadataCache(ContainerStorage* storage);
-
-    /**
-     * @return true iff ok, otherwise an error has occurred
-     */
-    bool Lookup(uint64_t address, bool* found, enum storage_commit_state* state);
-
-    /**
-     * @param sticky if sticky is true, the cache item should not removed from the cache until
-     * it is unstick.
-     *
-     * @return true iff ok, otherwise an error has occurred
-     */
-    bool Update(uint64_t address, enum storage_commit_state state, bool sticky = false);
-
-    /**
-     * @return true iff ok, otherwise an error has occurred
-     */
-    bool Unstick(uint64_t);
-
-    /**
-     * @return true iff ok, otherwise an error has occurred
-     */
-    bool Delete(uint64_t address);
-};
-
 /**
  * The container storage is a storage implementation that
  * collects a lot of chunk data in memory and only writes them
  * to disk if the container data structure is full. This avoids
  * a lot of disk io on the storage backend.
  *
- * A container consists of a metadata section and a data section. In the metadata section, we store all
- * fingerprints collected in the container and pointers to the area of the container where the data is stored.
- * Additionally we store there container related metadata, e.g. if the chunk data is compressed or not.
+ * A container consists of a metadata section and a data section. In the metadata section, we store
+ * all fingerprints collected in the container and pointers to the area of the container where the
+ * data
+ * is stored.
+ * Additionally we store there container related metadata, e.g. if the chunk data is compressed or
+ * not.
  *
  * Each container has a unique id. This id can be used during reads to lookup the position of the
- * container on disk. Reads accesses to container that are not yet committed to disk are answered from
- * a read cache.
+ * container on disk. Reads accesses to container that are not yet committed to disk are answered
+ * from a read cache.
  *
  * The clients of the container storage cannot rely on the fact that if a container with id x
  * is committed, every container with id y with y < x - w is also committed. Crashes and
@@ -154,9 +92,11 @@ public:
  * if a system is started and the last committed container had the id x, the system
  * will not commit any new container with id y, y < x:
  *
- * An important implementation criteria is that a container should never be overwritten as the container
+ * An important implementation criteria is that a container should never be overwritten as the
+ * container
  * data would be lost in cases of crashes. The container storage is not "in-place transactional" and
- * it would be very performance costly to implement it that way. Always choose a Copy-On-Write system.
+ * it would be very performance costly to implement it that way. Always choose a Copy-On-Write
+ * system.
  *
  * Thread safety: The container storage can be used from multiple threads in parallel.
  *
@@ -164,18 +104,14 @@ public:
  * - Aquire a cache lock before the container lock
  * - Do not acquire a meta data lock while holding a container lock
  * - Do not acquire a cache lock while holding the meta data lock
- * - Acquire a container lock (with the intention to use the container) only when holding the meta data lock.
+ * - Acquire a container lock (with the intention to use the container) only when holding the meta
+ * data lock.
  */
-class ContainerStorage : public Storage, public dedupv1::log::LogConsumer, public IdleTickConsumer,
-    public dedupv1::log::LogAckConsumer {
+class ContainerStorage : public Storage, public dedupv1::log::LogConsumer,
+    public IdleTickConsumer
+{
     DISALLOW_COPY_AND_ASSIGN(ContainerStorage);
 public:
-
-    /**
-     * Gives the default number of seconds a container can be open before it times out.
-     * This may be changed by a config file.
-     */
-    static const unsigned int kTimeoutSecondsDefault = 4;
 
     static const uint64_t kSuperBlockSize = 4096;
 
@@ -187,10 +123,12 @@ public:
         STARTING, // !< STARTING
         STARTED, // !< STARTED
         RUNNING, // !< RUNNING
+        STOPPING,
         STOPPED, // !< STOPPED
     };
 
-    class ContainerFile {
+    class ContainerFile
+    {
 public:
         ContainerFile();
         ~ContainerFile();
@@ -199,37 +137,50 @@ public:
 
         bool Start(dedupv1::base::File* file, bool is_new);
 
-        const std::string filename() const {
+        const std::string filename() const
+        {
             return filename_;
         }
 
-        void set_uuid(const dedupv1::base::UUID& uuid) {
+        void set_uuid(const dedupv1::base::UUID& uuid)
+        {
             uuid_ = uuid;
         }
 
-        uint64_t file_size() const {
+        uint64_t file_size() const
+        {
             return file_size_;
         }
 
-        dedupv1::base::File* file() {
+        dedupv1::base::File* file()
+        {
             return file_;
         }
 
-        bool new_file() const {
+        bool new_file() const
+        {
             return new_;
         }
 
-        const dedupv1::base::UUID& uuid() const {
+        const dedupv1::base::UUID& uuid() const
+        {
             return uuid_;
         }
 
-        void set_file_size(uint64_t fs) {
+        void set_file_size(uint64_t fs)
+        {
             file_size_ = fs;
         }
 
-        dedupv1::base::MutexLock* lock() {
+        dedupv1::base::MutexLock* lock()
+        {
             return lock_;
         }
+
+        void clear_file() {
+          file_ = NULL;
+        }
+
 private:
         std::string filename_;
         dedupv1::base::File* file_;
@@ -246,7 +197,8 @@ private:
     /**
      * Type for statistics about the container storage.
      */
-    class Statistics {
+    class Statistics
+    {
 public:
         Statistics();
         /**
@@ -255,8 +207,6 @@ public:
         tbb::atomic<uint64_t> reads_;
         tbb::atomic<uint32_t> file_lock_busy_;
         tbb::atomic<uint32_t> file_lock_free_;
-        tbb::atomic<uint32_t> global_lock_busy_;
-        tbb::atomic<uint32_t> global_lock_free_;
         tbb::atomic<uint32_t> handover_lock_busy_;
         tbb::atomic<uint32_t> handover_lock_free_;
         tbb::atomic<uint64_t> read_cache_hit_;
@@ -274,14 +224,16 @@ public:
         dedupv1::base::Profile container_write_time_;
         dedupv1::base::Profile total_file_lock_time_;
         dedupv1::base::Profile total_file_load_time_;
+        dedupv1::base::Profile partial_log_time_;
 
         tbb::atomic<uint64_t> committed_container_;
-        tbb::atomic<uint64_t> container_timeouts_;
         tbb::atomic<uint64_t> readed_container_;
         tbb::atomic<uint64_t> moved_container_;
         tbb::atomic<uint64_t> merged_container_;
         tbb::atomic<uint64_t> failed_container_;
         tbb::atomic<uint64_t> deleted_container_;
+
+        tbb::atomic<uint64_t> partial_container_file_truncate_count_;
 
         /**
          * Time spent with log replay
@@ -289,13 +241,20 @@ public:
         dedupv1::base::Profile replay_time_;
 
         dedupv1::base::SimpleSlidingAverage average_container_load_latency_;
-
     };
+
+    int64_t partial_file_size_threshold_;
 
     /**
      * Container files.
      */
     std::vector<ContainerFile> file_;
+
+    std::vector<ContainerFile> partial_file_;
+
+    std::vector<int64_t> partial_file_offset_;
+
+    tbb::atomic<int64_t> partial_write_count_;
 
     /**
      * Iff all files should be preallocated at the first startup.
@@ -311,7 +270,11 @@ public:
      * map that stores the mapping from all containers currently in the write cache to the
      * position to that the container should be written later.
      */
-    tbb::concurrent_hash_map<uint64_t, ContainerStorageAddressData> address_map;
+    std::map<uint64_t, ContainerStorageAddressData> address_map_;
+
+    dedupv1::base::Condition address_map_condition_;
+
+    dedupv1::base::MutexLock address_map_lock_;
 
     /**
      * meta data index storing a map from an container id to
@@ -324,21 +287,11 @@ public:
      * done atomically. Simply put operations are allowed to use the read lock mode.
      *
      * The overlapping of the container locks and the meta data lock is complex. You should not
-     * hold a container lock when acquiring the lock. As it is often necessary to holds the meta data lock
+     * hold a container lock when acquiring the lock. As it is often necessary to holds the meta
+     * data lock
      * to acquire the correct container lock.
      */
     dedupv1::base::ReadWriteLock meta_data_lock_;
-
-    /**
-     * container meta data cache
-     */
-    ContainerStorageMetadataCache meta_data_cache_;
-
-    /**
-     * Global lock used to secure central shared data structured like the read cache entry (
-     * not the read cache containers itself).
-     */
-    dedupv1::base::ReadWriteLock global_lock_;
 
     /**
      * Size of each container.
@@ -361,21 +314,17 @@ public:
     tbb::atomic<uint64_t> highest_committed_container_id_;
 
     /**
-     * Id of the least container id that is not
-     * committed (in this run of the application) yet.
-     */
-    tbb::atomic<uint64_t> least_open_id_;
-
-    /**
      * Statistical data
      */
     Statistics stats_;
 
     /**
      * The container lock is used to prevent to thread to concurrently modify a container.
-     * Everyone that is modifying a container after it has been written (merging, deleting) must acquire the lock.
+     * Everyone that is modifying a container after it has been written (merging, deleting) must
+     * acquire the lock.
      *
-     * The container lock to use is determined by the GetContainerLock method. It should always the primary id be used
+     * The container lock to use is determined by the GetContainerLock method. It should always the
+     * primary id be used
      */
     dedupv1::base::ReadWriteLockVector container_lock_;
 
@@ -401,27 +350,18 @@ public:
     dedupv1::base::Compression* compression_;
 
     /**
-     * Thread to commit container in the background.
-     * The pointer is only set when the option background_commit is set
      */
     ContainerStorageBackgroundCommitter background_committer_;
 
     /**
      * Thread to commit open container after a certain time.
      */
-    dedupv1::base::Thread<bool>* timeout_committer_;
+    dedupv1::base::Thread<bool> partial_commit_cleanup_thread_;
 
     /**
      * flag that is set, when the timeout commit thread should stop
      */
-    volatile bool timeout_committer_should_stop_;
-
-    /**
-     * Gives the number of seconds a container can be open before it times out.
-     * The timeout committer thread will check at intervals of timeout_seconds,
-     * so the actual time until timeout may be 2*timeout_seconds worst case.
-     */
-    unsigned int timeout_seconds_;
+    // volatile bool timeout_committer_should_stop_;
 
     /**
      * Garbage collecting strategy.
@@ -442,13 +382,9 @@ public:
 
     dedupv1::StartContext start_context_;
 
-    bool calculate_container_checksum_;
-
     bool had_been_started_;
 
     /**
-     * set of all containers that are currently moved or merged or deleted. It is used to overcome problems with the race
-     * situation between the actual move/merge and LogAck calls
      *
      * protected by in_move_set_lock_
      */
@@ -459,54 +395,60 @@ public:
      */
     tbb::spin_mutex in_move_set_lock_;
 
-    /**
-     * Set of containers found during a dirty replay that have been opened, but not committed
-     */
-    std::set<uint64_t> opened_container_id_set_;
-
     dedupv1::chunkindex::ChunkIndex* chunk_index_;
 
 #ifdef DEDUPV1_CORE_TEST
     bool clear_data_called_;
 #endif
 
+    bool OpenContainerFiles(const ContainerLogfileData& log_data,
+                            const dedupv1::StartContext& start_context);
+
+    bool OpenPartialContainerFiles(const ContainerLogfileData& log_data,
+        const dedupv1::StartContext& start_context);
+
     inline dedupv1::base::ReadWriteLock* GetContainerLock(uint64_t container_id);
 
     /**
      * @return true iff ok, otherwise an error has occurred
      */
-    bool FillMergedContainerEventData(
-        ContainerMergedEventData* event_data,
-        const Container& leader_container, const ContainerStorageAddressData& leader_address,
-        const Container& slave_container, const ContainerStorageAddressData& slave_address,
-        const ContainerStorageAddressData& new_container_address);
+    bool FillMergedContainerEventData(ContainerMergedEventData* event_data,
+                                      const Container& leader_container,
+                                      const ContainerStorageAddressData& leader_address,
+                                      const Container& slave_container,
+                                      const ContainerStorageAddressData& slave_address,
+                                      const ContainerStorageAddressData& new_container_address);
 
     /**
      * @return true iff ok, otherwise an error has occurred
      */
     bool MarkContainerCommitAsFailed(Container* container);
 
-    dedupv1::base::lookup_result ReadContainerLocked(Container* container,
-                                                     const ContainerStorageAddressData& container_address);
+    /**
+     * Read a container from disk.
+     *
+     * Assumes that the container lock is already held.
+     */
+    dedupv1::base::lookup_result ReadContainerFromDiskLocked(Container* container,
+                                                     const ContainerStorageAddressData&
+                                                     container_address);
 
     /**
      * Writes the given container (directly) to disk. No locks must be hold at the call.
      *
-     * The difference between commit container and write container is e.g. that write container does not
-     * writes a CONTAINER_COMMIT log entry.
+     * The difference between commit container and write container is e.g. that write container does
+     * not writes a CONTAINER_COMMIT log entry.
      * The caller of this method must log the now address.
      *
      * @param container
      * @param container_address
      * @return true iff ok, otherwise an error has occurred
      */
-    bool WriteContainer(Container* container, const ContainerStorageAddressData& container_address);
+    bool WriteContainer(Container* container,
+                        const ContainerStorageAddressData& container_address);
 
     /**
      * Writes the given container (directly) to disk. No locks must be hold at the call.
-     *
-     * The difference between commit container and write container is e.g. that write container does not
-     * writes a CONTAINER_COMMIT log entry.
      *
      * Either a CONTAINER_COMMIT event is logged or a CONTAINER_COMMIT_FAILED event.
      *
@@ -516,18 +458,16 @@ public:
      * @param address
      * @return true iff ok, otherwise an error has occurred
      */
-    bool CommitContainer(Container* container, const ContainerStorageAddressData& address);
+    bool CommitContainer(Container* container,
+                         const ContainerStorageAddressData& address);
+
+    bool CheckForPartialContainerFileCleanup();
 
     /**
-     * Checks all write cache containers for a timeout. Commits the container if it was timed out.
-     */
-    bool CheckOpenContainerForTimeouts();
-
-    /**
-     * Runner for the timeout commit thread.
+     * Runner for the partial commit cleanup thread.
      * @return true iff ok, otherwise an error has occurred
      */
-    bool TimeoutCommitRunner();
+    bool PartialCommitCleanupRunner();
 
     alloc_result GetNewContainerId(Container* container);
 
@@ -561,6 +501,11 @@ public:
      */
     bool PrepareCommit(Container* container);
 
+    bool WriteContainerPartial(const ContainerPartialData& partial_data,
+                               dedupv1::base::ErrorContext* ec);
+
+    bool RecoverContainerFromPartials();
+
     /**
      * Formats the given storage file.
      *
@@ -572,8 +517,6 @@ public:
     bool DoDeleteContainer(Container* container,
                            const ContainerStorageAddressData& container_address,
                            dedupv1::base::ReadWriteLock* container_lock);
-
-    bool FinishDirtyLogReplay();
 
     /**
      * Reads the given fp in the given container.
@@ -614,6 +557,36 @@ public:
                   const std::list<bytestring>& key_list,
                   CacheEntry* cache_entry,
                   dedupv1::base::ErrorContext* ec);
+
+    bool PrepareWriteContainer(Container* write_container,
+    const StorageRequest& request,
+    dedupv1::base::ErrorContext* ec);
+
+    bool FinishDirtyLogReplay();
+
+    dedupv1::base::Option<bool> TryReadContainerFromWriteCache(
+        Container* container);
+
+    /**
+     * Helper method for LookupContainerAddress.
+     * Should usually not be called directly.
+     */
+    std::pair<dedupv1::base::lookup_result,
+    ContainerStorageAddressData> LookupContainerAddressNoWait(
+      uint64_t container_id,
+      dedupv1::base::ReadWriteLock** primary_container_lock,
+      bool acquire_write_lock);
+
+    /**
+     * Reads a container and fills the data into the given container.
+     * The container must be initiated and the id must be set.
+     *
+     * Do not call this method when you hold a container or a meta data lock.
+     *
+     * @param container
+     * @return
+     */
+    dedupv1::base::lookup_result ReadContainerFromDisk(Container* container);
 public:
     /**
      * Constructor
@@ -628,7 +601,8 @@ public:
     virtual ~ContainerStorage();
 
     /**
-     * Sets an option of an storage implementation. set_option should only be called before calling start
+     * Sets an option of an storage implementation. set_option should only be
+     * called before calling start
      *
      * Available options:
      * - container-size: StorageUnit
@@ -638,7 +612,6 @@ public:
      * - read-cache-size
      * - write-container-count
      * - background-commit.*
-     * - timeout-commit-timeout: uint32_t
      * - compression (deflate, bz2, snappy, none)
      * - filename: String
      * - filename.clear: Boolean
@@ -654,13 +627,15 @@ public:
      *
      * @return true iff ok, otherwise an error has occurred
      */
-    virtual bool SetOption(const std::string& option_name, const std::string& option);
+    virtual bool SetOption(const std::string& option_name,
+                           const std::string& option);
 
     /**
      * Starts a storage system. After a successful start the write, and read calls should work.
      * @return true iff ok, otherwise an error has occurred
      */
-    virtual bool Start(const dedupv1::StartContext& start_context, DedupSystem* system);
+    virtual bool Start(const dedupv1::StartContext& start_context,
+                       DedupSystem* system);
 
     /**
      * Runs the storage system.
@@ -685,16 +660,17 @@ public:
          * @param ec error context (can be NULL)
          * @return
          */
-        virtual bool WriteNew(const void* key, size_t key_size,
-            const void* data, size_t data_size,
-            bool is_indexed,
-            uint64_t* address,
+        virtual bool WriteNew(
+                std::list<StorageRequest>* requests,
             dedupv1::base::ErrorContext* ec);
 
     /**
      *
-     * Note: In contrast to ReadInContainer and other methods, the Read method should report an error, if the
+     * Note: In contrast to ReadInContainer and other methods, the Read method
+     * should report an error, if the
      * key has not been found in the container.
+     *
+     * Also the read method is slightly more efficient than using ReadContainer
      *
      * @param address
      * @param key
@@ -704,7 +680,7 @@ public:
      * @param ec error context (can be NULL)
      * @return
      */
-    virtual dedupv1::base::Option<uint32_t> Read(uint64_t address,
+    virtual dedupv1::base::Option<uint32_t> ReadChunk(uint64_t address,
                                                  const void* key, size_t key_size,
                                                  void* data,
                                                  uint32_t offset,
@@ -723,16 +699,13 @@ public:
                               dedupv1::base::ErrorContext* ec);
 
     /**
-     * Waits if the container is currently in the write cache or in the bg committer
-     */
-    storage_commit_state IsCommittedWait(uint64_t address);
-
-    /**
      * Checks if a given address is already committed. This is checked by
      * comparing the address with the own metadata.
      *
-     * If a container is currently in the write cache or it is currently committed (in the bg)
+     * If a container is currently in the write cache
      * this method will return NOT_COMMITTED.
+     * If a container is currently in the bg committer, the method will
+     * block until the container is committed.
      */
     virtual enum storage_commit_state IsCommitted(uint64_t address);
 
@@ -742,7 +715,8 @@ public:
      * @param ps
      * @return true iff ok, otherwise an error has occurred
      */
-    virtual bool PersistStatistics(std::string prefix, dedupv1::PersistStatistics* ps);
+    virtual bool PersistStatistics(std::string prefix,
+                                   dedupv1::PersistStatistics* ps);
 
     /**
      * Restores the statistics of the container storage.
@@ -750,7 +724,8 @@ public:
      * @param ps
      * @return true iff ok, otherwise an error has occurred
      */
-    virtual bool RestoreStatistics(std::string prefix, dedupv1::PersistStatistics* ps);
+    virtual bool RestoreStatistics(std::string prefix,
+                                   dedupv1::PersistStatistics* ps);
 
     virtual std::string PrintLockStatistics();
 
@@ -771,16 +746,7 @@ public:
      */
     static void RegisterStorage();
 
-    /**
-     * Reads a container and fills the data into the given container.
-     * The container must be initiated and the id must be set.
-     *
-     * Do not call this method when you hold a container or a meta data lock.
-     *
-     * @param container
-     * @return
-     */
-    dedupv1::base::lookup_result ReadContainer(Container* container);
+
 
     /**
      * Do not call this method when you hold a container or a meta data lock.
@@ -788,8 +754,8 @@ public:
      * @param container
      * @return
      */
-    dedupv1::base::lookup_result ReadContainerWithCache(
-        Container* container);
+    virtual dedupv1::base::lookup_result ReadContainer(Container* container,
+        bool use_write_cache);
 
     uint64_t GetLastGivenContainerId();
 
@@ -801,8 +767,6 @@ public:
      * @param id
      */
     void SetLastGivenContainerId(uint64_t id);
-
-    inline unsigned int GetTimeoutSeconds() const;
 
     /**
      * Sets the last committed container id.
@@ -817,7 +781,7 @@ public:
      * Returns the size of a container in bytes
      * @return
      */
-    inline size_t GetContainerSize() const;
+    uint32_t container_size() const;
 
     /**
      * Returns the number of files used by the container storage.
@@ -827,6 +791,8 @@ public:
     inline uint32_t GetFileCount() const;
 
     inline ContainerStorageBackgroundCommitter* background_committer();
+
+    virtual bool LogReplayStateChange(const dedupv1::log::LogReplayStateChange& change);
 
     /**
      *
@@ -839,15 +805,19 @@ public:
                    const LogEventData& event_value,
                    const dedupv1::log::LogReplayContext& context);
 
-    virtual bool LogAck(dedupv1::log::event_type event_type,
+    virtual bool PostContainerEvent(
+        const Container& container,
+        dedupv1::log::event_type event_type,
                         const google::protobuf::Message* log_message,
-                        const dedupv1::log::LogReplayContext& context);
+                        uint64_t log_id);
 
     /**
      * Flushes all data to disk, even if the containers are not yet full.
      *
-     * If the container storage is not started or already stopped, Flush should also return successfully as
-     * by definition every data that is in flux is committed to disk. If the container storage is stopped
+     * If the container storage is not started or already stopped, Flush should also return
+     * successfully as
+     * by definition every data that is in flux is committed to disk. If the container storage is
+     * stopped
      * or not yet started, there is no data ready to be written to disk. Flush call causes the
      * container to be written in that thread. A background committer is not used as we could than
      * not assume that the data is really written to disk after the end of this call.
@@ -871,7 +841,9 @@ public:
      * @param container_id_2
      * @return true iff ok, otherwise an error has occurred
      */
-    virtual bool TryMergeContainer(uint64_t container_id_1, uint64_t container_id_2, bool* aborted);
+    virtual bool TryMergeContainer(uint64_t container_id_1,
+                                   uint64_t container_id_2,
+                                   bool* aborted);
 
     /**
      * Note: The container has to be committed, however, the can be
@@ -895,40 +867,22 @@ public:
     virtual void IdleTick();
 
     /**
-     * returns true iff the container storage has a commit timeout.
-     * If a commit timeout is set, a container is committed after at most
-     * a given number of seconds.
-     * @return
-     */
-    inline bool HasCommitTimeout() const;
-
-    /**
      * Looking up the container address.
      *
-     * @param container_id container id of the container whose address is looked up. If the container id a secondary address,
+     * @param container_id container id of the container whose address is looked up. If the
+     * container id a secondary address,
      * the address of the matching primary container id is lookup up.
      *
-     * If the container is currently during the committing, the lookup will fail with a LOOKUP_NOT_FOUND result.
+     * If the container is in the write cache, the method will return
+     * LOOKUP_NOT_FOUND.
+     * If the container is currently in the bg committer, the lookup will block.
      * @param primary_container_lock Lock of a container lock used. The client
      * of the function is responsible to release the lock
      * @param acquire_write_lock iff true, the lock should be acquired for writing.
      * @return
      */
-    virtual std::pair<dedupv1::base::lookup_result, ContainerStorageAddressData>
-    LookupContainerAddress(
-        uint64_t container_id,
-        dedupv1::base::ReadWriteLock** primary_container_lock,
-        bool acquire_write_lock);
-
-    /**
-     * Looking up the container address, but wait for the container if the container is currently being committed.
-     *
-     * @param container_id container id of the container whose address is looked up. If the container id a secondary address,
-     * the address of the matching primary container id is lookup up.
-     *
-     * @return
-     */
-    std::pair<dedupv1::base::lookup_result, ContainerStorageAddressData> LookupContainerAddressWait(
+    virtual std::pair<dedupv1::base::lookup_result,
+        ContainerStorageAddressData> LookupContainerAddress(
         uint64_t container_id,
         dedupv1::base::ReadWriteLock** primary_container_lock,
         bool acquire_write_lock);
@@ -949,7 +903,8 @@ public:
      */
     dedupv1::base::lookup_result GetPrimaryId(uint64_t container_id,
                                               uint64_t* primary_id,
-                                              dedupv1::base::ReadWriteLock** primary_container_lock,
+                                              dedupv1::base::ReadWriteLock**
+                                              primary_container_lock,
                                               bool acquire_write_lock);
 
     /**
@@ -980,7 +935,8 @@ public:
 
     inline const ContainerFile& file(int i) const;
 
-    inline container_storage_state state() const {
+    inline container_storage_state state() const
+    {
         return state_;
     }
 
@@ -996,7 +952,8 @@ public:
      */
     virtual dedupv1::log::Log* log();
 
-    inline ContainerGCStrategy* container_gc() {
+    inline ContainerGCStrategy* container_gc()
+    {
         return this->gc_;
     }
 
@@ -1005,13 +962,6 @@ public:
      * @return
      */
     uint32_t GetMaxItemsPerContainer() const;
-
-    /**
-     * Marks a container in the write cache as failed.
-     * Locking:
-     * - Acquires and releases a write cache lock
-     */
-    bool FailWriteCacheContainer(uint64_t address);
 
     /**
      * returns a developer-readable representation of a container address.
@@ -1027,7 +977,8 @@ public:
     friend class ContainerStorageBackgroundCommitter;
 
 #ifdef DEDUPV1_CORE_TEST
-    void ClearData();
+    virtual void ClearData();
+
 #endif
     FRIEND_TEST(ContainerStorageTest, MergeWithSameContainerLock);
 };
@@ -1036,55 +987,55 @@ const ContainerStorage::ContainerFile& ContainerStorage::file(int i) const {
     return this->file_[i];
 }
 
-bool ContainerStorage::is_preallocated() const {
+bool ContainerStorage::is_preallocated() const
+{
     return preallocate_;
 }
 
-uint64_t ContainerStorage::size() const {
+uint64_t ContainerStorage::size() const
+{
     return size_;
 }
 
-ContainerGCStrategy* ContainerStorage::GetGarbageCollection() {
+ContainerGCStrategy* ContainerStorage::GetGarbageCollection()
+{
     return this->gc_;
 }
 
-unsigned int ContainerStorage::GetTimeoutSeconds() const {
-    return timeout_seconds_;
-}
 
-size_t ContainerStorage::GetContainerSize() const {
-    return this->container_size_;
-}
 
-uint32_t ContainerStorage::GetFileCount() const {
+uint32_t ContainerStorage::GetFileCount() const
+{
     return this->file_.size();
 }
 
-bool ContainerStorage::HasCommitTimeout() const {
-    return this->timeout_committer_ != NULL;
-}
-
-dedupv1::base::PersistentIndex* ContainerStorage::meta_data_index() {
+dedupv1::base::PersistentIndex* ContainerStorage::meta_data_index()
+{
     return meta_data_index_;
 }
 
-ContainerStorageWriteCache* ContainerStorage::GetWriteCache() {
+ContainerStorageWriteCache* ContainerStorage::GetWriteCache()
+{
     return &this->write_cache_;
 }
 
-ContainerStorageReadCache*  ContainerStorage::GetReadCache() {
+ContainerStorageReadCache*  ContainerStorage::GetReadCache()
+{
     return &this->cache_;
 }
 
-ContainerStorageAllocator* ContainerStorage::allocator() {
+ContainerStorageAllocator* ContainerStorage::allocator()
+{
     return this->allocator_;
 }
 
-ContainerStorageBackgroundCommitter* ContainerStorage::background_committer() {
+ContainerStorageBackgroundCommitter* ContainerStorage::background_committer()
+{
     return &this->background_committer_;
 }
 
-dedupv1::base::ReadWriteLock* ContainerStorage::GetContainerLock(uint64_t container_id) {
+dedupv1::base::ReadWriteLock* ContainerStorage::GetContainerLock(uint64_t container_id)
+{
     if (this->container_lock_.empty()) {
         return NULL;
     }

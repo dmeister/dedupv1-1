@@ -23,12 +23,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <sstream>
 
 #include <base/bitutil.h>
 #include <base/logging.h>
+#include <base/strutil.h>
 
+using dedupv1::base::strutil::ToHexString;
+using dedupv1::base::strutil::ToString;
 using std::map;
 using std::string;
+using std::stringstream;
 using dedupv1::log::Log;
 using dedupv1::IdleDetector;
 
@@ -91,6 +96,31 @@ bool Storage::IsValidAddress(uint64_t address, bool allow_empty) {
            (address != Storage::ILLEGAL_STORAGE_ADDRESS) &&
            (allow_empty || address != Storage::EMPTY_DATA_STORAGE_ADDRESS);
 }
+
+#ifdef DEDUPV1_CORE_TEST
+    void Storage::ClearData() {
+    }
+#endif
+
+StorageRequest::StorageRequest(const void* key, uint32_t key_size,
+        const void* data, uint32_t data_size,
+        bool is_indexed) : key_(key),
+      key_size_(key_size),
+      data_(data),
+      data_size_(data_size),
+      is_indexed_(is_indexed),
+      address_(0) {
+}
+
+string StorageRequest::DebugString() const {
+  stringstream sstr;
+  sstr << "[" << ToHexString(key_, key_size_) <<
+    ", data size " << data_size_ << 
+    ", address " << address_ <<
+    ", is indexed " << ToString(is_indexed_);
+  return sstr.str();
+}
+
 
 }
 }

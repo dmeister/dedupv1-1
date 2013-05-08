@@ -109,7 +109,6 @@ protected:
 
     void SetDefaultConfig(GreedyContainerGCStrategy* gc) {
         ASSERT_TRUE(gc->SetOption("type", "sqlite-disk-btree"));
-        ASSERT_TRUE(gc->SetOption("max-item-count", "4M"));
 
         if (GetParam() == 1) {
             ASSERT_TRUE(gc->SetOption("filename", "work/merge-candidates"));

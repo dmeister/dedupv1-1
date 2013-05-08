@@ -136,8 +136,8 @@ public:
      * @return true iff ok, otherwise an error has occurred
      */
     virtual bool WriteBlock(
-        dedupv1::chunkindex::ChunkMapping* chunk_mappings,
-        dedupv1::base::ErrorContext* ec);
+            std::vector<dedupv1::chunkindex::ChunkMapping>* chunk_mappings,
+            dedupv1::base::ErrorContext* ec);
 
     /**
      * On Success, it sets the data address member of the block mapping item.
@@ -215,6 +215,10 @@ public:
     virtual std::string PrintTrace();
 
     bool CheckIfFull();
+
+#ifdef DEDUPV1_CORE_TEST
+    void ClearData();
+#endif
 
     DISALLOW_COPY_AND_ASSIGN(ChunkStore);
 };

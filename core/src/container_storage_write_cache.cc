@@ -65,11 +65,11 @@ ContainerStorageWriteCache::Statistics::Statistics() {
 
 bool ContainerStorageWriteCache::Start() {
     CHECK(this->storage_, "Storage not set");
-    CHECK(this->storage_->GetContainerSize() > 0, "Container size not set");
+    CHECK(this->storage_->container_size() > 0, "Container size not set");
 
     this->write_container.resize(this->write_container_count_);
     for (int i = 0; i < this->write_container_count_; i++) {
-        this->write_container[i] = new Container(Storage::ILLEGAL_STORAGE_ADDRESS, this->storage_->GetContainerSize(), false);
+        this->write_container[i] = new Container(Storage::ILLEGAL_STORAGE_ADDRESS, this->storage_->container_size(), false);
     }
     this->write_container_lock_.Init(this->write_container_count_);
 
@@ -234,7 +234,7 @@ string ContainerStorageWriteCache::PrintLockStatistics() {
 string ContainerStorageWriteCache::PrintProfile() {
     stringstream sstr;
     sstr << "{";
-    sstr << "\"write lock time\": " << this->stats_.cache_check_time_.GetSum() << "," << std::endl;
+    sstr << "\"cache check time\": " << this->stats_.cache_check_time_.GetSum() << "," << std::endl;
     sstr << "\"write lock time\": " << this->stats_.write_lock_wait_time_.GetSum() << std::endl;
     sstr << "}";
     return sstr.str();
@@ -311,8 +311,9 @@ bool RoundRobinContainerStorageWriteCacheStrategy::Start(ContainerStorageWriteCa
     return true;
 }
 
-bool RoundRobinContainerStorageWriteCacheStrategy::GetNextWriteCacheContainer(Container** write_container,
-                                                                              ReadWriteLock** write_cache_lock) {
+bool RoundRobinContainerStorageWriteCacheStrategy::GetNextWriteCacheContainer(
+    Container** write_container,
+    ReadWriteLock** write_cache_lock) {
     CHECK(this->write_cache, "Write cache not set");
 
     unsigned int write_container_index = this->next_write_container.fetch_and_increment() % this->write_cache->GetSize();
