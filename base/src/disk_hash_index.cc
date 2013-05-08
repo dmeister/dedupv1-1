@@ -93,7 +93,7 @@ Index* DiskHashIndex::CreateIndex() {
 }
 
 DiskHashIndex::DiskHashIndex() :
-    PersistentIndex(PERSISTENT_ITEM_COUNT | HAS_ITERATOR | RETURNS_DELETE_NOT_FOUND | WRITE_BACK_CACHE | PUT_IF_ABSENT) {
+    PersistentIndex(PERSISTENT_ITEM_COUNT | HAS_ITERATOR | RETURNS_DELETE_NOT_FOUND | WRITE_BACK_CACHE) {
     this->bucket_count_ = 0;
     this->page_size_ = 4 * 1024;
     this->info_file_ = NULL;

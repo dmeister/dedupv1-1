@@ -1151,13 +1151,6 @@ class DiskHashIndex : public PersistentIndex {
             const google::protobuf::Message& message);
 
     /**
-     * Insert but not overwrites a key/value pair.
-     */
-    virtual enum put_result PutIfAbsent(
-            const void* key, size_t key_size,
-            const google::protobuf::Message& message);
-
-    /**
      * Inserts or updates the key/value pair and marks it as dirty. The next time the page
      * is written, the value is put to disk.
      *

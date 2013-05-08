@@ -139,10 +139,6 @@ class HashIndex : public MemoryIndex {
         virtual enum put_result Put(const void* key, size_t key_size,
                 const google::protobuf::Message& message);
 
-        virtual enum put_result PutIfAbsent(
-                const void* key, size_t key_size,
-                const google::protobuf::Message& message);
-
         virtual enum put_result CompareAndSwap(const void* key, size_t key_size,
                 const google::protobuf::Message& message,
                 const google::protobuf::Message& compare_message,

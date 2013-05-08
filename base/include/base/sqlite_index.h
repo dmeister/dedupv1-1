@@ -162,10 +162,6 @@ class SqliteIndex : public PersistentIndex {
     enum put_result InternalPutBatch(
             const std::vector<std::tr1::tuple<bytestring, bytestring> >& data);
 
-    enum put_result InternalPutIfAbsent(
-                    const void* key, size_t key_size,
-                    const void* value, size_t value_size);
-
     public:
     /**
      * Constructor.
@@ -216,24 +212,6 @@ class SqliteIndex : public PersistentIndex {
      */
     virtual enum put_result Put(const void* key, size_t key_size,
             const google::protobuf::Message& message);
-
-    /**
-     *
-     * @param key
-     * @param key_size
-     * @param message
-     * @return
-     */
-    virtual enum put_result PutIfAbsent(
-            const void* key, size_t key_size,
-            const google::protobuf::Message& message);
-
-    /**
-     * Used for raw updates
-     */
-    virtual enum put_result RawPutIfAbsent(
-            const void* key, size_t key_size,
-            const void* value, size_t value_size);
 
     /**
      * Used for raw updates

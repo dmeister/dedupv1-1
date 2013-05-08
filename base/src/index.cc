@@ -136,19 +136,6 @@ std::string Index::PrintTrace() {
     return "null";
 }
 
-put_result Index::PutIfAbsent(const void* key, size_t key_size,
-                              const Message& message) {
-    ERROR("Index doesn't support put-if-absent operations.");
-    return PUT_ERROR;
-}
-
-enum put_result Index::RawPutIfAbsent(
-    const void* key, size_t key_size,
-    const void* value, size_t value_size) {
-    ERROR("Index doesn't support raw usage");
-    return PUT_ERROR;
-}
-
 enum put_result Index::RawPut(
     const void* key, size_t key_size,
     const void* value, size_t value_size) {

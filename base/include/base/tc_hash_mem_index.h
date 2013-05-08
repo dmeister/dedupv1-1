@@ -170,17 +170,6 @@ class TCMemHashIndex : public MemoryIndex {
          *
          * @param key
          * @param key_size
-         * @param message
-         * @return
-         */
-        virtual enum put_result PutIfAbsent(
-                const void* key, size_t key_size,
-                const google::protobuf::Message& message);
-
-        /**
-         *
-         * @param key
-         * @param key_size
          * @return
          */
         virtual enum delete_result Delete(const void* key, size_t key_size);
@@ -192,10 +181,6 @@ class TCMemHashIndex : public MemoryIndex {
         virtual bool Clear();
 
         virtual std::string PrintProfile();
-
-        virtual enum put_result RawPutIfAbsent(
-                const void* key, size_t key_size,
-                const void* value, size_t value_size);
 
         virtual enum put_result RawPut(
                 const void* key, size_t key_size,

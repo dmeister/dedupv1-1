@@ -700,33 +700,6 @@ TEST_P(IndexTest, DeleteNotFound) {
     }
 }
 
-TEST_P(IndexTest, PutIfAbsent) {
-    SKIP_UNLESS_PUT_IF_ABSENT_SUPPORTED(index);
-
-    ASSERT_TRUE(index->Start(StartContext()));
-    uint64_t key_value = 1;
-    byte* key = (byte *) &key_value;
-
-    IntData value;
-    value.set_i(1);
-
-    // 1. Put
-    ASSERT_TRUE(index->PutIfAbsent(key, sizeof(key_value), value));
-
-    IntData get_value;
-    ASSERT_EQ(index->Lookup(key, sizeof(key_value), &get_value), LOOKUP_FOUND);
-    ASSERT_EQ(value.i(), get_value.i());
-
-    // 2. Put
-    IntData second_value;
-    second_value.set_i(2);
-
-    ASSERT_EQ(index->PutIfAbsent(key, sizeof(key_value), second_value), PUT_KEEP);
-
-    ASSERT_EQ(index->Lookup(key, sizeof(key_value), &get_value), LOOKUP_FOUND);
-    ASSERT_EQ(value.i(), get_value.i()) << "Value has still if the first value";
-}
-
 TEST_P(IndexTest, PrintLockStatistics) {
     ASSERT_TRUE(index->Start(StartContext()));
 

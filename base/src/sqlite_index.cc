@@ -61,12 +61,11 @@ Index* SqliteIndex::CreateIndex() {
     return new SqliteIndex();
 }
 
-SqliteIndex::SqliteIndex() : PersistentIndex(PERSISTENT_ITEM_COUNT | RETURNS_DELETE_NOT_FOUND | RAW_ACCESS | PUT_IF_ABSENT) {
+SqliteIndex::SqliteIndex() : PersistentIndex(PERSISTENT_ITEM_COUNT | RETURNS_DELETE_NOT_FOUND | RAW_ACCESS) {
     this->version_counter = 0;
     this->state = CREATED;
     this->cache_size = 1024;
     this->max_key_size = 512;
-    this->estimated_max_item_count = 0;
     this->sync = true;
     item_count_ = 0;
     preallocate_size_ = 0;
@@ -214,7 +213,7 @@ bool SqliteIndex::Start(const dedupv1::StartContext& start_context) {
                 }
 
                 // WAL file
-                string wal_filename = this->filename[i] + ".wal";
+                string wal_filename = this->filename[i] + "-wal";
 
                 // Touch/Create WAL file
                 File* wal_file = File::Open(wal_filename, O_RDWR | O_CREAT | O_EXCL | O_LARGEFILE, start_context.file_mode().mode());
@@ -400,6 +399,8 @@ enum lookup_result SqliteIndex::Lookup(const void* key, size_t key_size,
 
     CHECK_RETURN(this->state == STARTED, LOOKUP_ERROR, "Index not started");
     CHECK_RETURN(key, LOOKUP_ERROR, "Key not set");
+
+    TRACE("Lookup: key " << ToHexString(key, key_size));
 
     int current_db_index = 0;
     CHECK_RETURN(GetDBIndex(key, key_size, &current_db_index), LOOKUP_ERROR, "Cannot get db index");
@@ -796,87 +797,6 @@ enum put_result SqliteIndex::Put(const void* key, size_t key_size,
         scoped_array.Get(), message.GetCachedSize());
 }
 
-enum put_result SqliteIndex::InternalPutIfAbsent(
-    const void* key, size_t key_size,
-    const void* value, size_t value_size) {
-    int current_db_index = 0;
-    CHECK_RETURN(GetDBIndex(key, key_size, &current_db_index), PUT_ERROR, "Cannot get db index");
-    sqlite3* current_db = this->db[current_db_index];
-    CHECK_RETURN(current_db, PUT_ERROR, "Cannot get db");
-
-    ScopedReadWriteLock scoped_rw_lock(this->locks_.Get(current_db_index));
-    CHECK_RETURN(scoped_rw_lock.AcquireWriteLock(), PUT_ERROR, "Failed to acquire write lock");
-
-    sqlite3_stmt* stmt = GetStatement(current_db, statements.putIfAbsentStatement);
-    CHECK_RETURN(stmt, PUT_ERROR, "Cannot get statement");
-
-    put_result r = PUT_ERROR;
-    int ec1 = 0;
-    if (IsIntegerMode()) {
-        int64_t int_key = 0;
-        memcpy(&int_key, key, key_size);
-        ec1 = sqlite3_bind_int64(stmt, 1, int_key);
-    } else {
-        ec1 = sqlite3_bind_blob(stmt, 1, key, key_size, NULL);
-    }
-
-    int ec2 = sqlite3_bind_blob(stmt, 2, value, value_size, NULL);
-    if (ec1 != SQLITE_OK || ec2 != SQLITE_OK) {
-        ERROR("Failed to bind parameter: " << sqlite3_errmsg(current_db));
-    } else {
-        // OK
-        int ec = sqlite3_step(stmt);
-        if (ec == SQLITE_DONE || ec == SQLITE_ROW) {
-            item_count_++;
-            r = PUT_OK;
-        } else if (ec == SQLITE_CONSTRAINT) {
-            r = PUT_KEEP;
-        } else {
-            ERROR("Failed to stop query: " << sqlite3_errmsg(current_db));
-
-        }
-    }
-    sqlite3_reset(stmt); // do not check the error code
-    if (sqlite3_finalize(stmt) != SQLITE_OK) {
-        ERROR("Failed to free statement: " << sqlite3_errmsg(current_db));
-        r = PUT_ERROR;
-    }
-
-    this->version_counter.fetch_and_increment();
-    return r;
-}
-
-enum put_result SqliteIndex::RawPutIfAbsent(
-    const void* key, size_t key_size,
-    const void* value, size_t value_size) {
-    tbb::spin_rw_mutex::scoped_lock scoped_lock(lock, false);
-    ProfileTimer timer(this->write_profiling_);
-
-    CHECK_RETURN(this->state == STARTED, PUT_ERROR, "Index not started");
-    CHECK_RETURN(key, PUT_ERROR, "Key not set");
-    CHECK_RETURN(key_size <= this->max_key_size, PUT_ERROR, "Key size too large");
-
-    return InternalPutIfAbsent(key, key_size, value, value_size);
-
-}
-
-enum put_result SqliteIndex::PutIfAbsent(const void* key, size_t key_size,
-                                         const Message& message) {
-    tbb::spin_rw_mutex::scoped_lock scoped_lock(lock, false);
-    ProfileTimer timer(this->write_profiling_);
-
-    CHECK_RETURN(this->state == STARTED, PUT_ERROR, "Index not started");
-    CHECK_RETURN(key, PUT_ERROR, "Key not set");
-    CHECK_RETURN(key_size <= this->max_key_size, PUT_ERROR, "Key size too large");
-
-    ScopedArray<byte> scoped_array(new byte[message.ByteSize()]);
-    CHECK_RETURN(message.SerializeWithCachedSizesToArray(scoped_array.Get()),
-        PUT_ERROR,
-        "Failed to serialize message: " << message.DebugString());
-
-    return InternalPutIfAbsent(key, key_size, scoped_array.Get(), message.GetCachedSize());
-}
-
 enum delete_result SqliteIndex::Delete(const void* key, size_t key_size) {
     tbb::spin_rw_mutex::scoped_lock scoped_lock(lock, false);
     ProfileTimer timer(this->write_profiling_);
@@ -884,6 +804,8 @@ enum delete_result SqliteIndex::Delete(const void* key, size_t key_size) {
     CHECK_RETURN(this->state == STARTED, DELETE_ERROR, "Index not started");
     CHECK_RETURN(key, DELETE_ERROR, "Key not set");
     CHECK_RETURN(key_size <= this->max_key_size, DELETE_ERROR, "Key size too large");
+
+    TRACE("Delete: key " << ToHexString(key, key_size));
 
     int current_db_index = 0;
     CHECK_RETURN(GetDBIndex(key, key_size, &current_db_index), DELETE_ERROR, "Cannot get db index");

@@ -72,7 +72,7 @@ Index* TCMemHashIndex::CreateIndex() {
     return i;
 }
 
-TCMemHashIndex::TCMemHashIndex() : MemoryIndex(HAS_ITERATOR | RETURNS_DELETE_NOT_FOUND | RAW_ACCESS | COMPARE_AND_SWAP | PUT_IF_ABSENT) {
+TCMemHashIndex::TCMemHashIndex() : MemoryIndex(HAS_ITERATOR | RETURNS_DELETE_NOT_FOUND | RAW_ACCESS | COMPARE_AND_SWAP) {
     this->mdb_ = NULL;
     this->buckets_ = 0;
     this->state_ = TC_HASH_MEM_INDEX_STATE_CREATED;
@@ -207,34 +207,6 @@ enum put_result TCMemHashIndex::Put(
     return PUT_OK;
 }
 
-void* TCMemHashIndex::TCDuplicationHandler(const void *vbuf, int vsiz, int *sp, void *op) {
-    bool* b = reinterpret_cast<bool*>(op);
-    *b = true; // it is a duplicate
-    return NULL; // no not keep
-}
-
-enum put_result TCMemHashIndex::RawPutIfAbsent(
-    const void* key, size_t key_size,
-    const void* value, size_t value_size) {
-    ProfileTimer timer(this->update_time_);
-    CHECK_RETURN(this->state_ == TC_HASH_MEM_INDEX_STATE_STARTED, PUT_ERROR, "Index not started");
-    DCHECK_RETURN(this->mdb_, PUT_ERROR, "Memory database not set");
-    DCHECK_RETURN(key, PUT_ERROR, "Key not set");
-    DCHECK_RETURN(key_size <= INT_MAX, PUT_ERROR, "Key size too large");
-
-    bool duplicate = false;
-    bool r = tcmdbputproc(this->mdb_, key, key_size, value, value_size, &TCDuplicationHandler, &duplicate);
-    if (likely(r)) {
-        this->version_counter_.fetch_and_increment();
-        return PUT_OK;
-    } else if (duplicate) {
-        return PUT_KEEP;
-    } else {
-        ERROR("Failed to put data into memory hash index: " << ToHexString(key, key_size));
-        return PUT_ERROR;
-    }
-}
-
 enum put_result TCMemHashIndex::CompareAndSwap(const void* key, size_t key_size,
                                                const Message& message,
                                                const Message& compare_message,
@@ -274,33 +246,6 @@ enum put_result TCMemHashIndex::CompareAndSwap(const void* key, size_t key_size,
         free(r);
         r = NULL;
         return PUT_KEEP;
-    }
-}
-
-enum put_result TCMemHashIndex::PutIfAbsent(
-    const void* key, size_t key_size,
-    const Message& message) {
-    ProfileTimer timer(this->update_time_);
-    CHECK_RETURN(this->state_ == TC_HASH_MEM_INDEX_STATE_STARTED, PUT_ERROR, "Index not started");
-    DCHECK_RETURN(this->mdb_, PUT_ERROR, "Memory database not set");
-    DCHECK_RETURN(key, PUT_ERROR, "Key not set");
-    DCHECK_RETURN(key_size <= INT_MAX, PUT_ERROR, "Key size too large");
-
-    string target;
-    CHECK_RETURN(SerializeSizedMessageToString(message, &target, checksum_),
-        PUT_ERROR,
-        "Failed to serialize message: " << message.ShortDebugString());
-
-    bool duplicate = false;
-    bool r = tcmdbputproc(this->mdb_, key, key_size, target.data(), target.size(), &TCDuplicationHandler, &duplicate);
-    if (likely(r)) {
-        this->version_counter_.fetch_and_increment();
-        return PUT_OK;
-    } else if (duplicate) {
-        return PUT_KEEP;
-    } else {
-        ERROR("Failed to put data into memory hash index: " << ToHexString(key, key_size) << ", message" << message.ShortDebugString());
-        return PUT_ERROR;
     }
 }
 
