@@ -176,6 +176,17 @@ enum put_result Index::RawPutBatch(
     return PUT_OK;
 }
 
+enum delete_result Index::DeleteBatch(const std::vector<bytestring>& key_list) {
+    std::vector<bytestring>::const_iterator i = key_list.begin();
+    for(;i != key_list.end(); i++) {
+      delete_result r = Delete(i->data(), i->size());
+      if (r == DELETE_ERROR) {
+        return r;
+      }
+    }
+    return DELETE_OK;
+}
+
 enum put_result Index::PutBatch(
     const std::vector<std::tr1::tuple<bytestring, const google::protobuf::Message*> >& data) {
     std::vector<std::tr1::tuple<bytestring, const google::protobuf::Message*> >::const_iterator i;

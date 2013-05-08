@@ -35,155 +35,159 @@
 #include <base/profile.h>
 #include <base/locks.h>
 
-  namespace dedupv1 {
-  namespace base {
+namespace dedupv1 {
+namespace base {
 
-  /**
-   * Disk-based LSM-tree implementation based on Leveldb.
-   * Further information can be found at: https://code.google.com/p/leveldb/
-   */
-  class LeveldbIndex : public PersistentIndex {
-    private:
-      friend class LeveldbIndexIterator;
-      DISALLOW_COPY_AND_ASSIGN(LeveldbIndex);
+/**
+ * Disk-based LSM-tree implementation based on Leveldb.
+ * Further information can be found at: https://code.google.com/p/leveldb/
+ */
+class LeveldbIndex : public PersistentIndex {
+private:
+    friend class LeveldbIndexIterator;
+    DISALLOW_COPY_AND_ASSIGN(LeveldbIndex);
 
-      leveldb::DB* db_;
+    leveldb::DB* db_;
 
-      /**
-       * Statistics about the leveldb
-       */
-      class Statistics {
-        public:
-          Statistics();
+    /**
+     * Statistics about the leveldb
+     */
+    class Statistics {
+public:
+        Statistics();
 
-          dedupv1::base::Profile total_time_;
+        dedupv1::base::Profile total_time_;
 
-          dedupv1::base::Profile lookup_time_;
+        dedupv1::base::Profile lookup_time_;
 
-          dedupv1::base::Profile update_time_;
+        dedupv1::base::Profile update_time_;
 
-          dedupv1::base::Profile delete_time_;
+        dedupv1::base::Profile delete_time_;
 
-          tbb::atomic<uint64_t> lookup_count_;
+        tbb::atomic<uint64_t> lookup_count_;
 
-          tbb::atomic<uint64_t> update_count_;
+        tbb::atomic<uint64_t> update_count_;
 
-          tbb::atomic<uint64_t> delete_count_;
-      };
+        tbb::atomic<uint64_t> delete_count_;
+    };
 
-      Statistics stats_;
+    Statistics stats_;
 
-      /**
-       * Option to use a Bloom filter.
-       *
-       * Default: 2 bits per key
-       */
-      int bloom_filter_bits_per_key_;
+    /**
+     * Option to use a Bloom filter.
+     *
+     * Default: 2 bits per key
+     */
+    int bloom_filter_bits_per_key_;
 
-      /**
-       * Option to use compression.
-       */
-      bool use_compression_;
+    /**
+     * Option to use compression.
+     */
+    bool use_compression_;
 
-      /**
-       * Configurable block size the leveldb instance should use.
-       * Can be set using SetOptions().
-       */
-      size_t block_size_;
+    /**
+     * Configurable block size the leveldb instance should use.
+     * Can be set using SetOptions().
+     */
+    size_t block_size_;
 
-      /**
-       * Directory to store the index data in
-       */
-      std::string index_dir_;
+    /**
+     * Directory to store the index data in
+     */
+    std::string index_dir_;
 
-      /**
-       * Option to sync at each write.
-       * Default: true
-       */
-      bool sync_;
+    /**
+     * Option to sync at each write.
+     * Default: true
+     */
+    bool sync_;
 
-      /**
-       * Option to verify the checksum at each read options.
-       */
-      bool checksum_;
+    /**
+     * Option to verify the checksum at each read options.
+     */
+    bool checksum_;
 
-      /**
-       * Configurable cache size in number of cached blocks.
-       * 0 means no cache.
-       */
-      uint64_t cache_size_;
+    uint64_t write_buffer_size_;
 
-      /**
-       * Option to set the maximal number of item of the index.
-       * This value is only used for for displaying the fill ratio.
-       * It is not used as a hard limit.
-       */
-      uint64_t estimated_max_item_count_;
+    /**
+     * Configurable cache size in number of cached blocks.
+     * 0 means no cache.
+     */
+    uint64_t cache_size_;
 
-      tbb::atomic<uint64_t> version_counter_;
+    /**
+     * Option to set the maximal number of item of the index.
+     * This value is only used for for displaying the fill ratio.
+     * It is not used as a hard limit.
+     */
+    uint64_t estimated_max_item_count_;
 
-      tbb::atomic<uint64_t> item_count_;
+    tbb::atomic<uint64_t> version_counter_;
 
-      /**
-       * Interval between two times the lazy item count
-       * is persisted.
-       * Default: 1024
-       */
-      uint64_t lazy_item_count_persistent_interval_;
+    tbb::atomic<uint64_t> item_count_;
 
-      /**
-       * restores the item count from the index.
-       * Should only be called in Start after the database has been
-       * opened
-       */
-      bool RestoreItemCount();
+    /**
+     * Interval between two times the lazy item count
+     * is persisted.
+     * Default: 1024
+     */
+    uint64_t lazy_item_count_persistent_interval_;
 
-      /**
-       * Stores the item count in the index itself depending on the
-       * version count. The item count is always stored if
-       * force is true.
-       */
-      bool LazyStoreItemCount(uint64_t version_count, bool force);
+    /**
+     * restores the item count from the index.
+     * Should only be called in Start after the database has been
+     * opened
+     */
+    bool RestoreItemCount();
 
-      static const std::string kItemCountKeyString;
-      static const int kDefaultBloomFilterBitsPerKey;
-    public:
-      /**
-       * Constructor
-       */
-      LeveldbIndex();
+    /**
+     * Stores the item count in the index itself depending on the
+     * version count. The item count is always stored if
+     * force is true.
+     */
+    bool LazyStoreItemCount(uint64_t version_count, bool force);
 
-      /**
-       * Destructor
-       */
-      virtual ~LeveldbIndex();
+    static const std::string kItemCountKeyString;
+    static const int kDefaultBloomFilterBitsPerKey;
+public:
+    /**
+     * Constructor
+     */
+    LeveldbIndex();
 
-      static Index* CreateIndex();
+    /**
+     * Destructor
+     */
+    virtual ~LeveldbIndex();
 
-      static void RegisterIndex();
+    static Index* CreateIndex();
 
-      /**
-       * Configure the leveldb index instance
-       */
-      bool SetOption(const std::string& option_name, const std::string& option);
+    static void RegisterIndex();
 
-      /**
-       * Starts the index
-       * @return true iff ok, otherwise an error has occured
-       */
-      bool Start(const dedupv1::StartContext& start_context);
+    /**
+     * Configure the leveldb index instance
+     */
+    bool SetOption(const std::string& option_name, const std::string& option);
 
-      virtual enum lookup_result Lookup(const void* key, size_t key_size,
-          google::protobuf::Message* message);
+    /**
+     * Starts the index
+     * @return true iff ok, otherwise an error has occured
+     */
+    bool Start(const dedupv1::StartContext& start_context);
 
-      virtual enum put_result Put(const void* key, size_t key_size,
-          const google::protobuf::Message& message);
+    virtual enum lookup_result Lookup(const void* key, size_t key_size,
+                                      google::protobuf::Message* message);
 
-      /**
-       * Write batch support for leveldb
-       */
-      virtual put_result PutBatch(const std::vector<std::tr1::tuple<bytestring,
-          const google::protobuf::Message*> >& data);
+    virtual enum put_result Put(const void* key, size_t key_size,
+                                const google::protobuf::Message& message);
+
+    virtual delete_result DeleteBatch(const std::vector<bytestring>& key_list);
+
+    /**
+     * Write batch support for leveldb
+     */
+    virtual put_result PutBatch(const std::vector<std::tr1::tuple<bytestring,
+                                        const google::protobuf::Message*> >& data);
 
     virtual enum delete_result Delete(const void* key, size_t key_size);
 
@@ -199,14 +203,17 @@
 
     virtual uint64_t GetItemCount();
 
-    virtual uint64_t GetEstimatedMaxItemCount();
-
     virtual uint64_t GetPersistentSize();
 
     /**
      * Creats an iterator instance of the database
      */
     virtual IndexIterator* CreateIterator();
+
+    leveldb::DB* database() {
+        return db_;
+    }
+
 };
 
 }

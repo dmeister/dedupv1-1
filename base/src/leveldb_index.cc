@@ -91,7 +91,7 @@ public:
     }
 
     lookup_result Next(void* key, size_t* key_size,
-                       Message* message) {
+        Message* message) {
         CHECK_RETURN(iterator_ != NULL, LOOKUP_ERROR,
             "Iterator not set");
         CHECK_RETURN(version_counter_ == index_->version_counter_, LOOKUP_ERROR,
@@ -141,6 +141,7 @@ public:
         iterator_->Next();
         return LOOKUP_FOUND;
     }
+
 };
 
 /**
@@ -175,6 +176,7 @@ private:
         }
         return Status();
     }
+
 public:
     Dedupv1Env(const FileMode& file_mode, const FileMode& dir_mode) :
         EnvWrapper(leveldb::Env::Default()), file_mode_(file_mode), dir_mode_(dir_mode) {
@@ -187,7 +189,7 @@ public:
 //
 // The returned file will only be accessed by one thread at a time.
     virtual leveldb::Status NewSequentialFile(const std::string& fname,
-                                              leveldb::SequentialFile** result) {
+        leveldb::SequentialFile** result) {
         Status s = EnvWrapper::NewSequentialFile(fname, result);
         if (s.ok()) {
             s = ChangeMode(fname, file_mode_);
@@ -203,7 +205,7 @@ public:
     //
     // The returned file may be concurrently accessed by multiple threads.
     virtual leveldb::Status NewRandomAccessFile(const std::string& fname,
-                                                leveldb::RandomAccessFile** result) {
+        leveldb::RandomAccessFile** result) {
         Status s = EnvWrapper::NewRandomAccessFile(fname, result);
         if (s.ok()) {
             s = ChangeMode(fname, file_mode_);
@@ -219,7 +221,7 @@ public:
     //
     // The returned file will only be accessed by one thread at a time.
     virtual leveldb::Status NewWritableFile(const std::string& fname,
-                                            leveldb::WritableFile** result) {
+        leveldb::WritableFile** result) {
         Status s = EnvWrapper::NewWritableFile(fname, result);
         if (s.ok()) {
             s = ChangeMode(fname, file_mode_);
@@ -243,6 +245,7 @@ public:
         }
         return s;
     }
+
 };
 
 void LeveldbIndex::RegisterIndex() {
@@ -261,6 +264,7 @@ LeveldbIndex::LeveldbIndex() : PersistentIndex(PERSISTENT_ITEM_COUNT | NATIVE_BA
     this->sync_ = true;
     this->checksum_ = true;
     version_counter_ = 0;
+    write_buffer_size_ = 64 * 1024 * 1024;
     item_count_ = 0;
     cache_size_ = 1024;
     block_size_ = 0; // use default value
@@ -318,10 +322,11 @@ bool LeveldbIndex::SetOption(const string& option_name, const string& option) {
         checksum_ = b.value();
         return true;
     }
-    if (option_name == "max-item-count") {
+    if (option_name == "write-buffer-size") {
         Option<int64_t> b = ToStorageUnit(option);
-        CHECK(b.valid(), "Illegal estimated max item count value: " << option);
-        estimated_max_item_count_ = b.value();
+        CHECK(b.valid(), "Illegal block size value " << option);
+        CHECK(b.value() >= 512, "Illegal block size value " << option);
+        write_buffer_size_ = b.value();
         return true;
     }
     if (option_name == "block-size") {
@@ -368,6 +373,9 @@ bool LeveldbIndex::Start(const StartContext& start_context) {
     }
     if (block_size_ > 0) {
         options.block_size = block_size_;
+    }
+    if (write_buffer_size_ > 0) {
+        options.write_buffer_size = write_buffer_size_;
     }
     if (cache_size_ > 0) {
         options.block_cache = leveldb::NewLRUCache(cache_size_);
@@ -436,7 +444,7 @@ bool LeveldbIndex::RestoreItemCount() {
 }
 
 lookup_result LeveldbIndex::Lookup(const void* key, size_t key_size,
-                                   Message* message) {
+    Message* message) {
     ProfileTimer timer(stats_.total_time_);
     ProfileTimer lookup_timer(stats_.update_time_);
 
@@ -476,7 +484,7 @@ lookup_result LeveldbIndex::Lookup(const void* key, size_t key_size,
 }
 
 put_result LeveldbIndex::Put(const void* key, size_t key_size,
-                             const Message& message) {
+    const Message& message) {
     ProfileTimer timer(stats_.total_time_);
     ProfileTimer update_timer(stats_.update_time_);
 
@@ -519,6 +527,42 @@ put_result LeveldbIndex::Put(const void* key, size_t key_size,
     }
 }
 
+delete_result LeveldbIndex::DeleteBatch(const vector<bytestring>& key_list) {
+    ProfileTimer timer(stats_.total_time_);
+    ProfileTimer update_timer(stats_.delete_time_);
+
+    CHECK_RETURN(db_ != NULL, DELETE_ERROR, "Index not started")
+
+    WriteOptions options;
+    options.sync = sync_;
+
+    leveldb::WriteBatch batch;
+    vector<bytestring>::const_iterator i;
+    for (i = key_list.begin(); i != key_list.end(); i++) {
+        bytestring key(*i);
+        Slice key_slice(reinterpret_cast<const char*>(key.data()), key.size());
+        batch.Delete(key_slice);
+    }
+
+    Status s = db_->Write(options, &batch);
+    if (!s.ok()) {
+        ERROR("Failed to delete patch: " <<
+            "message " << s.ToString());
+        return DELETE_ERROR;
+    } else {
+        stats_.update_count_++;
+        item_count_ -= key_list.size();
+        version_counter_++;
+
+        if (!LazyStoreItemCount(version_counter_, false)) {
+            ERROR("Failed to store the item count");
+            return DELETE_ERROR;
+        }
+        return DELETE_OK;
+    }
+
+}
+
 put_result LeveldbIndex::PutBatch(const vector<tuple<bytestring, const Message*> >& data) {
     ProfileTimer timer(stats_.total_time_);
     ProfileTimer update_timer(stats_.update_time_);
@@ -554,7 +598,7 @@ put_result LeveldbIndex::PutBatch(const vector<tuple<bytestring, const Message*>
             "message " << s.ToString());
         return PUT_ERROR;
     } else {
-        stats_.update_count_++;
+        stats_.delete_count_++;
         item_count_ += data.size();
         version_counter_++;
 
@@ -617,7 +661,7 @@ string LeveldbIndex::PrintTrace() {
     sstr << "{";
     sstr << "\"lookup count\": " << this->stats_.lookup_count_ << "," << std::endl;
     sstr << "\"update count\": " << this->stats_.update_count_ << "," << std::endl;
-    sstr << "\"delete count\": " << this->stats_.delete_count_ << "" << std::endl;
+    sstr << "\"delete count\": " << this->stats_.delete_count_ << std::endl;
     sstr << "}";
     return sstr.str();
 }
