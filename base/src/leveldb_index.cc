@@ -626,10 +626,6 @@ uint64_t LeveldbIndex::GetItemCount() {
     return item_count_;
 }
 
-uint64_t LeveldbIndex::GetEstimatedMaxItemCount() {
-    return estimated_max_item_count_;
-}
-
 uint64_t LeveldbIndex::GetPersistentSize() {
     // There is no really good way to get this information
     return 0;

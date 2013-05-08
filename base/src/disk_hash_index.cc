@@ -111,7 +111,6 @@ DiskHashIndex::DiskHashIndex() :
 
     this->trans_system_ = NULL;
     this->item_count_ = 0;
-    this->estimated_max_fill_ratio_ = kDefaultEstimatedMaxFillRatio;
     this->write_back_cache_ = NULL;
     max_cache_page_count_ = 0;
     max_cache_item_count_ = 0;
@@ -160,13 +159,6 @@ bool DiskHashIndex::SetOption(const string& option_name, const string& option) {
         lazy_sync_ = !sync_;
         return true;
     }
-    if (option_name == "max-fill-ratio") {
-        CHECK(To<double>(option).valid(), "Illegal option " << option);
-        this->estimated_max_fill_ratio_ = To<double>(option).value();
-        CHECK(this->estimated_max_fill_ratio_ > 0, "Illegal option " << option);
-        CHECK(this->estimated_max_fill_ratio_ <= 1, "Illegal option " << option);
-        return true;
-    }
     if (option_name == "filename") {
         if (this->filename_.size() + 1 > kMaxFiles) {
             ERROR("Too much files");
@@ -204,13 +196,6 @@ bool DiskHashIndex::SetOption(const string& option_name, const string& option) {
     if (option_name == "checksum") {
         CHECK(To<bool>(option).valid(), "Illegal option " << option);
         this->crc_ = To<bool>(option).value();
-        return true;
-    }
-    if (option_name == "estimated-max-fill-ratio") {
-        CHECK(To<double>(option).valid(), "Illegal option " << option);
-        this->estimated_max_fill_ratio_ = To<double>(option).value();
-        CHECK(this->estimated_max_fill_ratio_ <= 0, "Illegal estimated max fill ratio: " << this->estimated_max_fill_ratio_);
-        CHECK(this->estimated_max_fill_ratio_ >= 1, "Illegal estimated max fill ratio: " << this->estimated_max_fill_ratio_);
         return true;
     }
     // overflow
@@ -330,14 +315,6 @@ bool DiskHashIndex::ReadDumpData() {
         CHECK(logfile_data.has_overflow_area() && logfile_data.overflow_area(), "Overflow mismatch: stored false, configured true");
     }
     return true;
-}
-
-uint64_t DiskHashIndex::GetEstimatedMaxItemCount() {
-    if ((this->max_key_size_ + max_value_size_) == 0) {
-        return 0;
-    }
-    double available_space = this->size_ * this->estimated_max_fill_ratio_;
-    return available_space / (this->max_key_size_ + max_value_size_);
 }
 
 bool DiskHashIndex::Start(const StartContext& start_context) {
@@ -1683,10 +1660,6 @@ string DiskHashIndex::CacheLine::DebugString() const {
 string DiskHashIndex::PrintTrace() {
     stringstream sstr;
     sstr << "{";
-    sstr << "\"item count\": " << this->GetItemCount() << "," << std::endl;
-    sstr << "\"dirty item count\": " << this->GetDirtyItemCount() << "," << std::endl;
-    sstr << "\"total item count\": " << this->GetTotalItemCount() << "," << std::endl;
-
     if (lazy_sync_) {
         sstr << "\"sync count\": " << this->statistics_.sync_count_ << "," << std::endl;
         sstr << "\"sync wait count\": " << this->statistics_.sync_wait_count_ << "," << std::endl;
@@ -1701,7 +1674,6 @@ string DiskHashIndex::PrintTrace() {
         sstr << "\"write back\": {";
         sstr << "\"miss count\": " << statistics_.write_cache_miss_count_ << "," << std::endl;
         sstr << "\"hit count\": " << statistics_.write_cache_hit_count_ << "," << std::endl;
-        sstr << "\"estimated max item count\": " << this->GetEstimatedMaxCacheItemCount() << "," << std::endl;
 
         if (statistics_.write_cache_hit_count_ + statistics_.write_cache_miss_count_ > 0) {
             double hit_rate = (1.0 * statistics_.write_cache_hit_count_) / (1.0 * (statistics_.write_cache_hit_count_
@@ -1723,7 +1695,9 @@ string DiskHashIndex::PrintTrace() {
     if (trans_system_) {
         sstr << "\"transaction\": " << trans_system_->PrintTrace() << "," << std::endl;
     }
-    sstr << "\"estimated max item count\": " << this->GetEstimatedMaxItemCount() << std::endl;
+    sstr << "\"item count\": " << this->GetItemCount() << "," << std::endl;
+    sstr << "\"dirty item count\": " << this->GetDirtyItemCount() << "," << std::endl;
+    sstr << "\"total item count\": " << this->GetTotalItemCount() << std::endl;
     sstr << "}";
     return sstr.str();
 }
@@ -1862,10 +1836,6 @@ DiskHashIndex::~DiskHashIndex() {
 IndexIterator* DiskHashIndex::CreateIterator() {
     CHECK_RETURN(this->state_ == STARTED, NULL, "Index not started");
     return new DiskHashIndexIterator(this);
-}
-
-uint64_t DiskHashIndex::GetEstimatedMaxCacheItemCount() {
-    return this->max_cache_item_count_;
 }
 
 lookup_result DiskHashPage::Search(const void* key, size_t key_size, Message* message) {
@@ -2048,9 +2018,6 @@ put_result DiskHashPage::Update(const void* key, size_t key_size, const Message&
         // We are in an overflow situation. For debugging we would like to see if there is one page getting
         // to much data, or if the whole system is going mad. Therefore we calculate at this point the
         // average load over all pages and compare it with this page.
-        uint64_t max_count = this->index_->GetEstimatedMaxItemCount() / this->index_->estimated_max_fill_ratio_;
-        double average_fill_ratio = this->index_->GetItemCount() / max_count;
-
         CHECK_RETURN(this->index_->overflow_area_, PUT_ERROR, "Bucket full: " <<
             "bucket id " << this->bucket_id_ <<
             ", page size " << this->buffer_size_ <<
@@ -2060,9 +2027,7 @@ put_result DiskHashPage::Update(const void* key, size_t key_size, const Message&
             ", max key size " << this->index_->max_key_size() <<
             ", max value size " << this->index_->max_value_size() <<
             ", index item count " << index_->GetItemCount() <<
-            ", estimated max index item count " << index_->GetEstimatedMaxItemCount() <<
             ", index bucket count " << index_->bucket_count() <<
-            ", average page fill ratio " << average_fill_ratio <<
             ", overflow area not set");
         if (!this->overflow_) {
             this->overflow_ = true;
@@ -2074,9 +2039,7 @@ put_result DiskHashPage::Update(const void* key, size_t key_size, const Message&
                 ", max key size " << this->index_->max_key_size() <<
                 ", max value size " << this->index_->max_value_size() <<
                 ", index item count " << index_->GetItemCount() <<
-                ", estimated max index item count " << index_->GetEstimatedMaxItemCount() <<
-                ", index bucket count " << index_->bucket_count() <<
-                ", average page fill ratio " << average_fill_ratio);
+                ", index bucket count " << index_->bucket_count());
         }
         CHECK_RETURN(this->index_->overflow_area_->Put(key, key_size, message) != PUT_ERROR, PUT_ERROR,
             "Failed to put data to overflow area");
@@ -2250,9 +2213,6 @@ bool DiskHashPage::MergeWithCache(DiskHashCachePage* cache_page,
             // We are in an overflow situation. For debugging we would like to see if there is one page getting
             // to much data, or if the whole system is going mad. Therefore we calculate at this point the
             // average load over all pages and compare it with this page.
-            uint64_t max_count = this->index_->GetEstimatedMaxItemCount() / this->index_->estimated_max_fill_ratio_;
-            double average_fill_ratio = this->index_->GetItemCount() / max_count;
-
             CHECK_RETURN(this->index_->overflow_area_, PUT_ERROR, "Bucket full: " <<
                 "bucket id " << this->bucket_id_ <<
                 ", page size " << this->buffer_size_ <<
@@ -2262,9 +2222,7 @@ bool DiskHashPage::MergeWithCache(DiskHashCachePage* cache_page,
                 ", max key size " << this->index_->max_key_size() <<
                 ", max value size " << this->index_->max_value_size() <<
                 ", index item count " << index_->GetItemCount() <<
-                ", estimated max index item count " << index_->GetEstimatedMaxItemCount() <<
                 ", index bucket count " << index_->bucket_count() <<
-                ", average page fill ratio " << average_fill_ratio <<
                 ", overflow area not set");
             if (!this->overflow_) {
                 this->overflow_ = true;
@@ -2276,9 +2234,7 @@ bool DiskHashPage::MergeWithCache(DiskHashCachePage* cache_page,
                     ", max key size " << this->index_->max_key_size() <<
                     ", max value size " << this->index_->max_value_size() <<
                     ", index item count " << index_->GetItemCount() <<
-                    ", estimated max index item count " << index_->GetEstimatedMaxItemCount() <<
-                    ", index bucket count " << index_->bucket_count() <<
-                    ", average page fill ratio " << average_fill_ratio);
+                    ", index bucket count " << index_->bucket_count());
             }
             this->index_->overflow_area_->RawPut(cache_entry.key(), cache_entry.key_size(), cache_entry.value(),
                 cache_entry.value_size());

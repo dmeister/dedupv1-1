@@ -139,8 +139,6 @@ class SqliteIndex : public PersistentIndex {
      */
     int chunk_size_;
 
-    uint64_t estimated_max_item_count;
-
     tbb::atomic<uint64_t> item_count_;
 
     bool sync;
@@ -262,17 +260,11 @@ class SqliteIndex : public PersistentIndex {
 
     virtual uint64_t GetPersistentSize();
 
-    virtual uint64_t GetEstimatedMaxItemCount();
-
     virtual uint64_t GetItemCount();
 
-    virtual bool SupportsCursor();
-
-    virtual IndexCursor* CreateCursor();
 
     virtual IndexIterator* CreateIterator();
 
-    friend class SingleFileSqliteCursor;
     friend class SqliteIterator;
 };
 

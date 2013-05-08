@@ -102,13 +102,6 @@ bool SqliteIndex::SetOption(const string& option_name, const string& option) {
         this->sync = To<bool>(option).value();
         return true;
     }
-    if (option_name == "max-item-count") {
-        Option<int64_t> i = ToStorageUnit(option);
-        CHECK(i.valid(), "Illegal option " << option);
-        CHECK(i.value() > 0, "Illegal option " << option);
-        this->estimated_max_item_count = i.value();
-        return true;
-    }
     if (option_name == "max-key-size") {
         CHECK(To<size_t>(option).valid(), "Illegal option " << option);
         size_t v = To<size_t>(option).value();
@@ -156,7 +149,6 @@ bool SqliteIndex::Start(const dedupv1::StartContext& start_context) {
     tbb::spin_rw_mutex::scoped_lock scoped_lock(lock, true);
     CHECK(this->state == CREATED, "Index in invalid state");
     CHECK(this->filename.size() > 0, "No filename specified");
-    CHECK(this->estimated_max_item_count > 0, "No max item count specified");
 
     if (IsIntegerMode()) {
         this->statements = GetIntegerStatementGroup();
@@ -1092,10 +1084,6 @@ uint64_t SqliteIndex::GetPersistentSize() {
         }
     }
     return size_sum;
-}
-
-uint64_t SqliteIndex::GetEstimatedMaxItemCount() {
-    return estimated_max_item_count;
 }
 
 uint64_t SqliteIndex::GetInitialItemCount() {

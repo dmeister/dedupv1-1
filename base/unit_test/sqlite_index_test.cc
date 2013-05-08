@@ -59,17 +59,17 @@ protected:
 
 INSTANTIATE_TEST_CASE_P(SqliteIndex,
     IndexTest,
-    ::testing::Values("sqlite-disk-btree;filename=work/tc_test_data1;filename=work/tc_test_data2;max-item-count=16K",
-        "sqlite-disk-btree;filename=work/tc_test_data;cache-size=16000;max-item-count=16K",
-        "sqlite-disk-btree;filename=work/tc_test_data;max-key-size=8;max-item-count=16K",
-        "sqlite-disk-btree;filename=work/tc_test_data;max-key-size=8;max-item-count=16K;preallocated-size=4M"
+    ::testing::Values("sqlite-disk-btree;filename=work/tc_test_data1;filename=work/tc_test_data2",
+        "sqlite-disk-btree;filename=work/tc_test_data;cache-size=16000",
+        "sqlite-disk-btree;filename=work/tc_test_data;max-key-size=8",
+        "sqlite-disk-btree;filename=work/tc_test_data;max-key-size=8;preallocated-size=4M"
         ));
 
 INSTANTIATE_TEST_CASE_P(SqliteIndex,
     SqliteIndexTest,
-    ::testing::Values("sqlite-disk-btree;filename=work/tc_test_data1;filename=work/tc_test_data2;max-item-count=16K",
-        "sqlite-disk-btree;filename=work/tc_test_data;cache-size=16000;max-item-count=16K",
-        "sqlite-disk-btree;filename=work/tc_test_data;max-key-size=8;max-item-count=16K;preallocated-size=4M"
+    ::testing::Values("sqlite-disk-btree;filename=work/tc_test_data1;filename=work/tc_test_data2",
+        "sqlite-disk-btree;filename=work/tc_test_data;cache-size=16000",
+        "sqlite-disk-btree;filename=work/tc_test_data;max-key-size=8;preallocated-size=4M"
         ));
 
 }

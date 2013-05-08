@@ -107,7 +107,7 @@ TEST_F(BitmapTest, SetPersistenceFailing)
 {
     bitmap_ = new Bitmap(62);
 
-    index = dedupv1::testing::CreateIndex("sqlite-disk-btree;filename=work/tc_test_data;max-key-size=8;max-item-count=16K");
+    index = dedupv1::testing::CreateIndex("sqlite-disk-btree;filename=work/tc_test_data;max-key-size=8");
     dedupv1::base::PersistentIndex* pi = index->AsPersistentIndex();
     ASSERT_TRUE(pi);
     uint32_t key = 1;
@@ -175,7 +175,7 @@ TEST_F(BitmapTest, Persistent)
 
             DEBUG("Size is " << size);
             index = dedupv1::testing::CreateIndex(
-                "sqlite-disk-btree;filename=work/tc_test_data;max-key-size=8;max-item-count=16K");
+                "sqlite-disk-btree;filename=work/tc_test_data;max-key-size=8");
             dedupv1::base::PersistentIndex* pi = index->AsPersistentIndex();
             ASSERT_TRUE(pi);
             ASSERT_TRUE(pi->Start(dedupv1::StartContext()));
@@ -246,7 +246,7 @@ TEST_F(BitmapTest, StorePage)
     bitmap_ = new Bitmap(bits_per_page * 32); // 32 Pages
     ASSERT_TRUE(bitmap_);
 
-    index = dedupv1::testing::CreateIndex("sqlite-disk-btree;filename=work/tc_test_data;max-key-size=8;max-item-count=16K");
+    index = dedupv1::testing::CreateIndex("sqlite-disk-btree;filename=work/tc_test_data;max-key-size=8");
     dedupv1::base::PersistentIndex* pi = index->AsPersistentIndex();
     ASSERT_TRUE(pi);
     ASSERT_TRUE(pi->Start(dedupv1::StartContext()));
@@ -323,7 +323,7 @@ TEST_F(BitmapTest, Override)
     bitmap_ = new Bitmap(4096); // 32 Pages
     ASSERT_TRUE(bitmap_);
 
-    index = dedupv1::testing::CreateIndex("sqlite-disk-btree;filename=work/tc_test_data;max-key-size=8;max-item-count=16K");
+    index = dedupv1::testing::CreateIndex("sqlite-disk-btree;filename=work/tc_test_data;max-key-size=8");
     dedupv1::base::PersistentIndex* pi = index->AsPersistentIndex();
     ASSERT_TRUE(pi);
     ASSERT_TRUE(pi->Start(dedupv1::StartContext()));
@@ -369,7 +369,7 @@ TEST_F(BitmapTest, PersistentWrongSize)
     ASSERT_TRUE(bitmap_);
 
     index = dedupv1::testing::CreateIndex(
-        "sqlite-disk-btree;filename=work/tc_test_data;max-key-size=8;max-item-count=16K");
+        "sqlite-disk-btree;filename=work/tc_test_data;max-key-size=8");
     dedupv1::base::PersistentIndex* pi = index->AsPersistentIndex();
     ASSERT_TRUE(pi);
     pi->Start(dedupv1::StartContext());

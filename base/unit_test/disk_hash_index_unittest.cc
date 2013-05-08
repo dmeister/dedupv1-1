@@ -71,7 +71,7 @@ INSTANTIATE_TEST_CASE_P(DiskHashIndex,
         // Not much space, but enough
         "static-disk-hash;max-key-size=8;max-value-size=8;page-size=8K;size=512K;filename=work/data/hash_test_data1",
         // Overflow
-        "static-disk-hash;max-key-size=8;max-value-size=8;page-size=8K;size=64K;filename=work/data/hash_test_data1;overflow-area=sqlite-disk-btree;overflow-area.max-item-count=1K;overflow-area.filename=work/tc_test_overflow_data",
+        "static-disk-hash;max-key-size=8;max-value-size=8;page-size=8K;size=64K;filename=work/data/hash_test_data1;overflow-area=sqlite-disk-btree;overflow-area.filename=work/tc_test_overflow_data",
         // Transactions (custom files)
         "static-disk-hash;max-key-size=8;max-value-size=8;page-size=8K;size=32M;filename=work/data/hash_test_data1;transactions.filename=work/hash_test_trans1;transactions.filename=work/hash_test_trans2",
         // Write-back cache
