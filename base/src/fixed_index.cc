@@ -262,22 +262,16 @@ lookup_result FixedIndex::ReadBucket(File* file, int64_t file_id, int64_t global
     }
 
     CHECK_RETURN(data.has_data(), LOOKUP_ERROR, "Bucket data has no data field: " << data.ShortDebugString());
-    CHECK_RETURN(data.has_crc() || data.has_crc_bytes(), LOOKUP_ERROR,
+    CHECK_RETURN(data.has_crc(), LOOKUP_ERROR,
         "Bucket data has no crc field: " << data.ShortDebugString());
 
     if (data.has_key()) {
         CHECK_RETURN(data.key() == global_id, LOOKUP_ERROR, "Illegal bucket: " << data.ShortDebugString() <<
             ", search key " << global_id);
     }
+    uint32_t crc_data = crc_raw(data.data().data(), data.data().size());
+    CHECK_RETURN(crc_data == data.crc(), LOOKUP_ERROR, "CRC mismatch: " << data.ShortDebugString());
 
-    if (data.has_crc()) {
-        uint32_t crc_data = crc_raw(data.data().data(), data.data().size());
-        CHECK_RETURN(crc_data == data.crc(), LOOKUP_ERROR, "CRC mismatch: " << data.ShortDebugString());
-    } else {
-        // old version
-        string crc_data = crc(data.data().data(), data.data().size());
-        CHECK_RETURN(crc_data == data.crc_bytes(), LOOKUP_ERROR, "CRC mismatch: " << data.ShortDebugString());
-    }
     if (message) {
         CHECK_RETURN(message->ParseFromString(data.data()), LOOKUP_ERROR,
             "Failed to parse message");
