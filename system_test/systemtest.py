@@ -112,8 +112,6 @@ volume.logical-size=1T
 volume.threads=24
         """)
 
-        self.repair_during_tearDown = False
-
     def tearDown(self):
         sleep(15)
         self.sys.umount()
@@ -123,12 +121,7 @@ volume.threads=24
             self.dedupv1.stop("-f")
             self.assertExitcode(0)
 
-            if self.repair_during_tearDown:
-                self.dedupv1.check("--logging=/opt/dedupv1/etc/dedupv1/logging.xml", "--repair")
-                self.repair_during_tearDown = False
-            else:
-                self.dedupv1.check("--logging=/opt/dedupv1/etc/dedupv1/logging.xml")
-            self.assertExitcode(0)
+            self.dedupv1.check("--logging=/opt/dedupv1/etc/dedupv1/logging.xml")
 
     def get_listening_process(self, run, port):
       l = run("lsof -i :%s" % port).split("\n")[1:]
@@ -141,6 +134,25 @@ volume.threads=24
             pid = col[1]
             return (process_name, pid)
       return (None, None)
+
+    def full_idle_replay(self, left_items=64, extra_idle_time = 0):
+        """ do a background idle replay until less then a given
+            number of items are left in the log.
+            By default, the log is replayed until it is nearly empty.
+            Afterwards, the system is put to sleep for another number
+            of seconds (0 by default)
+        """
+        self.dedupv1.monitor("idle", "force-idle=true")
+
+        # Wait until all replayed
+        open_event_count = self.dedupv1.monitor("log")["open events"]
+        while open_event_count > left_items:
+            sleep(10)
+            open_event_count = self.dedupv1.monitor("log")["open events"]
+
+        if extra_idle_time:
+            sleep(extra_idle_time)
+        self.dedupv1.monitor("idle", "force-idle=false")
 
     def prepare_part(self, sys=None, mnt_point=None, size=500):
         if (sys == None):
@@ -2730,6 +2742,66 @@ class Dedupv1ISCSISystemTest(Dedupv1BaseSystemTest):
         self.open_iscsi.disconnect(server="127.0.0.1", name="iqn.2010.04:example")
         self.assertExitcode(0)
 
+    def test_iscsi_copy_images_with_cp(self):
+        """ test_iscsi_copy_images_with_cp
+        """
+        self.adapt_config_file("log.max-log-size=.*",
+                             "log.max-log-size=64M")
+        self.start_default_system()
+
+        copied_image_count = 0
+        number_of_images = self.configuration.get("image count", 12)
+        test_data_dir = self.configuration.get("test data dir", None)
+        image_path = os.path.join(test_data_dir, "images")
+        self.assertTrue(os.path.exists(image_path), "Image path doesn't exists")
+
+        self.dedupv1.targets("add tid=3 name=iqn.2005-03.info.christmann:backup:special")
+        self.assertExitcode(0)
+
+        self.open_iscsi.discover(server="127.0.0.1")
+        self.assertExitcode(0)
+        self.open_iscsi.connect(server="127.0.0.1", name="iqn.2005-03.info.christmann:backup:special")
+        self.assertExitcode(0)
+
+        try:
+            self.data.device_name = "/dev/disk/by-path/ip-127.0.0.1:3260-iscsi-iqn.2005-03.info.christmann:backup:special-lun-0"
+            self.sys.device_name = "/dev/disk/by-path/ip-127.0.0.1:3260-iscsi-iqn.2005-03.info.christmann:backup:special-lun-0"
+            self.prepare_part()
+
+            start_time = time()
+            total_data_size = 0
+
+            os.mkdir(os.path.join(self.mnt_point, "images"))
+            for root, dirs, files in os.walk(image_path):
+                for file in files:
+                    pathname = os.path.join(root, file)
+
+                    dest_file = os.path.join(self.mnt_point, "images", file)
+                    print "Copy", file
+
+                    cp_cmd = "cp %s %s" % (pathname, dest_file)
+                    self.run(cp_cmd)
+                    total_data_size += os.path.getsize(pathname)
+                    copied_image_count += 1
+
+                    if number_of_images and copied_image_count >= number_of_images:
+                        break
+
+            end_time = time()
+            print "Copy time %s" % (end_time - start_time)
+            print "Total data size %s MB" % (total_data_size / (1024 * 1024.0))
+
+            self.sys.umount()
+            sleep(10)
+
+            self.sys.fsck_ext3()
+            self.assertExitcode(0)
+
+            self.assertNoLoggedErrors()
+        finally:
+            self.open_iscsi.disconnect(server="127.0.0.1", name="iqn.2005-03.info.christmann:backup:special")
+            self.assertExitcode(0)
+
 class Dedupv1OverflowSystemTest(Dedupv1BaseSystemTest):
     def test_memory_lower_parachute(self):
         """ test_memory_lower_parachute
@@ -2809,7 +2881,7 @@ class Dedupv1OverflowSystemTest(Dedupv1BaseSystemTest):
         trace_data = self.dedupv1.monitor("trace")
         self.assertTrue(trace_data["core"]["chunk index"]["index"]["write back"]["evict count"] > 0, "Without eviction this is a bad test")
 
-    def test_iscsi_log_overflow(self, idle_time=600):
+    def test_iscsi_log_overflow(self):
         """ test_iscsi_log_overflow
 
             Tests a log overflow with copying data of iSCSI. The log
@@ -2841,14 +2913,13 @@ class Dedupv1OverflowSystemTest(Dedupv1BaseSystemTest):
             print "After write md5", md5_2
             self.assertEqual(md5_1, md5_2)
 
-            self.dedupv1.monitor("idle", "force-idle=true")
-            sleep(idle_time)
+            self.full_idle_replay()
 
             self.data.copy_raw(filename, size / 2)
             md5_3 = self.data.read_md5(size / 2)
             print "Overwrite md5", md5_3
-            self.dedupv1.monitor("idle", "force-idle=true")
-            sleep(idle_time / 2)
+
+            self.full_idle_replay()
 
             md5_4 = self.data.read_md5(size / 2)
             self.assertEqual(md5_3, md5_4)
@@ -2859,7 +2930,7 @@ class Dedupv1OverflowSystemTest(Dedupv1BaseSystemTest):
             self.open_iscsi.disconnect(server="127.0.0.1", name="iqn.2005-03.de.jgu.dedupv1:backup:special")
             self.assertExitcode(0)
 
-    def test_log_overflow_crash(self, idle_time=600):
+    def test_log_overflow_crash(self):
         """ test_log_overflow_crash
 
             Tests the handling of a log overflow with a following crash. The log
@@ -2881,14 +2952,13 @@ class Dedupv1OverflowSystemTest(Dedupv1BaseSystemTest):
         print "After write md5", md5_2
         self.assertEqual(md5_1, md5_2)
 
-        self.dedupv1.monitor("idle", "force-idle=true")
-        sleep(idle_time)
+        self.full_idle_replay()
 
         self.data.copy_raw(filename, size / 2)
         md5_3 = self.data.read_md5(size / 2)
         print "Overwrite md5", md5_3
-        self.dedupv1.monitor("idle", "force-idle=true")
-        sleep(idle_time / 2)
+
+        self.full_idle_replay(left_items=100 * 1024)
 
         sleep(15)
         self.sys.rm_scst_local()
@@ -2964,67 +3034,88 @@ class Dedupv1OverflowSystemTest(Dedupv1BaseSystemTest):
         self.assertLoggedWarning(max=1);
         self.assertNoLoggedErrors()
 
-    def test_block_index_full(self, idle_time=120):
-        """ test_block_index_full
+class Dedupv1DataSystemTest(Dedupv1BaseSystemTest):
 
-            Tests the handling of a full block index. We create a very small block index and then copy 1 GB of data.
-        """
-        config_data = open(self.dedupv1.config, "r").read()
-        if re.search("block-index.persistent=tc-disk-.*", config_data):
-            self.adapt_config_file("block-index.persistent.buckets=.*",
-                          "block-index.persistent.buckets=128")
-        elif re.search("block-index.persistent=sqlite-disk-btree", config_data):
-            self.adapt_config_file("block-index.persistent.max-item-count=.*",
-                          "block-index.persistent.max-item-count=256")
-        else:
-            self.fail("Illegal configuration for test_block_index_full")
-        self.start_default_system()
+    def extract_kernel(self, extract=True):
+        def extract_kernel_source(major, minor):
+            name = "linux-2.6.%s.%s.tar" % (major, minor)
+            full_filename = os.path.join(kernel_path, name)
+            if os.path.exists(full_filename):
+                self.run("tar -xf %s" % full_filename, cwd=self.mnt_point)
+                self.assertExitcode(0)
 
-        size = 1024
-        filename = self.get_urandom_file(size)
-        self.data.copy_raw(filename, size)
+        def copy_kernel_tarball(major, minor):
+            name = "linux-2.6.%s.%s.tar" % (major, minor)
+            shutil.copy(os.path.join(kernel_path, name), self.mnt_point)
 
-        sleep(idle_time)
+        test_data_dir = self.configuration.get("test data dir", None)
+        kernel_path = os.path.join(test_data_dir, "kernel")
+        kernel_versions = [(31, 1), (31, 2), (31, 3), (31, 4), (31, 5),
+            (31, 6), (31, 7), (31, 8), (31, 9), (31, 10), (31, 11),
+            (31, 12), (32, 1), (32, 2), (32, 3), (32, 4), (32, 5),
+            (32, 6), (32, 7), (32, 8)]
 
-        os.kill(self.scst.get_pid(), 9)
-        sleep(5)
+        self.sys.prepare_part()
 
-        self.dedupv1.start()
-        self.assertExitcode(0)
+        for (major, minor) in kernel_versions:
+            if extract:
+                extract_kernel_source(major, minor)
+            else:
+                copy_kernel_tarball(major, minor)
 
-        self.dedupv1.monitor("idle", "force-idle=true")
-        sleep(idle_time)
+            self.sys.umount()
+            self.assertExitcode(0)
 
+            self.sys.fsck_ext3()
+            self.assertExitcode(0)
+
+            self.sys.mount()
+            self.assertExitcode(0)
+
+        self.assertNoLoggedWarning()
         self.assertNoLoggedErrors()
 
-    def test_chunk_index_full(self):
-        """ test_chunk_index_full
+    def test_extract_kernel(self):
+        """ test_extract_kernel
 
-            Tests the handling of a full chunk index.We create a very small chunk index and then copy 1 GB of data.
+            Extracts a series of kernel sources. The result is validated using a series of fsck runs.
         """
-        self.adapt_config_file("chunk-index.persistent.size=.*",
-                          "chunk-index.persistent.size=4M")
+        self.start_default_system()
+        self.extract_kernel()
+
+    def test_extract_kernel_4k(self):
+        """ test_extract_kernel_4k
+
+            Extracts a series of kernel sources. The dedup system is configured
+            with 4k chunks. The result is validated using a series of fsck runs.
+        """
+        self.adapt_config_file("chunking=rabin", """chunking=rabin
+chunking.min-chunk-size=1K
+chunking.avg-chunk-size=4K
+chunking.max-chunk-size=16K""")
 
         self.start_default_system()
+        self.extract_kernel()
 
-        size = 1024
-        filename = self.get_urandom_file(size)
-        self.data.copy_raw(filename, size)
+    def test_copy_kernel(self):
+        """ test_copy_kernel
 
-    def test_storage_full(self):
-        """ test_storage_full
-
-            Tests the handling of a full container storage. We create a very small container storage and then copy 1 GB of unique data.
+            Copies a series of kernel sources archives to a filesystem. The
+            result is validated using a series of fsck runs.
         """
-        self.adapt_config_file("storage.size=.*", "storage.size=1024M")
+        self.start_default_system()
+        self.extract_kernel(extract=False)
+
+    def test_copy_kernel_4k(self):
+        """ test_copy_kernel_4k
+        """
+        self.adapt_config_file("chunking=rabin", """chunking=rabin
+chunking.min-chunk-size=1K
+chunking.avg-chunk-size=4K
+chunking.max-chunk-size=16K""")
 
         self.start_default_system()
-
-        size = 2048
-        filename = self.get_urandom_file(size)
-        self.data.copy_raw(filename, size)
-
-class Dedupv1DataSystemTest(Dedupv1BaseSystemTest):
+        self.extract_kernel(extract=False)
 
     def test_urandom_kill_after_replay(self):
         """ test_urandom_kill_after_replay
@@ -3409,7 +3500,6 @@ class Dedupv1DataSystemTest(Dedupv1BaseSystemTest):
     def test_kill_after_sync(self):
         """ test_kill_after_sync
         """
-        self.adapt_config_file("\n$", "\nstorage.timeout-commit-timeout=16")
         self.start_default_system()
 
         size = 128
@@ -3462,9 +3552,6 @@ class Dedupv1DataSystemTest(Dedupv1BaseSystemTest):
             self.assertExitcode(0)
             self.assertNoLoggedErrors()
 
-        #self.repair_during_tearDown = True
-
-
     def test_kill_often_idle(self):
         """ test_kill_often_idle
 
@@ -3507,7 +3594,8 @@ class Dedupv1DataSystemTest(Dedupv1BaseSystemTest):
         self.dedupv1.monitor("idle", "change-idle-tick-interval=1")
         size = 1024
 
-        filename = "/mnt/san/data/random"
+        test_data_dir = self.configuration["test data dir"]
+        filename = os.path.join(test_data_dir, "random")
         if not os.path.exists(filename) or not os.path.getsize(filename) * (size * 1024 * 1024):
             self.run("dd if=/dev/urandom of=%s bs=1M count=%s" % (filename, size))
             self.assertEqual(os.path.getsize(filename), size * 1024 * 1024)
@@ -3607,6 +3695,473 @@ class Dedupv1DataSystemTest(Dedupv1BaseSystemTest):
         self.sys.add_scst_local()
 
         self.sys.fsck_ext3()
+
+    def test_copy_images_full_replay(self):
+        """ test_copy_images_full_replay
+
+            Copies a series of backup images, followed by a restart, a complete replay and some time of garbage collection.
+        """
+        self.start_default_system()
+
+        self.sys.prepare_part()
+
+        number_of_images = self.configuration.get("image count", 12)
+        test_data_dir = self.configuration.get("test data dir", None)
+        image_path = os.path.join(test_data_dir, "images")
+
+        copied_image_count = 0
+        os.mkdir(os.path.join(self.mnt_point, "images"))
+        for root, dirs, files in os.walk(image_path):
+            for file in files:
+                pathname = os.path.join(root, file)
+
+                dest_file = os.path.join(self.mnt_point, "images", file)
+                print "Copy", file
+
+                shutil.copyfile(pathname, dest_file)
+                copied_image_count += 1
+
+                if number_of_images and copied_image_count >= number_of_images:
+                    break
+
+        for root, dirs, files in os.walk(os.path.join(self.mnt_point, "images")):
+            for file in files:
+                    pathname = os.path.join(root, file)
+                    src_file = os.path.join(image_path, file)
+
+                    src_md5 = self.data.read_md5_file(src_file)
+                    dest_md5 = self.data.read_md5_file(pathname)
+                    print "Src md5", src_md5, ", dest md5", dest_md5
+                    self.assertEquals(src_md5, dest_md5)
+
+        self.sys.umount()
+
+        self.sys.fsck_ext3()
+        self.assertExitcode(0)
+
+        self.sys.rm_scst_local()
+        sleep(4)
+
+        self.assertNoLoggedWarning()
+        self.assertNoLoggedErrors()
+
+        self.dedupv1.stop("-f")
+        self.assertExitcode(0)
+
+        start_time = time()
+
+        self.dedupv1.replay()
+        self.assertExitcode(0)
+
+        end_time = time()
+        print "Replay time %s" % (end_time - start_time)
+
+        # First check
+        self.dedupv1.check()
+        self.assertExitcode(0)
+
+        # Let the gc do it work
+        self.dedupv1.start()
+
+        self.full_idle_replay()
+
+        # Recheck
+        self.assertNoLoggedWarning()
+        self.assertNoLoggedErrors()
+
+    def test_copy_images_replay(self):
+        """ test_copy_images_replay
+
+            Copies a series of backup images with a severe replay time between the images
+        """
+        self.start_default_system()
+
+        self.prepare_part()
+
+        copied_image_count = 0
+        number_of_images = self.configuration.get("image count", 12)
+        test_data_dir = self.configuration.get("test data dir", None)
+        image_path = os.path.join(test_data_dir, "images")
+
+        os.mkdir(os.path.join(self.mnt_point, "images"))
+        for root, dirs, files in os.walk(image_path):
+            for file in files:
+                pathname = os.path.join(root, file)
+
+                dest_file = os.path.join(self.mnt_point, "images", file)
+                print "Copy", file
+
+                shutil.copyfile(pathname, dest_file)
+                copied_image_count += 1
+
+                self.full_idle_replay()
+
+                if number_of_images and copied_image_count >= number_of_images:
+                    break
+        self.sys.umount()
+        sleep(10)
+
+        self.sys.fsck_ext3()
+        self.assertExitcode(0)
+
+        self.assertNoLoggedWarning()
+        self.assertNoLoggedErrors()
+
+        self.dedupv1.stop()
+        self.assertExitcode(0)
+
+        self.dedupv1.start()
+        self.assertExitcode(0)
+
+        self.full_idle_replay()
+
+        self.sys.mount()
+        self.assertExitcode(0)
+        self.assertTrue(os.path.ismount(self.mnt_point))
+
+        for root, dirs, files in os.walk(os.path.join(self.mnt_point, "images")):
+            for file in files:
+                    pathname = os.path.join(root, file)
+                    src_file = os.path.join(image_path, file)
+
+                    src_md5 = self.data.read_md5_file(src_file)
+                    dest_md5 = self.data.read_md5_file(pathname)
+                    print "Src md5", src_md5, ", dest md5", dest_md5
+                    self.assertEquals(src_md5, dest_md5)
+
+        self.sys.umount()
+        sleep(10)
+
+        self.sys.fsck_ext3()
+        self.assertExitcode(0)
+
+        self.assertNoLoggedWarning()
+        self.assertNoLoggedErrors()
+
+    def test_copy_images_bytecompare(self):
+        """ test_copy_images_bytecompare
+
+            Copies a series of backup images with the bytecompare filter enabled.
+        """
+        self.adapt_config_file("filter=bytecompare-filter\nfilter.enabled=false",
+            "filter=bytecompare-filter")
+        self.start_default_system()
+
+        self.sys.prepare_part()
+
+        copied_image_count = 0
+        number_of_images = 2
+        test_data_dir = self.configuration.get("test data dir", None)
+        image_path = os.path.join(test_data_dir, "images")
+
+        os.mkdir(os.path.join(self.mnt_point, "images"))
+        for root, dirs, files in os.walk(image_path):
+            for file in files:
+                pathname = os.path.join(root, file)
+
+                dest_file = os.path.join(self.mnt_point, "images", file)
+                print "Copy", file
+                shutil.copyfile(pathname, dest_file)
+                copied_image_count += 1
+
+                if number_of_images and copied_image_count >= number_of_images:
+                    break
+        self.sys.umount()
+        sleep(10)
+
+        self.sys.fsck_ext3()
+        self.assertExitcode(0)
+
+        self.assertNoLoggedWarning()
+        self.assertNoLoggedErrors()
+
+        self.dedupv1.stop()
+        self.assertExitcode(0)
+
+    def test_copy_images_double_copy(self):
+        """ test_copy_images_double_copy
+
+            Copies a series of backup images, replayes the complete log and copies the same set of data again
+        """
+        def copy_images():
+            copied_image_count = 0
+            for root, dirs, files in os.walk(image_path):
+                for file in files:
+                    pathname = os.path.join(root, file)
+
+                    dest_file = os.path.join(self.mnt_point, "images", file)
+                    print "Copy", file
+
+                    shutil.copyfile(pathname, dest_file)
+                    copied_image_count += 1
+
+                    if number_of_images and copied_image_count >= number_of_images:
+                        break
+
+        def validate_images():
+            for root, dirs, files in os.walk(os.path.join(self.mnt_point, "images")):
+                for file in files:
+                        pathname = os.path.join(root, file)
+                        src_file = os.path.join(image_path, file)
+
+                        src_md5 = self.data.read_md5_file(src_file)
+                        dest_md5 = self.data.read_md5_file(pathname)
+                        print "Src md5", src_md5, ", dest md5", dest_md5
+                        self.assertEquals(src_md5, dest_md5)
+        self.start_default_system()
+
+        self.prepare_part()
+
+        number_of_images = self.configuration.get("image count", 12)
+        test_data_dir = self.configuration.get("test data dir", None)
+        image_path = os.path.join(test_data_dir, "images")
+
+        os.mkdir(os.path.join(self.mnt_point, "images"))
+
+        copy_images()
+
+        self.sys.umount()
+        sleep(10)
+
+        self.assertNoLoggedWarning()
+        self.assertNoLoggedErrors()
+
+        self.dedupv1.stop()
+        self.assertExitcode(0)
+
+        self.dedupv1.replay()
+        self.assertExitcode(0)
+
+        self.dedupv1.start()
+        self.assertExitcode(0)
+
+        # Recheck
+        self.assertNoLoggedWarning()
+        self.assertNoLoggedErrors()
+
+        self.full_idle_replay(left_items=256*1024)
+
+        self.assertNoLoggedErrors()
+
+        self.sys.rm_scst_local()
+
+        os.kill(self.scst.get_pid(), 9)
+        sleep(5)
+
+        self.dedupv1.start()
+        self.assertExitcode(0)
+
+        self.sys.add_scst_local()
+
+        self.sys.mount()
+        self.assertExitcode(0)
+        self.assertTrue(os.path.ismount(self.mnt_point))
+
+        # second copy
+        copy_images()
+
+        self.full_idle_replay()
+
+        validate_images()
+
+        self.sys.umount()
+        sleep(10)
+
+        self.sys.fsck_ext3()
+        self.assertExitcode(0)
+
+        self.assertNoLoggedWarning()
+        self.assertNoLoggedErrors()
+
+    def test_copy_images_small_aux_block_index(self0):
+        """ test_copy_images_small_aux_block_index
+
+            Copy images test but with a pretty early import of the block index.
+        """
+        self.adapt_config_file("block-index.auxiliary-size-hard-limit=.*",
+                             "block-index.auxiliary-size-hard-limit=32K")
+        self.adapt_config_file("block-index.max-auxiliary-size=.*",
+                             "block-index.max-auxiliary-size=24K")
+        self.test_copy_images()
+
+    def test_copy_images(self):
+        """ test_copy_images
+
+            Copies a series of backup images, crashes the system, restarts it and verifies the images.
+        """
+        self.start_default_system()
+
+        self.prepare_part()
+
+        start_time = time()
+        total_data_size = 0
+
+        copied_image_count = 0
+        number_of_images = self.configuration.get("image count", 12)
+        test_data_dir = self.configuration.get("test data dir", None)
+        image_path = os.path.join(test_data_dir, "images")
+
+        os.mkdir(os.path.join(self.mnt_point, "images"))
+        for root, dirs, files in os.walk(image_path):
+            for file in files:
+                pathname = os.path.join(root, file)
+
+                dest_file = os.path.join(self.mnt_point, "images", file)
+                print "Copy", file
+
+                shutil.copyfile(pathname, dest_file)
+                total_data_size += os.path.getsize(pathname)
+                copied_image_count += 1
+
+                if number_of_images and copied_image_count >= number_of_images:
+                    break
+
+        end_time = time()
+        print "Copy time %s" % (end_time - start_time)
+        print "Total data size %s MB" % (total_data_size / (1024 * 1024.0))
+
+        self.sys.umount()
+        sleep(10)
+
+        self.sys.fsck_ext3()
+        self.assertExitcode(0)
+
+        self.full_idle_replay()
+
+        self.assertNoLoggedErrors()
+
+        os.kill(self.scst.get_pid(), 9)
+        sleep(5)
+
+        self.dedupv1.start()
+        self.assertExitcode(0)
+
+        self.sys.mount()
+        self.assertExitcode(0)
+        self.assertTrue(os.path.ismount(self.mnt_point))
+
+        for root, dirs, files in os.walk(os.path.join(self.mnt_point, "images")):
+            for file in files:
+                    pathname = os.path.join(root, file)
+                    src_file = os.path.join(image_path, file)
+
+                    src_md5 = self.data.read_md5_file(src_file)
+                    dest_md5 = self.data.read_md5_file(pathname)
+                    print "Src md5", src_md5, ", dest md5", dest_md5
+                    self.assertEquals(src_md5, dest_md5)
+
+        self.assertNoLoggedErrors()
+
+    def test_copy_images_log_overflow(self):
+        """ test_copy_images_log_overflow
+        """
+        self.adapt_config_file("log.max-log-size=.*",
+                             "log.max-log-size=128M")
+        self.start_default_system()
+        self.prepare_part()
+
+        copied_image_count = 0
+        number_of_images = self.configuration.get("image count", 5)
+        test_data_dir = self.configuration.get("test data dir", None)
+        image_path = os.path.join(test_data_dir, "images")
+
+        os.mkdir(os.path.join(self.mnt_point, "images"))
+        for root, dirs, files in os.walk(image_path):
+            for file in files:
+                pathname = os.path.join(root, file)
+
+                dest_file = os.path.join(self.mnt_point, "images", file)
+                print "Copy", file
+
+                shutil.copyfile(pathname, dest_file)
+                copied_image_count += 1
+
+                if number_of_images and copied_image_count >= number_of_images:
+                    break
+
+        for root, dirs, files in os.walk(os.path.join(self.mnt_point, "images")):
+            for file in files:
+                    pathname = os.path.join(root, file)
+                    src_file = os.path.join(image_path, file)
+
+                    src_md5 = self.data.read_md5_file(src_file)
+                    dest_md5 = self.data.read_md5_file(pathname)
+                    print "Src md5", src_md5, ", dest md5", dest_md5
+                    self.assertEquals(src_md5, dest_md5)
+
+        self.sys.umount()
+        sleep(10)
+
+        self.sys.fsck_ext3()
+        self.assertExitcode(0)
+
+        self.assertNoLoggedWarning()
+        self.assertNoLoggedErrors()
+
+    def test_copy_images_double_replay(self):
+        """ test_copy_images_double_replay
+
+            Copies a series of backup images and kill dedupv1d after the processing.
+            During the crash log replay of the starting daemon, the daemon is killed
+            a second time. At the end, we check if every data that has been written is
+            recovered.
+        """
+        self.start_default_system()
+        self.prepare_part()
+
+        copied_image_count = 0
+        number_of_images = self.configuration.get("image count", 12)
+        test_data_dir = self.configuration.get("test data dir", None)
+        image_path = os.path.join(test_data_dir, "images")
+
+        os.mkdir(os.path.join(self.mnt_point, "images"))
+        for root, dirs, files in os.walk(image_path):
+            for file in files:
+                pathname = os.path.join(root, file)
+
+                dest_file = os.path.join(self.mnt_point, "images", file)
+                print "Copy", file
+
+                shutil.copyfile(pathname, dest_file)
+                copied_image_count += 1
+
+                if number_of_images and copied_image_count >= number_of_images:
+                    break
+        self.sys.umount()
+
+        self.full_idle_replay(left_items=100*1024)
+
+        self.assertNoLoggedWarning()
+        self.assertNoLoggedErrors()
+
+        os.kill(self.scst.get_pid(), 9)
+        sleep(5)
+
+        # Kill the starting daemon in 60 seconds
+        kill_proc = self.timed_kill_daemon(60, 9)
+        self.dedupv1.start()
+        kill_proc.join()
+
+        self.dedupv1.start()
+        self.assertExitcode(0)
+
+        self.assertNoLoggedWarning()
+        self.assertNoLoggedErrors()
+
+        self.sys.mount()
+
+        for root, dirs, files in os.walk(os.path.join(self.mnt_point, "images")):
+            for file in files:
+                    pathname = os.path.join(root, file)
+                    src_file = os.path.join(image_path, file)
+
+                    src_md5 = self.data.read_md5_file(src_file)
+                    dest_md5 = self.data.read_md5_file(pathname)
+                    print "Src md5", src_md5, ", dest md5", dest_md5
+                    self.assertEquals(src_md5, dest_md5)
+
+        self.assertNoLoggedWarning()
+        self.assertNoLoggedErrors()
 
     def test_copy_urandom(self):
         """ test_copy_urandom:

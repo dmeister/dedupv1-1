@@ -106,7 +106,7 @@ class Dedupv1PerformanceSystemTest(Dedupv1BaseRemoteSystemTest):
         computer to dedupv1 using iSCSI.
         It replays the log and restarts the system after each backup generation.
         """
-        test_data_dir = self.configuration["test data dir"]
+        test_data_dir = self.configuration["performance test data dir"]
         iscsi_target_name = self.configuration["test iscsi target name"]
         iscsi_target_ip = self.configuration["test iscsi target ip"]
         performance_test_files = self.configuration.get("performance test files", [])
@@ -135,7 +135,7 @@ class Dedupv1PerformanceSystemTest(Dedupv1BaseRemoteSystemTest):
             try:
                 self.data.device_name = "/dev/disk/by-path/ip-%s:3260-iscsi-%s-lun-0" % (
                     iscsi_target_ip, iscsi_target_name)
-                self.client_sys.device_name = "/dev/disk/by-path/ip-%s:3260-iscsi-%s:special-lun-0" % (
+                self.client_sys.device_name = "/dev/disk/by-path/ip-%s:3260-iscsi-%s-lun-0" % (
                     iscsi_target_ip, iscsi_target_name)
 
                 file = os.path.join(test_data_dir, performance_test_file)
@@ -180,7 +180,7 @@ class Dedupv1PerformanceSystemTest(Dedupv1BaseRemoteSystemTest):
         """
         test_basic_read_performance
         """
-        test_data_dir = self.configuration["test data dir"]
+        test_data_dir = self.configuration["performance test data dir"]
         iscsi_target_name = self.configuration["test iscsi target name"]
         iscsi_target_ip = self.configuration["test iscsi target ip"]
         performance_test_files = self.configuration.get("performance test files", [])
@@ -267,6 +267,7 @@ class Dedupv1PerformanceSystemTest(Dedupv1BaseRemoteSystemTest):
                 name=iscsi_target_name)
 
         self.dedupv1.stop()
+
 if __name__ == "__main__":
     perform_systemtest(
             [
