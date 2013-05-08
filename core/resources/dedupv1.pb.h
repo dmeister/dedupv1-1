@@ -33,20 +33,20 @@ void protobuf_AssignDesc_dedupv1_2eproto();
 void protobuf_ShutdownFile_dedupv1_2eproto();
 
 class BlockMappingData;
-class BlockMappingPairData;
-class BlockMappingPairItemData;
 class BlockMappingItemData;
 class ChunkMappingData;
 class ContainerData;
 class ContainerItemData;
+class ContainerPartialData;
+class ContainerPartialAddressData;
+class ContainerPartialItemData;
 class ContainerItemValueData;
 class Limit;
 class ContainerFileData;
+class ContainerPartialFileData;
 class ContainerSuperblockData;
 class ContainerLogfileData;
 class SystemStartEventData;
-class ReplayStartEventData;
-class ReplayStopEventData;
 class LogEventData;
 class LogEntryData;
 class ContainerOpenedEventData;
@@ -58,15 +58,10 @@ class ContainerCommitFailedEventData;
 class VolumeAttachedEventData;
 class VolumeDetachedEventData;
 class BlockMappingWrittenEventData;
-class BlockMappingWriteFailedEventData;
 class BlockMappingDeletedEventData;
-class OphranChunksEventData;
 class BlockIndexLogfileData;
 class ChunkIndexLogfileData;
 class BloomFilterLogfileData;
-class GarbageCollectionCandidateData;
-class GarbageCollectionCandidateItemData;
-class GarbageCollectionInfoData;
 class ContainerGreedyGCCandidateItemData;
 class ContainerGreedyGCCandidateData;
 class ContainerStorageAddressData;
@@ -78,25 +73,6 @@ class LogStateData;
 class MessageData;
 class BlockWriteFailedData;
 
-enum GarbageCollectionCandidateItemData_Type {
-  GarbageCollectionCandidateItemData_Type_STANDARD = 0,
-  GarbageCollectionCandidateItemData_Type_FAILED = 1
-};
-bool GarbageCollectionCandidateItemData_Type_IsValid(int value);
-const GarbageCollectionCandidateItemData_Type GarbageCollectionCandidateItemData_Type_Type_MIN = GarbageCollectionCandidateItemData_Type_STANDARD;
-const GarbageCollectionCandidateItemData_Type GarbageCollectionCandidateItemData_Type_Type_MAX = GarbageCollectionCandidateItemData_Type_FAILED;
-const int GarbageCollectionCandidateItemData_Type_Type_ARRAYSIZE = GarbageCollectionCandidateItemData_Type_Type_MAX + 1;
-
-const ::google::protobuf::EnumDescriptor* GarbageCollectionCandidateItemData_Type_descriptor();
-inline const ::std::string& GarbageCollectionCandidateItemData_Type_Name(GarbageCollectionCandidateItemData_Type value) {
-  return ::google::protobuf::internal::NameOfEnum(
-    GarbageCollectionCandidateItemData_Type_descriptor(), value);
-}
-inline bool GarbageCollectionCandidateItemData_Type_Parse(
-    const ::std::string& name, GarbageCollectionCandidateItemData_Type* value) {
-  return ::google::protobuf::internal::ParseNamedEnum<GarbageCollectionCandidateItemData_Type>(
-    GarbageCollectionCandidateItemData_Type_descriptor(), name, value);
-}
 enum CompressionMode {
   COMPRESSION_NO = 0,
   COMPRESSION_DEFLATE = 1,
@@ -249,238 +225,6 @@ class BlockMappingData : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static BlockMappingData* default_instance_;
-};
-// -------------------------------------------------------------------
-
-class BlockMappingPairData : public ::google::protobuf::Message {
- public:
-  BlockMappingPairData();
-  virtual ~BlockMappingPairData();
-
-  BlockMappingPairData(const BlockMappingPairData& from);
-
-  inline BlockMappingPairData& operator=(const BlockMappingPairData& from) {
-    CopyFrom(from);
-    return *this;
-  }
-
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
-
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
-
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const BlockMappingPairData& default_instance();
-
-  void Swap(BlockMappingPairData* other);
-
-  // implements Message ----------------------------------------------
-
-  BlockMappingPairData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const BlockMappingPairData& from);
-  void MergeFrom(const BlockMappingPairData& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
-
-  ::google::protobuf::Metadata GetMetadata() const;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // optional uint64 block_id = 1;
-  inline bool has_block_id() const;
-  inline void clear_block_id();
-  static const int kBlockIdFieldNumber = 1;
-  inline ::google::protobuf::uint64 block_id() const;
-  inline void set_block_id(::google::protobuf::uint64 value);
-
-  // optional uint32 version_counter = 2;
-  inline bool has_version_counter() const;
-  inline void clear_version_counter();
-  static const int kVersionCounterFieldNumber = 2;
-  inline ::google::protobuf::uint32 version_counter() const;
-  inline void set_version_counter(::google::protobuf::uint32 value);
-
-  // repeated .BlockMappingPairItemData items = 3;
-  inline int items_size() const;
-  inline void clear_items();
-  static const int kItemsFieldNumber = 3;
-  inline const ::BlockMappingPairItemData& items(int index) const;
-  inline ::BlockMappingPairItemData* mutable_items(int index);
-  inline ::BlockMappingPairItemData* add_items();
-  inline const ::google::protobuf::RepeatedPtrField< ::BlockMappingPairItemData >&
-      items() const;
-  inline ::google::protobuf::RepeatedPtrField< ::BlockMappingPairItemData >*
-      mutable_items();
-
-  // @@protoc_insertion_point(class_scope:BlockMappingPairData)
- private:
-  inline void set_has_block_id();
-  inline void clear_has_block_id();
-  inline void set_has_version_counter();
-  inline void clear_has_version_counter();
-
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
-
-  ::google::protobuf::uint64 block_id_;
-  ::google::protobuf::RepeatedPtrField< ::BlockMappingPairItemData > items_;
-  ::google::protobuf::uint32 version_counter_;
-
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(3 + 31) / 32];
-
-  friend void  protobuf_AddDesc_dedupv1_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_2eproto();
-
-  void InitAsDefaultInstance();
-  static BlockMappingPairData* default_instance_;
-};
-// -------------------------------------------------------------------
-
-class BlockMappingPairItemData : public ::google::protobuf::Message {
- public:
-  BlockMappingPairItemData();
-  virtual ~BlockMappingPairItemData();
-
-  BlockMappingPairItemData(const BlockMappingPairItemData& from);
-
-  inline BlockMappingPairItemData& operator=(const BlockMappingPairItemData& from) {
-    CopyFrom(from);
-    return *this;
-  }
-
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
-
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
-
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const BlockMappingPairItemData& default_instance();
-
-  void Swap(BlockMappingPairItemData* other);
-
-  // implements Message ----------------------------------------------
-
-  BlockMappingPairItemData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const BlockMappingPairItemData& from);
-  void MergeFrom(const BlockMappingPairItemData& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
-
-  ::google::protobuf::Metadata GetMetadata() const;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // required bytes fp = 1;
-  inline bool has_fp() const;
-  inline void clear_fp();
-  static const int kFpFieldNumber = 1;
-  inline const ::std::string& fp() const;
-  inline void set_fp(const ::std::string& value);
-  inline void set_fp(const char* value);
-  inline void set_fp(const void* value, size_t size);
-  inline ::std::string* mutable_fp();
-  inline ::std::string* release_fp();
-  inline void set_allocated_fp(::std::string* fp);
-
-  // optional uint64 data_address = 2;
-  inline bool has_data_address() const;
-  inline void clear_data_address();
-  static const int kDataAddressFieldNumber = 2;
-  inline ::google::protobuf::uint64 data_address() const;
-  inline void set_data_address(::google::protobuf::uint64 value);
-
-  // optional uint32 chunk_offset = 3;
-  inline bool has_chunk_offset() const;
-  inline void clear_chunk_offset();
-  static const int kChunkOffsetFieldNumber = 3;
-  inline ::google::protobuf::uint32 chunk_offset() const;
-  inline void set_chunk_offset(::google::protobuf::uint32 value);
-
-  // optional uint32 size = 4;
-  inline bool has_size() const;
-  inline void clear_size();
-  static const int kSizeFieldNumber = 4;
-  inline ::google::protobuf::uint32 size() const;
-  inline void set_size(::google::protobuf::uint32 value);
-
-  // optional int32 usage_count_modifier = 5;
-  inline bool has_usage_count_modifier() const;
-  inline void clear_usage_count_modifier();
-  static const int kUsageCountModifierFieldNumber = 5;
-  inline ::google::protobuf::int32 usage_count_modifier() const;
-  inline void set_usage_count_modifier(::google::protobuf::int32 value);
-
-  // @@protoc_insertion_point(class_scope:BlockMappingPairItemData)
- private:
-  inline void set_has_fp();
-  inline void clear_has_fp();
-  inline void set_has_data_address();
-  inline void clear_has_data_address();
-  inline void set_has_chunk_offset();
-  inline void clear_has_chunk_offset();
-  inline void set_has_size();
-  inline void clear_has_size();
-  inline void set_has_usage_count_modifier();
-  inline void clear_has_usage_count_modifier();
-
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
-
-  ::std::string* fp_;
-  ::google::protobuf::uint64 data_address_;
-  ::google::protobuf::uint32 chunk_offset_;
-  ::google::protobuf::uint32 size_;
-  ::google::protobuf::int32 usage_count_modifier_;
-
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(5 + 31) / 32];
-
-  friend void  protobuf_AddDesc_dedupv1_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_2eproto();
-
-  void InitAsDefaultInstance();
-  static BlockMappingPairItemData* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -662,31 +406,10 @@ class ChunkMappingData : public ::google::protobuf::Message {
   inline ::google::protobuf::uint64 data_address() const;
   inline void set_data_address(::google::protobuf::uint64 value);
 
-  // optional int64 usage_count = 2;
-  inline bool has_usage_count() const;
-  inline void clear_usage_count();
-  static const int kUsageCountFieldNumber = 2;
-  inline ::google::protobuf::int64 usage_count() const;
-  inline void set_usage_count(::google::protobuf::int64 value);
-
-  // optional uint64 usage_count_change_log_id = 3;
-  inline bool has_usage_count_change_log_id() const;
-  inline void clear_usage_count_change_log_id();
-  static const int kUsageCountChangeLogIdFieldNumber = 3;
-  inline ::google::protobuf::uint64 usage_count_change_log_id() const;
-  inline void set_usage_count_change_log_id(::google::protobuf::uint64 value);
-
-  // optional uint64 usage_count_failed_write_change_log_id = 4;
-  inline bool has_usage_count_failed_write_change_log_id() const;
-  inline void clear_usage_count_failed_write_change_log_id();
-  static const int kUsageCountFailedWriteChangeLogIdFieldNumber = 4;
-  inline ::google::protobuf::uint64 usage_count_failed_write_change_log_id() const;
-  inline void set_usage_count_failed_write_change_log_id(::google::protobuf::uint64 value);
-
-  // optional uint64 last_block_hint = 5;
+  // optional uint64 last_block_hint = 2;
   inline bool has_last_block_hint() const;
   inline void clear_last_block_hint();
-  static const int kLastBlockHintFieldNumber = 5;
+  static const int kLastBlockHintFieldNumber = 2;
   inline ::google::protobuf::uint64 last_block_hint() const;
   inline void set_last_block_hint(::google::protobuf::uint64 value);
 
@@ -694,25 +417,16 @@ class ChunkMappingData : public ::google::protobuf::Message {
  private:
   inline void set_has_data_address();
   inline void clear_has_data_address();
-  inline void set_has_usage_count();
-  inline void clear_has_usage_count();
-  inline void set_has_usage_count_change_log_id();
-  inline void clear_has_usage_count_change_log_id();
-  inline void set_has_usage_count_failed_write_change_log_id();
-  inline void clear_has_usage_count_failed_write_change_log_id();
   inline void set_has_last_block_hint();
   inline void clear_has_last_block_hint();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::google::protobuf::uint64 data_address_;
-  ::google::protobuf::int64 usage_count_;
-  ::google::protobuf::uint64 usage_count_change_log_id_;
-  ::google::protobuf::uint64 usage_count_failed_write_change_log_id_;
   ::google::protobuf::uint64 last_block_hint_;
 
   mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(5 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
 
   friend void  protobuf_AddDesc_dedupv1_2eproto();
   friend void protobuf_AssignDesc_dedupv1_2eproto();
@@ -992,6 +706,319 @@ class ContainerItemData : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static ContainerItemData* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ContainerPartialData : public ::google::protobuf::Message {
+ public:
+  ContainerPartialData();
+  virtual ~ContainerPartialData();
+
+  ContainerPartialData(const ContainerPartialData& from);
+
+  inline ContainerPartialData& operator=(const ContainerPartialData& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ContainerPartialData& default_instance();
+
+  void Swap(ContainerPartialData* other);
+
+  // implements Message ----------------------------------------------
+
+  ContainerPartialData* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ContainerPartialData& from);
+  void MergeFrom(const ContainerPartialData& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated .ContainerPartialItemData partial_item = 1;
+  inline int partial_item_size() const;
+  inline void clear_partial_item();
+  static const int kPartialItemFieldNumber = 1;
+  inline const ::ContainerPartialItemData& partial_item(int index) const;
+  inline ::ContainerPartialItemData* mutable_partial_item(int index);
+  inline ::ContainerPartialItemData* add_partial_item();
+  inline const ::google::protobuf::RepeatedPtrField< ::ContainerPartialItemData >&
+      partial_item() const;
+  inline ::google::protobuf::RepeatedPtrField< ::ContainerPartialItemData >*
+      mutable_partial_item();
+
+  // optional .ContainerPartialAddressData address_info = 2;
+  inline bool has_address_info() const;
+  inline void clear_address_info();
+  static const int kAddressInfoFieldNumber = 2;
+  inline const ::ContainerPartialAddressData& address_info() const;
+  inline ::ContainerPartialAddressData* mutable_address_info();
+  inline ::ContainerPartialAddressData* release_address_info();
+  inline void set_allocated_address_info(::ContainerPartialAddressData* address_info);
+
+  // @@protoc_insertion_point(class_scope:ContainerPartialData)
+ private:
+  inline void set_has_address_info();
+  inline void clear_has_address_info();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::RepeatedPtrField< ::ContainerPartialItemData > partial_item_;
+  ::ContainerPartialAddressData* address_info_;
+
+  mutable int _cached_size_;
+  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
+
+  friend void  protobuf_AddDesc_dedupv1_2eproto();
+  friend void protobuf_AssignDesc_dedupv1_2eproto();
+  friend void protobuf_ShutdownFile_dedupv1_2eproto();
+
+  void InitAsDefaultInstance();
+  static ContainerPartialData* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ContainerPartialAddressData : public ::google::protobuf::Message {
+ public:
+  ContainerPartialAddressData();
+  virtual ~ContainerPartialAddressData();
+
+  ContainerPartialAddressData(const ContainerPartialAddressData& from);
+
+  inline ContainerPartialAddressData& operator=(const ContainerPartialAddressData& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ContainerPartialAddressData& default_instance();
+
+  void Swap(ContainerPartialAddressData* other);
+
+  // implements Message ----------------------------------------------
+
+  ContainerPartialAddressData* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ContainerPartialAddressData& from);
+  void MergeFrom(const ContainerPartialAddressData& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional uint64 container_id = 1;
+  inline bool has_container_id() const;
+  inline void clear_container_id();
+  static const int kContainerIdFieldNumber = 1;
+  inline ::google::protobuf::uint64 container_id() const;
+  inline void set_container_id(::google::protobuf::uint64 value);
+
+  // optional .ContainerStorageAddressData address = 2;
+  inline bool has_address() const;
+  inline void clear_address();
+  static const int kAddressFieldNumber = 2;
+  inline const ::ContainerStorageAddressData& address() const;
+  inline ::ContainerStorageAddressData* mutable_address();
+  inline ::ContainerStorageAddressData* release_address();
+  inline void set_allocated_address(::ContainerStorageAddressData* address);
+
+  // @@protoc_insertion_point(class_scope:ContainerPartialAddressData)
+ private:
+  inline void set_has_container_id();
+  inline void clear_has_container_id();
+  inline void set_has_address();
+  inline void clear_has_address();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint64 container_id_;
+  ::ContainerStorageAddressData* address_;
+
+  mutable int _cached_size_;
+  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
+
+  friend void  protobuf_AddDesc_dedupv1_2eproto();
+  friend void protobuf_AssignDesc_dedupv1_2eproto();
+  friend void protobuf_ShutdownFile_dedupv1_2eproto();
+
+  void InitAsDefaultInstance();
+  static ContainerPartialAddressData* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ContainerPartialItemData : public ::google::protobuf::Message {
+ public:
+  ContainerPartialItemData();
+  virtual ~ContainerPartialItemData();
+
+  ContainerPartialItemData(const ContainerPartialItemData& from);
+
+  inline ContainerPartialItemData& operator=(const ContainerPartialItemData& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ContainerPartialItemData& default_instance();
+
+  void Swap(ContainerPartialItemData* other);
+
+  // implements Message ----------------------------------------------
+
+  ContainerPartialItemData* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ContainerPartialItemData& from);
+  void MergeFrom(const ContainerPartialItemData& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional bytes fp = 1;
+  inline bool has_fp() const;
+  inline void clear_fp();
+  static const int kFpFieldNumber = 1;
+  inline const ::std::string& fp() const;
+  inline void set_fp(const ::std::string& value);
+  inline void set_fp(const char* value);
+  inline void set_fp(const void* value, size_t size);
+  inline ::std::string* mutable_fp();
+  inline ::std::string* release_fp();
+  inline void set_allocated_fp(::std::string* fp);
+
+  // optional uint64 container_id = 2;
+  inline bool has_container_id() const;
+  inline void clear_container_id();
+  static const int kContainerIdFieldNumber = 2;
+  inline ::google::protobuf::uint64 container_id() const;
+  inline void set_container_id(::google::protobuf::uint64 value);
+
+  // optional bool indexed = 3;
+  inline bool has_indexed() const;
+  inline void clear_indexed();
+  static const int kIndexedFieldNumber = 3;
+  inline bool indexed() const;
+  inline void set_indexed(bool value);
+
+  // optional bytes data = 4;
+  inline bool has_data() const;
+  inline void clear_data();
+  static const int kDataFieldNumber = 4;
+  inline const ::std::string& data() const;
+  inline void set_data(const ::std::string& value);
+  inline void set_data(const char* value);
+  inline void set_data(const void* value, size_t size);
+  inline ::std::string* mutable_data();
+  inline ::std::string* release_data();
+  inline void set_allocated_data(::std::string* data);
+
+  // @@protoc_insertion_point(class_scope:ContainerPartialItemData)
+ private:
+  inline void set_has_fp();
+  inline void clear_has_fp();
+  inline void set_has_container_id();
+  inline void clear_has_container_id();
+  inline void set_has_indexed();
+  inline void clear_has_indexed();
+  inline void set_has_data();
+  inline void clear_has_data();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::std::string* fp_;
+  ::google::protobuf::uint64 container_id_;
+  ::std::string* data_;
+  bool indexed_;
+
+  mutable int _cached_size_;
+  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
+
+  friend void  protobuf_AddDesc_dedupv1_2eproto();
+  friend void protobuf_AssignDesc_dedupv1_2eproto();
+  friend void protobuf_ShutdownFile_dedupv1_2eproto();
+
+  void InitAsDefaultInstance();
+  static ContainerPartialItemData* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -1281,6 +1308,108 @@ class ContainerFileData : public ::google::protobuf::Message {
 };
 // -------------------------------------------------------------------
 
+class ContainerPartialFileData : public ::google::protobuf::Message {
+ public:
+  ContainerPartialFileData();
+  virtual ~ContainerPartialFileData();
+
+  ContainerPartialFileData(const ContainerPartialFileData& from);
+
+  inline ContainerPartialFileData& operator=(const ContainerPartialFileData& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ContainerPartialFileData& default_instance();
+
+  void Swap(ContainerPartialFileData* other);
+
+  // implements Message ----------------------------------------------
+
+  ContainerPartialFileData* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ContainerPartialFileData& from);
+  void MergeFrom(const ContainerPartialFileData& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional string filename = 1;
+  inline bool has_filename() const;
+  inline void clear_filename();
+  static const int kFilenameFieldNumber = 1;
+  inline const ::std::string& filename() const;
+  inline void set_filename(const ::std::string& value);
+  inline void set_filename(const char* value);
+  inline void set_filename(const char* value, size_t size);
+  inline ::std::string* mutable_filename();
+  inline ::std::string* release_filename();
+  inline void set_allocated_filename(::std::string* filename);
+
+  // optional string uuid = 2;
+  inline bool has_uuid() const;
+  inline void clear_uuid();
+  static const int kUuidFieldNumber = 2;
+  inline const ::std::string& uuid() const;
+  inline void set_uuid(const ::std::string& value);
+  inline void set_uuid(const char* value);
+  inline void set_uuid(const char* value, size_t size);
+  inline ::std::string* mutable_uuid();
+  inline ::std::string* release_uuid();
+  inline void set_allocated_uuid(::std::string* uuid);
+
+  // @@protoc_insertion_point(class_scope:ContainerPartialFileData)
+ private:
+  inline void set_has_filename();
+  inline void clear_has_filename();
+  inline void set_has_uuid();
+  inline void clear_has_uuid();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::std::string* filename_;
+  ::std::string* uuid_;
+
+  mutable int _cached_size_;
+  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
+
+  friend void  protobuf_AddDesc_dedupv1_2eproto();
+  friend void protobuf_AssignDesc_dedupv1_2eproto();
+  friend void protobuf_ShutdownFile_dedupv1_2eproto();
+
+  void InitAsDefaultInstance();
+  static ContainerPartialFileData* default_instance_;
+};
+// -------------------------------------------------------------------
+
 class ContainerSuperblockData : public ::google::protobuf::Message {
  public:
   ContainerSuperblockData();
@@ -1455,6 +1584,18 @@ class ContainerLogfileData : public ::google::protobuf::Message {
   inline ::google::protobuf::RepeatedPtrField< ::ContainerFileData >*
       mutable_file();
 
+  // repeated .ContainerPartialFileData partial_file = 5;
+  inline int partial_file_size() const;
+  inline void clear_partial_file();
+  static const int kPartialFileFieldNumber = 5;
+  inline const ::ContainerPartialFileData& partial_file(int index) const;
+  inline ::ContainerPartialFileData* mutable_partial_file(int index);
+  inline ::ContainerPartialFileData* add_partial_file();
+  inline const ::google::protobuf::RepeatedPtrField< ::ContainerPartialFileData >&
+      partial_file() const;
+  inline ::google::protobuf::RepeatedPtrField< ::ContainerPartialFileData >*
+      mutable_partial_file();
+
   // @@protoc_insertion_point(class_scope:ContainerLogfileData)
  private:
   inline void set_has_last_given_container_id();
@@ -1470,9 +1611,10 @@ class ContainerLogfileData : public ::google::protobuf::Message {
   ::google::protobuf::uint32 container_size_;
   ::google::protobuf::uint32 size_;
   ::google::protobuf::RepeatedPtrField< ::ContainerFileData > file_;
+  ::google::protobuf::RepeatedPtrField< ::ContainerPartialFileData > partial_file_;
 
   mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(5 + 31) / 32];
 
   friend void  protobuf_AddDesc_dedupv1_2eproto();
   friend void protobuf_AssignDesc_dedupv1_2eproto();
@@ -1592,230 +1734,6 @@ class SystemStartEventData : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static SystemStartEventData* default_instance_;
-};
-// -------------------------------------------------------------------
-
-class ReplayStartEventData : public ::google::protobuf::Message {
- public:
-  ReplayStartEventData();
-  virtual ~ReplayStartEventData();
-
-  ReplayStartEventData(const ReplayStartEventData& from);
-
-  inline ReplayStartEventData& operator=(const ReplayStartEventData& from) {
-    CopyFrom(from);
-    return *this;
-  }
-
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
-
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
-
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const ReplayStartEventData& default_instance();
-
-  void Swap(ReplayStartEventData* other);
-
-  // implements Message ----------------------------------------------
-
-  ReplayStartEventData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const ReplayStartEventData& from);
-  void MergeFrom(const ReplayStartEventData& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
-
-  ::google::protobuf::Metadata GetMetadata() const;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // optional int32 replay_type = 1;
-  inline bool has_replay_type() const;
-  inline void clear_replay_type();
-  static const int kReplayTypeFieldNumber = 1;
-  inline ::google::protobuf::int32 replay_type() const;
-  inline void set_replay_type(::google::protobuf::int32 value);
-
-  // optional uint64 replay_id = 3;
-  inline bool has_replay_id() const;
-  inline void clear_replay_id();
-  static const int kReplayIdFieldNumber = 3;
-  inline ::google::protobuf::uint64 replay_id() const;
-  inline void set_replay_id(::google::protobuf::uint64 value);
-
-  // optional uint64 log_id = 4;
-  inline bool has_log_id() const;
-  inline void clear_log_id();
-  static const int kLogIdFieldNumber = 4;
-  inline ::google::protobuf::uint64 log_id() const;
-  inline void set_log_id(::google::protobuf::uint64 value);
-
-  // optional bool full_log_replay = 5;
-  inline bool has_full_log_replay() const;
-  inline void clear_full_log_replay();
-  static const int kFullLogReplayFieldNumber = 5;
-  inline bool full_log_replay() const;
-  inline void set_full_log_replay(bool value);
-
-  // @@protoc_insertion_point(class_scope:ReplayStartEventData)
- private:
-  inline void set_has_replay_type();
-  inline void clear_has_replay_type();
-  inline void set_has_replay_id();
-  inline void clear_has_replay_id();
-  inline void set_has_log_id();
-  inline void clear_has_log_id();
-  inline void set_has_full_log_replay();
-  inline void clear_has_full_log_replay();
-
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
-
-  ::google::protobuf::uint64 replay_id_;
-  ::google::protobuf::int32 replay_type_;
-  bool full_log_replay_;
-  ::google::protobuf::uint64 log_id_;
-
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
-
-  friend void  protobuf_AddDesc_dedupv1_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_2eproto();
-
-  void InitAsDefaultInstance();
-  static ReplayStartEventData* default_instance_;
-};
-// -------------------------------------------------------------------
-
-class ReplayStopEventData : public ::google::protobuf::Message {
- public:
-  ReplayStopEventData();
-  virtual ~ReplayStopEventData();
-
-  ReplayStopEventData(const ReplayStopEventData& from);
-
-  inline ReplayStopEventData& operator=(const ReplayStopEventData& from) {
-    CopyFrom(from);
-    return *this;
-  }
-
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
-
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
-
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const ReplayStopEventData& default_instance();
-
-  void Swap(ReplayStopEventData* other);
-
-  // implements Message ----------------------------------------------
-
-  ReplayStopEventData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const ReplayStopEventData& from);
-  void MergeFrom(const ReplayStopEventData& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
-
-  ::google::protobuf::Metadata GetMetadata() const;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // optional int32 replay_type = 1;
-  inline bool has_replay_type() const;
-  inline void clear_replay_type();
-  static const int kReplayTypeFieldNumber = 1;
-  inline ::google::protobuf::int32 replay_type() const;
-  inline void set_replay_type(::google::protobuf::int32 value);
-
-  // optional bool success = 2;
-  inline bool has_success() const;
-  inline void clear_success();
-  static const int kSuccessFieldNumber = 2;
-  inline bool success() const;
-  inline void set_success(bool value);
-
-  // optional uint64 replay_id = 3;
-  inline bool has_replay_id() const;
-  inline void clear_replay_id();
-  static const int kReplayIdFieldNumber = 3;
-  inline ::google::protobuf::uint64 replay_id() const;
-  inline void set_replay_id(::google::protobuf::uint64 value);
-
-  // optional uint64 log_id = 4;
-  inline bool has_log_id() const;
-  inline void clear_log_id();
-  static const int kLogIdFieldNumber = 4;
-  inline ::google::protobuf::uint64 log_id() const;
-  inline void set_log_id(::google::protobuf::uint64 value);
-
-  // @@protoc_insertion_point(class_scope:ReplayStopEventData)
- private:
-  inline void set_has_replay_type();
-  inline void clear_has_replay_type();
-  inline void set_has_success();
-  inline void clear_has_success();
-  inline void set_has_replay_id();
-  inline void clear_has_replay_id();
-  inline void set_has_log_id();
-  inline void clear_has_log_id();
-
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
-
-  ::google::protobuf::int32 replay_type_;
-  bool success_;
-  ::google::protobuf::uint64 replay_id_;
-  ::google::protobuf::uint64 log_id_;
-
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
-
-  friend void  protobuf_AddDesc_dedupv1_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_2eproto();
-
-  void InitAsDefaultInstance();
-  static ReplayStopEventData* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -1961,15 +1879,6 @@ class LogEventData : public ::google::protobuf::Message {
   inline ::BlockMappingWrittenEventData* release_block_mapping_written_event();
   inline void set_allocated_block_mapping_written_event(::BlockMappingWrittenEventData* block_mapping_written_event);
 
-  // optional .BlockMappingWriteFailedEventData block_mapping_write_failed_event = 10;
-  inline bool has_block_mapping_write_failed_event() const;
-  inline void clear_block_mapping_write_failed_event();
-  static const int kBlockMappingWriteFailedEventFieldNumber = 10;
-  inline const ::BlockMappingWriteFailedEventData& block_mapping_write_failed_event() const;
-  inline ::BlockMappingWriteFailedEventData* mutable_block_mapping_write_failed_event();
-  inline ::BlockMappingWriteFailedEventData* release_block_mapping_write_failed_event();
-  inline void set_allocated_block_mapping_write_failed_event(::BlockMappingWriteFailedEventData* block_mapping_write_failed_event);
-
   // optional .BlockMappingDeletedEventData block_mapping_deleted_event = 11;
   inline bool has_block_mapping_deleted_event() const;
   inline void clear_block_mapping_deleted_event();
@@ -1978,33 +1887,6 @@ class LogEventData : public ::google::protobuf::Message {
   inline ::BlockMappingDeletedEventData* mutable_block_mapping_deleted_event();
   inline ::BlockMappingDeletedEventData* release_block_mapping_deleted_event();
   inline void set_allocated_block_mapping_deleted_event(::BlockMappingDeletedEventData* block_mapping_deleted_event);
-
-  // optional .OphranChunksEventData ophran_chunks_event = 12;
-  inline bool has_ophran_chunks_event() const;
-  inline void clear_ophran_chunks_event();
-  static const int kOphranChunksEventFieldNumber = 12;
-  inline const ::OphranChunksEventData& ophran_chunks_event() const;
-  inline ::OphranChunksEventData* mutable_ophran_chunks_event();
-  inline ::OphranChunksEventData* release_ophran_chunks_event();
-  inline void set_allocated_ophran_chunks_event(::OphranChunksEventData* ophran_chunks_event);
-
-  // optional .ReplayStartEventData replay_start_event = 13;
-  inline bool has_replay_start_event() const;
-  inline void clear_replay_start_event();
-  static const int kReplayStartEventFieldNumber = 13;
-  inline const ::ReplayStartEventData& replay_start_event() const;
-  inline ::ReplayStartEventData* mutable_replay_start_event();
-  inline ::ReplayStartEventData* release_replay_start_event();
-  inline void set_allocated_replay_start_event(::ReplayStartEventData* replay_start_event);
-
-  // optional .ReplayStopEventData replay_stop_event = 14;
-  inline bool has_replay_stop_event() const;
-  inline void clear_replay_stop_event();
-  static const int kReplayStopEventFieldNumber = 14;
-  inline const ::ReplayStopEventData& replay_stop_event() const;
-  inline ::ReplayStopEventData* mutable_replay_stop_event();
-  inline ::ReplayStopEventData* release_replay_stop_event();
-  inline void set_allocated_replay_stop_event(::ReplayStopEventData* replay_stop_event);
 
   // optional .SystemStartEventData system_start_event = 15;
   inline bool has_system_start_event() const;
@@ -2046,16 +1928,8 @@ class LogEventData : public ::google::protobuf::Message {
   inline void clear_has_volume_detached_event();
   inline void set_has_block_mapping_written_event();
   inline void clear_has_block_mapping_written_event();
-  inline void set_has_block_mapping_write_failed_event();
-  inline void clear_has_block_mapping_write_failed_event();
   inline void set_has_block_mapping_deleted_event();
   inline void clear_has_block_mapping_deleted_event();
-  inline void set_has_ophran_chunks_event();
-  inline void clear_has_ophran_chunks_event();
-  inline void set_has_replay_start_event();
-  inline void clear_has_replay_start_event();
-  inline void set_has_replay_stop_event();
-  inline void clear_has_replay_stop_event();
   inline void set_has_system_start_event();
   inline void clear_has_system_start_event();
   inline void set_has_message_data();
@@ -2072,17 +1946,13 @@ class LogEventData : public ::google::protobuf::Message {
   ::VolumeAttachedEventData* volume_attached_event_;
   ::VolumeDetachedEventData* volume_detached_event_;
   ::BlockMappingWrittenEventData* block_mapping_written_event_;
-  ::BlockMappingWriteFailedEventData* block_mapping_write_failed_event_;
   ::BlockMappingDeletedEventData* block_mapping_deleted_event_;
-  ::OphranChunksEventData* ophran_chunks_event_;
-  ::ReplayStartEventData* replay_start_event_;
-  ::ReplayStopEventData* replay_stop_event_;
   ::SystemStartEventData* system_start_event_;
   ::MessageData* message_data_;
   ::google::protobuf::int32 event_type_;
 
   mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(17 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(13 + 31) / 32];
 
   friend void  protobuf_AddDesc_dedupv1_2eproto();
   friend void protobuf_AssignDesc_dedupv1_2eproto();
@@ -3223,23 +3093,23 @@ class BlockMappingWrittenEventData : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional .BlockMappingPairData mapping_pair = 4;
-  inline bool has_mapping_pair() const;
-  inline void clear_mapping_pair();
-  static const int kMappingPairFieldNumber = 4;
-  inline const ::BlockMappingPairData& mapping_pair() const;
-  inline ::BlockMappingPairData* mutable_mapping_pair();
-  inline ::BlockMappingPairData* release_mapping_pair();
-  inline void set_allocated_mapping_pair(::BlockMappingPairData* mapping_pair);
+  // optional .BlockMappingData mapping = 1;
+  inline bool has_mapping() const;
+  inline void clear_mapping();
+  static const int kMappingFieldNumber = 1;
+  inline const ::BlockMappingData& mapping() const;
+  inline ::BlockMappingData* mutable_mapping();
+  inline ::BlockMappingData* release_mapping();
+  inline void set_allocated_mapping(::BlockMappingData* mapping);
 
   // @@protoc_insertion_point(class_scope:BlockMappingWrittenEventData)
  private:
-  inline void set_has_mapping_pair();
-  inline void clear_has_mapping_pair();
+  inline void set_has_mapping();
+  inline void clear_has_mapping();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::BlockMappingPairData* mapping_pair_;
+  ::BlockMappingData* mapping_;
 
   mutable int _cached_size_;
   ::google::protobuf::uint32 _has_bits_[(1 + 31) / 32];
@@ -3250,100 +3120,6 @@ class BlockMappingWrittenEventData : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static BlockMappingWrittenEventData* default_instance_;
-};
-// -------------------------------------------------------------------
-
-class BlockMappingWriteFailedEventData : public ::google::protobuf::Message {
- public:
-  BlockMappingWriteFailedEventData();
-  virtual ~BlockMappingWriteFailedEventData();
-
-  BlockMappingWriteFailedEventData(const BlockMappingWriteFailedEventData& from);
-
-  inline BlockMappingWriteFailedEventData& operator=(const BlockMappingWriteFailedEventData& from) {
-    CopyFrom(from);
-    return *this;
-  }
-
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
-
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
-
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const BlockMappingWriteFailedEventData& default_instance();
-
-  void Swap(BlockMappingWriteFailedEventData* other);
-
-  // implements Message ----------------------------------------------
-
-  BlockMappingWriteFailedEventData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const BlockMappingWriteFailedEventData& from);
-  void MergeFrom(const BlockMappingWriteFailedEventData& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
-
-  ::google::protobuf::Metadata GetMetadata() const;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // optional .BlockMappingPairData mapping_pair = 4;
-  inline bool has_mapping_pair() const;
-  inline void clear_mapping_pair();
-  static const int kMappingPairFieldNumber = 4;
-  inline const ::BlockMappingPairData& mapping_pair() const;
-  inline ::BlockMappingPairData* mutable_mapping_pair();
-  inline ::BlockMappingPairData* release_mapping_pair();
-  inline void set_allocated_mapping_pair(::BlockMappingPairData* mapping_pair);
-
-  // optional int64 write_event_log_id = 3;
-  inline bool has_write_event_log_id() const;
-  inline void clear_write_event_log_id();
-  static const int kWriteEventLogIdFieldNumber = 3;
-  inline ::google::protobuf::int64 write_event_log_id() const;
-  inline void set_write_event_log_id(::google::protobuf::int64 value);
-
-  // @@protoc_insertion_point(class_scope:BlockMappingWriteFailedEventData)
- private:
-  inline void set_has_mapping_pair();
-  inline void clear_has_mapping_pair();
-  inline void set_has_write_event_log_id();
-  inline void clear_has_write_event_log_id();
-
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
-
-  ::BlockMappingPairData* mapping_pair_;
-  ::google::protobuf::int64 write_event_log_id_;
-
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
-
-  friend void  protobuf_AddDesc_dedupv1_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_2eproto();
-
-  void InitAsDefaultInstance();
-  static BlockMappingWriteFailedEventData* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -3431,95 +3207,6 @@ class BlockMappingDeletedEventData : public ::google::protobuf::Message {
 };
 // -------------------------------------------------------------------
 
-class OphranChunksEventData : public ::google::protobuf::Message {
- public:
-  OphranChunksEventData();
-  virtual ~OphranChunksEventData();
-
-  OphranChunksEventData(const OphranChunksEventData& from);
-
-  inline OphranChunksEventData& operator=(const OphranChunksEventData& from) {
-    CopyFrom(from);
-    return *this;
-  }
-
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
-
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
-
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const OphranChunksEventData& default_instance();
-
-  void Swap(OphranChunksEventData* other);
-
-  // implements Message ----------------------------------------------
-
-  OphranChunksEventData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const OphranChunksEventData& from);
-  void MergeFrom(const OphranChunksEventData& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
-
-  ::google::protobuf::Metadata GetMetadata() const;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // repeated bytes chunk_fp = 1;
-  inline int chunk_fp_size() const;
-  inline void clear_chunk_fp();
-  static const int kChunkFpFieldNumber = 1;
-  inline const ::std::string& chunk_fp(int index) const;
-  inline ::std::string* mutable_chunk_fp(int index);
-  inline void set_chunk_fp(int index, const ::std::string& value);
-  inline void set_chunk_fp(int index, const char* value);
-  inline void set_chunk_fp(int index, const void* value, size_t size);
-  inline ::std::string* add_chunk_fp();
-  inline void add_chunk_fp(const ::std::string& value);
-  inline void add_chunk_fp(const char* value);
-  inline void add_chunk_fp(const void* value, size_t size);
-  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& chunk_fp() const;
-  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_chunk_fp();
-
-  // @@protoc_insertion_point(class_scope:OphranChunksEventData)
- private:
-
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
-
-  ::google::protobuf::RepeatedPtrField< ::std::string> chunk_fp_;
-
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(1 + 31) / 32];
-
-  friend void  protobuf_AddDesc_dedupv1_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_2eproto();
-
-  void InitAsDefaultInstance();
-  static OphranChunksEventData* default_instance_;
-};
-// -------------------------------------------------------------------
-
 class BlockIndexLogfileData : public ::google::protobuf::Message {
  public:
   BlockIndexLogfileData();
@@ -3574,26 +3261,14 @@ class BlockIndexLogfileData : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional .ContainerTrackerData container_tracker = 2;
-  inline bool has_container_tracker() const;
-  inline void clear_container_tracker();
-  static const int kContainerTrackerFieldNumber = 2;
-  inline const ::ContainerTrackerData& container_tracker() const;
-  inline ::ContainerTrackerData* mutable_container_tracker();
-  inline ::ContainerTrackerData* release_container_tracker();
-  inline void set_allocated_container_tracker(::ContainerTrackerData* container_tracker);
-
   // @@protoc_insertion_point(class_scope:BlockIndexLogfileData)
  private:
-  inline void set_has_container_tracker();
-  inline void clear_has_container_tracker();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::ContainerTrackerData* container_tracker_;
 
   mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(1 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[1];
 
   friend void  protobuf_AddDesc_dedupv1_2eproto();
   friend void protobuf_AssignDesc_dedupv1_2eproto();
@@ -3658,26 +3333,14 @@ class ChunkIndexLogfileData : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // optional .ContainerTrackerData container_tracker = 2;
-  inline bool has_container_tracker() const;
-  inline void clear_container_tracker();
-  static const int kContainerTrackerFieldNumber = 2;
-  inline const ::ContainerTrackerData& container_tracker() const;
-  inline ::ContainerTrackerData* mutable_container_tracker();
-  inline ::ContainerTrackerData* release_container_tracker();
-  inline void set_allocated_container_tracker(::ContainerTrackerData* container_tracker);
-
   // @@protoc_insertion_point(class_scope:ChunkIndexLogfileData)
  private:
-  inline void set_has_container_tracker();
-  inline void clear_has_container_tracker();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::ContainerTrackerData* container_tracker_;
 
   mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(1 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[1];
 
   friend void  protobuf_AddDesc_dedupv1_2eproto();
   friend void protobuf_AssignDesc_dedupv1_2eproto();
@@ -3756,10 +3419,10 @@ class BloomFilterLogfileData : public ::google::protobuf::Message {
   inline ::google::protobuf::uint32 k() const;
   inline void set_k(::google::protobuf::uint32 value);
 
-  // optional .ContainerTrackerData container_tracker = 4;
+  // optional .ContainerTrackerData container_tracker = 3;
   inline bool has_container_tracker() const;
   inline void clear_container_tracker();
-  static const int kContainerTrackerFieldNumber = 4;
+  static const int kContainerTrackerFieldNumber = 3;
   inline const ::ContainerTrackerData& container_tracker() const;
   inline ::ContainerTrackerData* mutable_container_tracker();
   inline ::ContainerTrackerData* release_container_tracker();
@@ -3789,327 +3452,6 @@ class BloomFilterLogfileData : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static BloomFilterLogfileData* default_instance_;
-};
-// -------------------------------------------------------------------
-
-class GarbageCollectionCandidateData : public ::google::protobuf::Message {
- public:
-  GarbageCollectionCandidateData();
-  virtual ~GarbageCollectionCandidateData();
-
-  GarbageCollectionCandidateData(const GarbageCollectionCandidateData& from);
-
-  inline GarbageCollectionCandidateData& operator=(const GarbageCollectionCandidateData& from) {
-    CopyFrom(from);
-    return *this;
-  }
-
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
-
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
-
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const GarbageCollectionCandidateData& default_instance();
-
-  void Swap(GarbageCollectionCandidateData* other);
-
-  // implements Message ----------------------------------------------
-
-  GarbageCollectionCandidateData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const GarbageCollectionCandidateData& from);
-  void MergeFrom(const GarbageCollectionCandidateData& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
-
-  ::google::protobuf::Metadata GetMetadata() const;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // optional uint64 address = 1;
-  inline bool has_address() const;
-  inline void clear_address();
-  static const int kAddressFieldNumber = 1;
-  inline ::google::protobuf::uint64 address() const;
-  inline void set_address(::google::protobuf::uint64 value);
-
-  // repeated .GarbageCollectionCandidateItemData item = 2;
-  inline int item_size() const;
-  inline void clear_item();
-  static const int kItemFieldNumber = 2;
-  inline const ::GarbageCollectionCandidateItemData& item(int index) const;
-  inline ::GarbageCollectionCandidateItemData* mutable_item(int index);
-  inline ::GarbageCollectionCandidateItemData* add_item();
-  inline const ::google::protobuf::RepeatedPtrField< ::GarbageCollectionCandidateItemData >&
-      item() const;
-  inline ::google::protobuf::RepeatedPtrField< ::GarbageCollectionCandidateItemData >*
-      mutable_item();
-
-  // optional bool processing = 3;
-  inline bool has_processing() const;
-  inline void clear_processing();
-  static const int kProcessingFieldNumber = 3;
-  inline bool processing() const;
-  inline void set_processing(bool value);
-
-  // optional uint32 unchanged_processing_count = 4;
-  inline bool has_unchanged_processing_count() const;
-  inline void clear_unchanged_processing_count();
-  static const int kUnchangedProcessingCountFieldNumber = 4;
-  inline ::google::protobuf::uint32 unchanged_processing_count() const;
-  inline void set_unchanged_processing_count(::google::protobuf::uint32 value);
-
-  // @@protoc_insertion_point(class_scope:GarbageCollectionCandidateData)
- private:
-  inline void set_has_address();
-  inline void clear_has_address();
-  inline void set_has_processing();
-  inline void clear_has_processing();
-  inline void set_has_unchanged_processing_count();
-  inline void clear_has_unchanged_processing_count();
-
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
-
-  ::google::protobuf::uint64 address_;
-  ::google::protobuf::RepeatedPtrField< ::GarbageCollectionCandidateItemData > item_;
-  bool processing_;
-  ::google::protobuf::uint32 unchanged_processing_count_;
-
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
-
-  friend void  protobuf_AddDesc_dedupv1_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_2eproto();
-
-  void InitAsDefaultInstance();
-  static GarbageCollectionCandidateData* default_instance_;
-};
-// -------------------------------------------------------------------
-
-class GarbageCollectionCandidateItemData : public ::google::protobuf::Message {
- public:
-  GarbageCollectionCandidateItemData();
-  virtual ~GarbageCollectionCandidateItemData();
-
-  GarbageCollectionCandidateItemData(const GarbageCollectionCandidateItemData& from);
-
-  inline GarbageCollectionCandidateItemData& operator=(const GarbageCollectionCandidateItemData& from) {
-    CopyFrom(from);
-    return *this;
-  }
-
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
-
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
-
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const GarbageCollectionCandidateItemData& default_instance();
-
-  void Swap(GarbageCollectionCandidateItemData* other);
-
-  // implements Message ----------------------------------------------
-
-  GarbageCollectionCandidateItemData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const GarbageCollectionCandidateItemData& from);
-  void MergeFrom(const GarbageCollectionCandidateItemData& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
-
-  ::google::protobuf::Metadata GetMetadata() const;
-
-  // nested types ----------------------------------------------------
-
-  typedef GarbageCollectionCandidateItemData_Type Type;
-  static const Type STANDARD = GarbageCollectionCandidateItemData_Type_STANDARD;
-  static const Type FAILED = GarbageCollectionCandidateItemData_Type_FAILED;
-  static inline bool Type_IsValid(int value) {
-    return GarbageCollectionCandidateItemData_Type_IsValid(value);
-  }
-  static const Type Type_MIN =
-    GarbageCollectionCandidateItemData_Type_Type_MIN;
-  static const Type Type_MAX =
-    GarbageCollectionCandidateItemData_Type_Type_MAX;
-  static const int Type_ARRAYSIZE =
-    GarbageCollectionCandidateItemData_Type_Type_ARRAYSIZE;
-  static inline const ::google::protobuf::EnumDescriptor*
-  Type_descriptor() {
-    return GarbageCollectionCandidateItemData_Type_descriptor();
-  }
-  static inline const ::std::string& Type_Name(Type value) {
-    return GarbageCollectionCandidateItemData_Type_Name(value);
-  }
-  static inline bool Type_Parse(const ::std::string& name,
-      Type* value) {
-    return GarbageCollectionCandidateItemData_Type_Parse(name, value);
-  }
-
-  // accessors -------------------------------------------------------
-
-  // optional bytes fp = 1;
-  inline bool has_fp() const;
-  inline void clear_fp();
-  static const int kFpFieldNumber = 1;
-  inline const ::std::string& fp() const;
-  inline void set_fp(const ::std::string& value);
-  inline void set_fp(const char* value);
-  inline void set_fp(const void* value, size_t size);
-  inline ::std::string* mutable_fp();
-  inline ::std::string* release_fp();
-  inline void set_allocated_fp(::std::string* fp);
-
-  // optional .GarbageCollectionCandidateItemData.Type type = 2;
-  inline bool has_type() const;
-  inline void clear_type();
-  static const int kTypeFieldNumber = 2;
-  inline ::GarbageCollectionCandidateItemData_Type type() const;
-  inline void set_type(::GarbageCollectionCandidateItemData_Type value);
-
-  // @@protoc_insertion_point(class_scope:GarbageCollectionCandidateItemData)
- private:
-  inline void set_has_fp();
-  inline void clear_has_fp();
-  inline void set_has_type();
-  inline void clear_has_type();
-
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
-
-  ::std::string* fp_;
-  int type_;
-
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
-
-  friend void  protobuf_AddDesc_dedupv1_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_2eproto();
-
-  void InitAsDefaultInstance();
-  static GarbageCollectionCandidateItemData* default_instance_;
-};
-// -------------------------------------------------------------------
-
-class GarbageCollectionInfoData : public ::google::protobuf::Message {
- public:
-  GarbageCollectionInfoData();
-  virtual ~GarbageCollectionInfoData();
-
-  GarbageCollectionInfoData(const GarbageCollectionInfoData& from);
-
-  inline GarbageCollectionInfoData& operator=(const GarbageCollectionInfoData& from) {
-    CopyFrom(from);
-    return *this;
-  }
-
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
-
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
-
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const GarbageCollectionInfoData& default_instance();
-
-  void Swap(GarbageCollectionInfoData* other);
-
-  // implements Message ----------------------------------------------
-
-  GarbageCollectionInfoData* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const GarbageCollectionInfoData& from);
-  void MergeFrom(const GarbageCollectionInfoData& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
-
-  ::google::protobuf::Metadata GetMetadata() const;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // repeated int64 replayed_block_failed_event_log_id = 1;
-  inline int replayed_block_failed_event_log_id_size() const;
-  inline void clear_replayed_block_failed_event_log_id();
-  static const int kReplayedBlockFailedEventLogIdFieldNumber = 1;
-  inline ::google::protobuf::int64 replayed_block_failed_event_log_id(int index) const;
-  inline void set_replayed_block_failed_event_log_id(int index, ::google::protobuf::int64 value);
-  inline void add_replayed_block_failed_event_log_id(::google::protobuf::int64 value);
-  inline const ::google::protobuf::RepeatedField< ::google::protobuf::int64 >&
-      replayed_block_failed_event_log_id() const;
-  inline ::google::protobuf::RepeatedField< ::google::protobuf::int64 >*
-      mutable_replayed_block_failed_event_log_id();
-
-  // @@protoc_insertion_point(class_scope:GarbageCollectionInfoData)
- private:
-
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
-
-  ::google::protobuf::RepeatedField< ::google::protobuf::int64 > replayed_block_failed_event_log_id_;
-
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(1 + 31) / 32];
-
-  friend void  protobuf_AddDesc_dedupv1_2eproto();
-  friend void protobuf_AssignDesc_dedupv1_2eproto();
-  friend void protobuf_ShutdownFile_dedupv1_2eproto();
-
-  void InitAsDefaultInstance();
-  static GarbageCollectionInfoData* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -5188,241 +4530,6 @@ inline void BlockMappingData::set_allocated_checksum(::std::string* checksum) {
 
 // -------------------------------------------------------------------
 
-// BlockMappingPairData
-
-// optional uint64 block_id = 1;
-inline bool BlockMappingPairData::has_block_id() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
-}
-inline void BlockMappingPairData::set_has_block_id() {
-  _has_bits_[0] |= 0x00000001u;
-}
-inline void BlockMappingPairData::clear_has_block_id() {
-  _has_bits_[0] &= ~0x00000001u;
-}
-inline void BlockMappingPairData::clear_block_id() {
-  block_id_ = GOOGLE_ULONGLONG(0);
-  clear_has_block_id();
-}
-inline ::google::protobuf::uint64 BlockMappingPairData::block_id() const {
-  return block_id_;
-}
-inline void BlockMappingPairData::set_block_id(::google::protobuf::uint64 value) {
-  set_has_block_id();
-  block_id_ = value;
-}
-
-// optional uint32 version_counter = 2;
-inline bool BlockMappingPairData::has_version_counter() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
-}
-inline void BlockMappingPairData::set_has_version_counter() {
-  _has_bits_[0] |= 0x00000002u;
-}
-inline void BlockMappingPairData::clear_has_version_counter() {
-  _has_bits_[0] &= ~0x00000002u;
-}
-inline void BlockMappingPairData::clear_version_counter() {
-  version_counter_ = 0u;
-  clear_has_version_counter();
-}
-inline ::google::protobuf::uint32 BlockMappingPairData::version_counter() const {
-  return version_counter_;
-}
-inline void BlockMappingPairData::set_version_counter(::google::protobuf::uint32 value) {
-  set_has_version_counter();
-  version_counter_ = value;
-}
-
-// repeated .BlockMappingPairItemData items = 3;
-inline int BlockMappingPairData::items_size() const {
-  return items_.size();
-}
-inline void BlockMappingPairData::clear_items() {
-  items_.Clear();
-}
-inline const ::BlockMappingPairItemData& BlockMappingPairData::items(int index) const {
-  return items_.Get(index);
-}
-inline ::BlockMappingPairItemData* BlockMappingPairData::mutable_items(int index) {
-  return items_.Mutable(index);
-}
-inline ::BlockMappingPairItemData* BlockMappingPairData::add_items() {
-  return items_.Add();
-}
-inline const ::google::protobuf::RepeatedPtrField< ::BlockMappingPairItemData >&
-BlockMappingPairData::items() const {
-  return items_;
-}
-inline ::google::protobuf::RepeatedPtrField< ::BlockMappingPairItemData >*
-BlockMappingPairData::mutable_items() {
-  return &items_;
-}
-
-// -------------------------------------------------------------------
-
-// BlockMappingPairItemData
-
-// required bytes fp = 1;
-inline bool BlockMappingPairItemData::has_fp() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
-}
-inline void BlockMappingPairItemData::set_has_fp() {
-  _has_bits_[0] |= 0x00000001u;
-}
-inline void BlockMappingPairItemData::clear_has_fp() {
-  _has_bits_[0] &= ~0x00000001u;
-}
-inline void BlockMappingPairItemData::clear_fp() {
-  if (fp_ != &::google::protobuf::internal::kEmptyString) {
-    fp_->clear();
-  }
-  clear_has_fp();
-}
-inline const ::std::string& BlockMappingPairItemData::fp() const {
-  return *fp_;
-}
-inline void BlockMappingPairItemData::set_fp(const ::std::string& value) {
-  set_has_fp();
-  if (fp_ == &::google::protobuf::internal::kEmptyString) {
-    fp_ = new ::std::string;
-  }
-  fp_->assign(value);
-}
-inline void BlockMappingPairItemData::set_fp(const char* value) {
-  set_has_fp();
-  if (fp_ == &::google::protobuf::internal::kEmptyString) {
-    fp_ = new ::std::string;
-  }
-  fp_->assign(value);
-}
-inline void BlockMappingPairItemData::set_fp(const void* value, size_t size) {
-  set_has_fp();
-  if (fp_ == &::google::protobuf::internal::kEmptyString) {
-    fp_ = new ::std::string;
-  }
-  fp_->assign(reinterpret_cast<const char*>(value), size);
-}
-inline ::std::string* BlockMappingPairItemData::mutable_fp() {
-  set_has_fp();
-  if (fp_ == &::google::protobuf::internal::kEmptyString) {
-    fp_ = new ::std::string;
-  }
-  return fp_;
-}
-inline ::std::string* BlockMappingPairItemData::release_fp() {
-  clear_has_fp();
-  if (fp_ == &::google::protobuf::internal::kEmptyString) {
-    return NULL;
-  } else {
-    ::std::string* temp = fp_;
-    fp_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-    return temp;
-  }
-}
-inline void BlockMappingPairItemData::set_allocated_fp(::std::string* fp) {
-  if (fp_ != &::google::protobuf::internal::kEmptyString) {
-    delete fp_;
-  }
-  if (fp) {
-    set_has_fp();
-    fp_ = fp;
-  } else {
-    clear_has_fp();
-    fp_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-  }
-}
-
-// optional uint64 data_address = 2;
-inline bool BlockMappingPairItemData::has_data_address() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
-}
-inline void BlockMappingPairItemData::set_has_data_address() {
-  _has_bits_[0] |= 0x00000002u;
-}
-inline void BlockMappingPairItemData::clear_has_data_address() {
-  _has_bits_[0] &= ~0x00000002u;
-}
-inline void BlockMappingPairItemData::clear_data_address() {
-  data_address_ = GOOGLE_ULONGLONG(0);
-  clear_has_data_address();
-}
-inline ::google::protobuf::uint64 BlockMappingPairItemData::data_address() const {
-  return data_address_;
-}
-inline void BlockMappingPairItemData::set_data_address(::google::protobuf::uint64 value) {
-  set_has_data_address();
-  data_address_ = value;
-}
-
-// optional uint32 chunk_offset = 3;
-inline bool BlockMappingPairItemData::has_chunk_offset() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
-}
-inline void BlockMappingPairItemData::set_has_chunk_offset() {
-  _has_bits_[0] |= 0x00000004u;
-}
-inline void BlockMappingPairItemData::clear_has_chunk_offset() {
-  _has_bits_[0] &= ~0x00000004u;
-}
-inline void BlockMappingPairItemData::clear_chunk_offset() {
-  chunk_offset_ = 0u;
-  clear_has_chunk_offset();
-}
-inline ::google::protobuf::uint32 BlockMappingPairItemData::chunk_offset() const {
-  return chunk_offset_;
-}
-inline void BlockMappingPairItemData::set_chunk_offset(::google::protobuf::uint32 value) {
-  set_has_chunk_offset();
-  chunk_offset_ = value;
-}
-
-// optional uint32 size = 4;
-inline bool BlockMappingPairItemData::has_size() const {
-  return (_has_bits_[0] & 0x00000008u) != 0;
-}
-inline void BlockMappingPairItemData::set_has_size() {
-  _has_bits_[0] |= 0x00000008u;
-}
-inline void BlockMappingPairItemData::clear_has_size() {
-  _has_bits_[0] &= ~0x00000008u;
-}
-inline void BlockMappingPairItemData::clear_size() {
-  size_ = 0u;
-  clear_has_size();
-}
-inline ::google::protobuf::uint32 BlockMappingPairItemData::size() const {
-  return size_;
-}
-inline void BlockMappingPairItemData::set_size(::google::protobuf::uint32 value) {
-  set_has_size();
-  size_ = value;
-}
-
-// optional int32 usage_count_modifier = 5;
-inline bool BlockMappingPairItemData::has_usage_count_modifier() const {
-  return (_has_bits_[0] & 0x00000010u) != 0;
-}
-inline void BlockMappingPairItemData::set_has_usage_count_modifier() {
-  _has_bits_[0] |= 0x00000010u;
-}
-inline void BlockMappingPairItemData::clear_has_usage_count_modifier() {
-  _has_bits_[0] &= ~0x00000010u;
-}
-inline void BlockMappingPairItemData::clear_usage_count_modifier() {
-  usage_count_modifier_ = 0;
-  clear_has_usage_count_modifier();
-}
-inline ::google::protobuf::int32 BlockMappingPairItemData::usage_count_modifier() const {
-  return usage_count_modifier_;
-}
-inline void BlockMappingPairItemData::set_usage_count_modifier(::google::protobuf::int32 value) {
-  set_has_usage_count_modifier();
-  usage_count_modifier_ = value;
-}
-
-// -------------------------------------------------------------------
-
 // BlockMappingItemData
 
 // required bytes fp = 1;
@@ -5587,81 +4694,15 @@ inline void ChunkMappingData::set_data_address(::google::protobuf::uint64 value)
   data_address_ = value;
 }
 
-// optional int64 usage_count = 2;
-inline bool ChunkMappingData::has_usage_count() const {
+// optional uint64 last_block_hint = 2;
+inline bool ChunkMappingData::has_last_block_hint() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
-inline void ChunkMappingData::set_has_usage_count() {
+inline void ChunkMappingData::set_has_last_block_hint() {
   _has_bits_[0] |= 0x00000002u;
 }
-inline void ChunkMappingData::clear_has_usage_count() {
-  _has_bits_[0] &= ~0x00000002u;
-}
-inline void ChunkMappingData::clear_usage_count() {
-  usage_count_ = GOOGLE_LONGLONG(0);
-  clear_has_usage_count();
-}
-inline ::google::protobuf::int64 ChunkMappingData::usage_count() const {
-  return usage_count_;
-}
-inline void ChunkMappingData::set_usage_count(::google::protobuf::int64 value) {
-  set_has_usage_count();
-  usage_count_ = value;
-}
-
-// optional uint64 usage_count_change_log_id = 3;
-inline bool ChunkMappingData::has_usage_count_change_log_id() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
-}
-inline void ChunkMappingData::set_has_usage_count_change_log_id() {
-  _has_bits_[0] |= 0x00000004u;
-}
-inline void ChunkMappingData::clear_has_usage_count_change_log_id() {
-  _has_bits_[0] &= ~0x00000004u;
-}
-inline void ChunkMappingData::clear_usage_count_change_log_id() {
-  usage_count_change_log_id_ = GOOGLE_ULONGLONG(0);
-  clear_has_usage_count_change_log_id();
-}
-inline ::google::protobuf::uint64 ChunkMappingData::usage_count_change_log_id() const {
-  return usage_count_change_log_id_;
-}
-inline void ChunkMappingData::set_usage_count_change_log_id(::google::protobuf::uint64 value) {
-  set_has_usage_count_change_log_id();
-  usage_count_change_log_id_ = value;
-}
-
-// optional uint64 usage_count_failed_write_change_log_id = 4;
-inline bool ChunkMappingData::has_usage_count_failed_write_change_log_id() const {
-  return (_has_bits_[0] & 0x00000008u) != 0;
-}
-inline void ChunkMappingData::set_has_usage_count_failed_write_change_log_id() {
-  _has_bits_[0] |= 0x00000008u;
-}
-inline void ChunkMappingData::clear_has_usage_count_failed_write_change_log_id() {
-  _has_bits_[0] &= ~0x00000008u;
-}
-inline void ChunkMappingData::clear_usage_count_failed_write_change_log_id() {
-  usage_count_failed_write_change_log_id_ = GOOGLE_ULONGLONG(0);
-  clear_has_usage_count_failed_write_change_log_id();
-}
-inline ::google::protobuf::uint64 ChunkMappingData::usage_count_failed_write_change_log_id() const {
-  return usage_count_failed_write_change_log_id_;
-}
-inline void ChunkMappingData::set_usage_count_failed_write_change_log_id(::google::protobuf::uint64 value) {
-  set_has_usage_count_failed_write_change_log_id();
-  usage_count_failed_write_change_log_id_ = value;
-}
-
-// optional uint64 last_block_hint = 5;
-inline bool ChunkMappingData::has_last_block_hint() const {
-  return (_has_bits_[0] & 0x00000010u) != 0;
-}
-inline void ChunkMappingData::set_has_last_block_hint() {
-  _has_bits_[0] |= 0x00000010u;
-}
 inline void ChunkMappingData::clear_has_last_block_hint() {
-  _has_bits_[0] &= ~0x00000010u;
+  _has_bits_[0] &= ~0x00000002u;
 }
 inline void ChunkMappingData::clear_last_block_hint() {
   last_block_hint_ = GOOGLE_ULONGLONG(0);
@@ -6000,6 +5041,325 @@ inline void ContainerItemData::set_original_id(::google::protobuf::uint64 value)
 
 // -------------------------------------------------------------------
 
+// ContainerPartialData
+
+// repeated .ContainerPartialItemData partial_item = 1;
+inline int ContainerPartialData::partial_item_size() const {
+  return partial_item_.size();
+}
+inline void ContainerPartialData::clear_partial_item() {
+  partial_item_.Clear();
+}
+inline const ::ContainerPartialItemData& ContainerPartialData::partial_item(int index) const {
+  return partial_item_.Get(index);
+}
+inline ::ContainerPartialItemData* ContainerPartialData::mutable_partial_item(int index) {
+  return partial_item_.Mutable(index);
+}
+inline ::ContainerPartialItemData* ContainerPartialData::add_partial_item() {
+  return partial_item_.Add();
+}
+inline const ::google::protobuf::RepeatedPtrField< ::ContainerPartialItemData >&
+ContainerPartialData::partial_item() const {
+  return partial_item_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::ContainerPartialItemData >*
+ContainerPartialData::mutable_partial_item() {
+  return &partial_item_;
+}
+
+// optional .ContainerPartialAddressData address_info = 2;
+inline bool ContainerPartialData::has_address_info() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void ContainerPartialData::set_has_address_info() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void ContainerPartialData::clear_has_address_info() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void ContainerPartialData::clear_address_info() {
+  if (address_info_ != NULL) address_info_->::ContainerPartialAddressData::Clear();
+  clear_has_address_info();
+}
+inline const ::ContainerPartialAddressData& ContainerPartialData::address_info() const {
+  return address_info_ != NULL ? *address_info_ : *default_instance_->address_info_;
+}
+inline ::ContainerPartialAddressData* ContainerPartialData::mutable_address_info() {
+  set_has_address_info();
+  if (address_info_ == NULL) address_info_ = new ::ContainerPartialAddressData;
+  return address_info_;
+}
+inline ::ContainerPartialAddressData* ContainerPartialData::release_address_info() {
+  clear_has_address_info();
+  ::ContainerPartialAddressData* temp = address_info_;
+  address_info_ = NULL;
+  return temp;
+}
+inline void ContainerPartialData::set_allocated_address_info(::ContainerPartialAddressData* address_info) {
+  delete address_info_;
+  address_info_ = address_info;
+  if (address_info) {
+    set_has_address_info();
+  } else {
+    clear_has_address_info();
+  }
+}
+
+// -------------------------------------------------------------------
+
+// ContainerPartialAddressData
+
+// optional uint64 container_id = 1;
+inline bool ContainerPartialAddressData::has_container_id() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ContainerPartialAddressData::set_has_container_id() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ContainerPartialAddressData::clear_has_container_id() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ContainerPartialAddressData::clear_container_id() {
+  container_id_ = GOOGLE_ULONGLONG(0);
+  clear_has_container_id();
+}
+inline ::google::protobuf::uint64 ContainerPartialAddressData::container_id() const {
+  return container_id_;
+}
+inline void ContainerPartialAddressData::set_container_id(::google::protobuf::uint64 value) {
+  set_has_container_id();
+  container_id_ = value;
+}
+
+// optional .ContainerStorageAddressData address = 2;
+inline bool ContainerPartialAddressData::has_address() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void ContainerPartialAddressData::set_has_address() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void ContainerPartialAddressData::clear_has_address() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void ContainerPartialAddressData::clear_address() {
+  if (address_ != NULL) address_->::ContainerStorageAddressData::Clear();
+  clear_has_address();
+}
+inline const ::ContainerStorageAddressData& ContainerPartialAddressData::address() const {
+  return address_ != NULL ? *address_ : *default_instance_->address_;
+}
+inline ::ContainerStorageAddressData* ContainerPartialAddressData::mutable_address() {
+  set_has_address();
+  if (address_ == NULL) address_ = new ::ContainerStorageAddressData;
+  return address_;
+}
+inline ::ContainerStorageAddressData* ContainerPartialAddressData::release_address() {
+  clear_has_address();
+  ::ContainerStorageAddressData* temp = address_;
+  address_ = NULL;
+  return temp;
+}
+inline void ContainerPartialAddressData::set_allocated_address(::ContainerStorageAddressData* address) {
+  delete address_;
+  address_ = address;
+  if (address) {
+    set_has_address();
+  } else {
+    clear_has_address();
+  }
+}
+
+// -------------------------------------------------------------------
+
+// ContainerPartialItemData
+
+// optional bytes fp = 1;
+inline bool ContainerPartialItemData::has_fp() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ContainerPartialItemData::set_has_fp() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ContainerPartialItemData::clear_has_fp() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ContainerPartialItemData::clear_fp() {
+  if (fp_ != &::google::protobuf::internal::kEmptyString) {
+    fp_->clear();
+  }
+  clear_has_fp();
+}
+inline const ::std::string& ContainerPartialItemData::fp() const {
+  return *fp_;
+}
+inline void ContainerPartialItemData::set_fp(const ::std::string& value) {
+  set_has_fp();
+  if (fp_ == &::google::protobuf::internal::kEmptyString) {
+    fp_ = new ::std::string;
+  }
+  fp_->assign(value);
+}
+inline void ContainerPartialItemData::set_fp(const char* value) {
+  set_has_fp();
+  if (fp_ == &::google::protobuf::internal::kEmptyString) {
+    fp_ = new ::std::string;
+  }
+  fp_->assign(value);
+}
+inline void ContainerPartialItemData::set_fp(const void* value, size_t size) {
+  set_has_fp();
+  if (fp_ == &::google::protobuf::internal::kEmptyString) {
+    fp_ = new ::std::string;
+  }
+  fp_->assign(reinterpret_cast<const char*>(value), size);
+}
+inline ::std::string* ContainerPartialItemData::mutable_fp() {
+  set_has_fp();
+  if (fp_ == &::google::protobuf::internal::kEmptyString) {
+    fp_ = new ::std::string;
+  }
+  return fp_;
+}
+inline ::std::string* ContainerPartialItemData::release_fp() {
+  clear_has_fp();
+  if (fp_ == &::google::protobuf::internal::kEmptyString) {
+    return NULL;
+  } else {
+    ::std::string* temp = fp_;
+    fp_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    return temp;
+  }
+}
+inline void ContainerPartialItemData::set_allocated_fp(::std::string* fp) {
+  if (fp_ != &::google::protobuf::internal::kEmptyString) {
+    delete fp_;
+  }
+  if (fp) {
+    set_has_fp();
+    fp_ = fp;
+  } else {
+    clear_has_fp();
+    fp_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  }
+}
+
+// optional uint64 container_id = 2;
+inline bool ContainerPartialItemData::has_container_id() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void ContainerPartialItemData::set_has_container_id() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void ContainerPartialItemData::clear_has_container_id() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void ContainerPartialItemData::clear_container_id() {
+  container_id_ = GOOGLE_ULONGLONG(0);
+  clear_has_container_id();
+}
+inline ::google::protobuf::uint64 ContainerPartialItemData::container_id() const {
+  return container_id_;
+}
+inline void ContainerPartialItemData::set_container_id(::google::protobuf::uint64 value) {
+  set_has_container_id();
+  container_id_ = value;
+}
+
+// optional bool indexed = 3;
+inline bool ContainerPartialItemData::has_indexed() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void ContainerPartialItemData::set_has_indexed() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void ContainerPartialItemData::clear_has_indexed() {
+  _has_bits_[0] &= ~0x00000004u;
+}
+inline void ContainerPartialItemData::clear_indexed() {
+  indexed_ = false;
+  clear_has_indexed();
+}
+inline bool ContainerPartialItemData::indexed() const {
+  return indexed_;
+}
+inline void ContainerPartialItemData::set_indexed(bool value) {
+  set_has_indexed();
+  indexed_ = value;
+}
+
+// optional bytes data = 4;
+inline bool ContainerPartialItemData::has_data() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void ContainerPartialItemData::set_has_data() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void ContainerPartialItemData::clear_has_data() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void ContainerPartialItemData::clear_data() {
+  if (data_ != &::google::protobuf::internal::kEmptyString) {
+    data_->clear();
+  }
+  clear_has_data();
+}
+inline const ::std::string& ContainerPartialItemData::data() const {
+  return *data_;
+}
+inline void ContainerPartialItemData::set_data(const ::std::string& value) {
+  set_has_data();
+  if (data_ == &::google::protobuf::internal::kEmptyString) {
+    data_ = new ::std::string;
+  }
+  data_->assign(value);
+}
+inline void ContainerPartialItemData::set_data(const char* value) {
+  set_has_data();
+  if (data_ == &::google::protobuf::internal::kEmptyString) {
+    data_ = new ::std::string;
+  }
+  data_->assign(value);
+}
+inline void ContainerPartialItemData::set_data(const void* value, size_t size) {
+  set_has_data();
+  if (data_ == &::google::protobuf::internal::kEmptyString) {
+    data_ = new ::std::string;
+  }
+  data_->assign(reinterpret_cast<const char*>(value), size);
+}
+inline ::std::string* ContainerPartialItemData::mutable_data() {
+  set_has_data();
+  if (data_ == &::google::protobuf::internal::kEmptyString) {
+    data_ = new ::std::string;
+  }
+  return data_;
+}
+inline ::std::string* ContainerPartialItemData::release_data() {
+  clear_has_data();
+  if (data_ == &::google::protobuf::internal::kEmptyString) {
+    return NULL;
+  } else {
+    ::std::string* temp = data_;
+    data_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    return temp;
+  }
+}
+inline void ContainerPartialItemData::set_allocated_data(::std::string* data) {
+  if (data_ != &::google::protobuf::internal::kEmptyString) {
+    delete data_;
+  }
+  if (data) {
+    set_has_data();
+    data_ = data;
+  } else {
+    clear_has_data();
+    data_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  }
+}
+
+// -------------------------------------------------------------------
+
 // ContainerItemValueData
 
 // optional uint32 on_disk_size = 3;
@@ -6241,6 +5601,150 @@ inline void ContainerFileData::set_allocated_uuid(::std::string* uuid) {
 
 // -------------------------------------------------------------------
 
+// ContainerPartialFileData
+
+// optional string filename = 1;
+inline bool ContainerPartialFileData::has_filename() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ContainerPartialFileData::set_has_filename() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ContainerPartialFileData::clear_has_filename() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ContainerPartialFileData::clear_filename() {
+  if (filename_ != &::google::protobuf::internal::kEmptyString) {
+    filename_->clear();
+  }
+  clear_has_filename();
+}
+inline const ::std::string& ContainerPartialFileData::filename() const {
+  return *filename_;
+}
+inline void ContainerPartialFileData::set_filename(const ::std::string& value) {
+  set_has_filename();
+  if (filename_ == &::google::protobuf::internal::kEmptyString) {
+    filename_ = new ::std::string;
+  }
+  filename_->assign(value);
+}
+inline void ContainerPartialFileData::set_filename(const char* value) {
+  set_has_filename();
+  if (filename_ == &::google::protobuf::internal::kEmptyString) {
+    filename_ = new ::std::string;
+  }
+  filename_->assign(value);
+}
+inline void ContainerPartialFileData::set_filename(const char* value, size_t size) {
+  set_has_filename();
+  if (filename_ == &::google::protobuf::internal::kEmptyString) {
+    filename_ = new ::std::string;
+  }
+  filename_->assign(reinterpret_cast<const char*>(value), size);
+}
+inline ::std::string* ContainerPartialFileData::mutable_filename() {
+  set_has_filename();
+  if (filename_ == &::google::protobuf::internal::kEmptyString) {
+    filename_ = new ::std::string;
+  }
+  return filename_;
+}
+inline ::std::string* ContainerPartialFileData::release_filename() {
+  clear_has_filename();
+  if (filename_ == &::google::protobuf::internal::kEmptyString) {
+    return NULL;
+  } else {
+    ::std::string* temp = filename_;
+    filename_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    return temp;
+  }
+}
+inline void ContainerPartialFileData::set_allocated_filename(::std::string* filename) {
+  if (filename_ != &::google::protobuf::internal::kEmptyString) {
+    delete filename_;
+  }
+  if (filename) {
+    set_has_filename();
+    filename_ = filename;
+  } else {
+    clear_has_filename();
+    filename_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  }
+}
+
+// optional string uuid = 2;
+inline bool ContainerPartialFileData::has_uuid() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void ContainerPartialFileData::set_has_uuid() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void ContainerPartialFileData::clear_has_uuid() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void ContainerPartialFileData::clear_uuid() {
+  if (uuid_ != &::google::protobuf::internal::kEmptyString) {
+    uuid_->clear();
+  }
+  clear_has_uuid();
+}
+inline const ::std::string& ContainerPartialFileData::uuid() const {
+  return *uuid_;
+}
+inline void ContainerPartialFileData::set_uuid(const ::std::string& value) {
+  set_has_uuid();
+  if (uuid_ == &::google::protobuf::internal::kEmptyString) {
+    uuid_ = new ::std::string;
+  }
+  uuid_->assign(value);
+}
+inline void ContainerPartialFileData::set_uuid(const char* value) {
+  set_has_uuid();
+  if (uuid_ == &::google::protobuf::internal::kEmptyString) {
+    uuid_ = new ::std::string;
+  }
+  uuid_->assign(value);
+}
+inline void ContainerPartialFileData::set_uuid(const char* value, size_t size) {
+  set_has_uuid();
+  if (uuid_ == &::google::protobuf::internal::kEmptyString) {
+    uuid_ = new ::std::string;
+  }
+  uuid_->assign(reinterpret_cast<const char*>(value), size);
+}
+inline ::std::string* ContainerPartialFileData::mutable_uuid() {
+  set_has_uuid();
+  if (uuid_ == &::google::protobuf::internal::kEmptyString) {
+    uuid_ = new ::std::string;
+  }
+  return uuid_;
+}
+inline ::std::string* ContainerPartialFileData::release_uuid() {
+  clear_has_uuid();
+  if (uuid_ == &::google::protobuf::internal::kEmptyString) {
+    return NULL;
+  } else {
+    ::std::string* temp = uuid_;
+    uuid_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    return temp;
+  }
+}
+inline void ContainerPartialFileData::set_allocated_uuid(::std::string* uuid) {
+  if (uuid_ != &::google::protobuf::internal::kEmptyString) {
+    delete uuid_;
+  }
+  if (uuid) {
+    set_has_uuid();
+    uuid_ = uuid;
+  } else {
+    clear_has_uuid();
+    uuid_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  }
+}
+
+// -------------------------------------------------------------------
+
 // ContainerSuperblockData
 
 // optional string uuid = 1;
@@ -6408,6 +5912,31 @@ ContainerLogfileData::mutable_file() {
   return &file_;
 }
 
+// repeated .ContainerPartialFileData partial_file = 5;
+inline int ContainerLogfileData::partial_file_size() const {
+  return partial_file_.size();
+}
+inline void ContainerLogfileData::clear_partial_file() {
+  partial_file_.Clear();
+}
+inline const ::ContainerPartialFileData& ContainerLogfileData::partial_file(int index) const {
+  return partial_file_.Get(index);
+}
+inline ::ContainerPartialFileData* ContainerLogfileData::mutable_partial_file(int index) {
+  return partial_file_.Mutable(index);
+}
+inline ::ContainerPartialFileData* ContainerLogfileData::add_partial_file() {
+  return partial_file_.Add();
+}
+inline const ::google::protobuf::RepeatedPtrField< ::ContainerPartialFileData >&
+ContainerLogfileData::partial_file() const {
+  return partial_file_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::ContainerPartialFileData >*
+ContainerLogfileData::mutable_partial_file() {
+  return &partial_file_;
+}
+
 // -------------------------------------------------------------------
 
 // SystemStartEventData
@@ -6498,190 +6027,6 @@ inline bool SystemStartEventData::crashed() const {
 inline void SystemStartEventData::set_crashed(bool value) {
   set_has_crashed();
   crashed_ = value;
-}
-
-// -------------------------------------------------------------------
-
-// ReplayStartEventData
-
-// optional int32 replay_type = 1;
-inline bool ReplayStartEventData::has_replay_type() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
-}
-inline void ReplayStartEventData::set_has_replay_type() {
-  _has_bits_[0] |= 0x00000001u;
-}
-inline void ReplayStartEventData::clear_has_replay_type() {
-  _has_bits_[0] &= ~0x00000001u;
-}
-inline void ReplayStartEventData::clear_replay_type() {
-  replay_type_ = 0;
-  clear_has_replay_type();
-}
-inline ::google::protobuf::int32 ReplayStartEventData::replay_type() const {
-  return replay_type_;
-}
-inline void ReplayStartEventData::set_replay_type(::google::protobuf::int32 value) {
-  set_has_replay_type();
-  replay_type_ = value;
-}
-
-// optional uint64 replay_id = 3;
-inline bool ReplayStartEventData::has_replay_id() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
-}
-inline void ReplayStartEventData::set_has_replay_id() {
-  _has_bits_[0] |= 0x00000002u;
-}
-inline void ReplayStartEventData::clear_has_replay_id() {
-  _has_bits_[0] &= ~0x00000002u;
-}
-inline void ReplayStartEventData::clear_replay_id() {
-  replay_id_ = GOOGLE_ULONGLONG(0);
-  clear_has_replay_id();
-}
-inline ::google::protobuf::uint64 ReplayStartEventData::replay_id() const {
-  return replay_id_;
-}
-inline void ReplayStartEventData::set_replay_id(::google::protobuf::uint64 value) {
-  set_has_replay_id();
-  replay_id_ = value;
-}
-
-// optional uint64 log_id = 4;
-inline bool ReplayStartEventData::has_log_id() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
-}
-inline void ReplayStartEventData::set_has_log_id() {
-  _has_bits_[0] |= 0x00000004u;
-}
-inline void ReplayStartEventData::clear_has_log_id() {
-  _has_bits_[0] &= ~0x00000004u;
-}
-inline void ReplayStartEventData::clear_log_id() {
-  log_id_ = GOOGLE_ULONGLONG(0);
-  clear_has_log_id();
-}
-inline ::google::protobuf::uint64 ReplayStartEventData::log_id() const {
-  return log_id_;
-}
-inline void ReplayStartEventData::set_log_id(::google::protobuf::uint64 value) {
-  set_has_log_id();
-  log_id_ = value;
-}
-
-// optional bool full_log_replay = 5;
-inline bool ReplayStartEventData::has_full_log_replay() const {
-  return (_has_bits_[0] & 0x00000008u) != 0;
-}
-inline void ReplayStartEventData::set_has_full_log_replay() {
-  _has_bits_[0] |= 0x00000008u;
-}
-inline void ReplayStartEventData::clear_has_full_log_replay() {
-  _has_bits_[0] &= ~0x00000008u;
-}
-inline void ReplayStartEventData::clear_full_log_replay() {
-  full_log_replay_ = false;
-  clear_has_full_log_replay();
-}
-inline bool ReplayStartEventData::full_log_replay() const {
-  return full_log_replay_;
-}
-inline void ReplayStartEventData::set_full_log_replay(bool value) {
-  set_has_full_log_replay();
-  full_log_replay_ = value;
-}
-
-// -------------------------------------------------------------------
-
-// ReplayStopEventData
-
-// optional int32 replay_type = 1;
-inline bool ReplayStopEventData::has_replay_type() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
-}
-inline void ReplayStopEventData::set_has_replay_type() {
-  _has_bits_[0] |= 0x00000001u;
-}
-inline void ReplayStopEventData::clear_has_replay_type() {
-  _has_bits_[0] &= ~0x00000001u;
-}
-inline void ReplayStopEventData::clear_replay_type() {
-  replay_type_ = 0;
-  clear_has_replay_type();
-}
-inline ::google::protobuf::int32 ReplayStopEventData::replay_type() const {
-  return replay_type_;
-}
-inline void ReplayStopEventData::set_replay_type(::google::protobuf::int32 value) {
-  set_has_replay_type();
-  replay_type_ = value;
-}
-
-// optional bool success = 2;
-inline bool ReplayStopEventData::has_success() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
-}
-inline void ReplayStopEventData::set_has_success() {
-  _has_bits_[0] |= 0x00000002u;
-}
-inline void ReplayStopEventData::clear_has_success() {
-  _has_bits_[0] &= ~0x00000002u;
-}
-inline void ReplayStopEventData::clear_success() {
-  success_ = false;
-  clear_has_success();
-}
-inline bool ReplayStopEventData::success() const {
-  return success_;
-}
-inline void ReplayStopEventData::set_success(bool value) {
-  set_has_success();
-  success_ = value;
-}
-
-// optional uint64 replay_id = 3;
-inline bool ReplayStopEventData::has_replay_id() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
-}
-inline void ReplayStopEventData::set_has_replay_id() {
-  _has_bits_[0] |= 0x00000004u;
-}
-inline void ReplayStopEventData::clear_has_replay_id() {
-  _has_bits_[0] &= ~0x00000004u;
-}
-inline void ReplayStopEventData::clear_replay_id() {
-  replay_id_ = GOOGLE_ULONGLONG(0);
-  clear_has_replay_id();
-}
-inline ::google::protobuf::uint64 ReplayStopEventData::replay_id() const {
-  return replay_id_;
-}
-inline void ReplayStopEventData::set_replay_id(::google::protobuf::uint64 value) {
-  set_has_replay_id();
-  replay_id_ = value;
-}
-
-// optional uint64 log_id = 4;
-inline bool ReplayStopEventData::has_log_id() const {
-  return (_has_bits_[0] & 0x00000008u) != 0;
-}
-inline void ReplayStopEventData::set_has_log_id() {
-  _has_bits_[0] |= 0x00000008u;
-}
-inline void ReplayStopEventData::clear_has_log_id() {
-  _has_bits_[0] &= ~0x00000008u;
-}
-inline void ReplayStopEventData::clear_log_id() {
-  log_id_ = GOOGLE_ULONGLONG(0);
-  clear_has_log_id();
-}
-inline ::google::protobuf::uint64 ReplayStopEventData::log_id() const {
-  return log_id_;
-}
-inline void ReplayStopEventData::set_log_id(::google::protobuf::uint64 value) {
-  set_has_log_id();
-  log_id_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -7052,53 +6397,15 @@ inline void LogEventData::set_allocated_block_mapping_written_event(::BlockMappi
   }
 }
 
-// optional .BlockMappingWriteFailedEventData block_mapping_write_failed_event = 10;
-inline bool LogEventData::has_block_mapping_write_failed_event() const {
-  return (_has_bits_[0] & 0x00000400u) != 0;
-}
-inline void LogEventData::set_has_block_mapping_write_failed_event() {
-  _has_bits_[0] |= 0x00000400u;
-}
-inline void LogEventData::clear_has_block_mapping_write_failed_event() {
-  _has_bits_[0] &= ~0x00000400u;
-}
-inline void LogEventData::clear_block_mapping_write_failed_event() {
-  if (block_mapping_write_failed_event_ != NULL) block_mapping_write_failed_event_->::BlockMappingWriteFailedEventData::Clear();
-  clear_has_block_mapping_write_failed_event();
-}
-inline const ::BlockMappingWriteFailedEventData& LogEventData::block_mapping_write_failed_event() const {
-  return block_mapping_write_failed_event_ != NULL ? *block_mapping_write_failed_event_ : *default_instance_->block_mapping_write_failed_event_;
-}
-inline ::BlockMappingWriteFailedEventData* LogEventData::mutable_block_mapping_write_failed_event() {
-  set_has_block_mapping_write_failed_event();
-  if (block_mapping_write_failed_event_ == NULL) block_mapping_write_failed_event_ = new ::BlockMappingWriteFailedEventData;
-  return block_mapping_write_failed_event_;
-}
-inline ::BlockMappingWriteFailedEventData* LogEventData::release_block_mapping_write_failed_event() {
-  clear_has_block_mapping_write_failed_event();
-  ::BlockMappingWriteFailedEventData* temp = block_mapping_write_failed_event_;
-  block_mapping_write_failed_event_ = NULL;
-  return temp;
-}
-inline void LogEventData::set_allocated_block_mapping_write_failed_event(::BlockMappingWriteFailedEventData* block_mapping_write_failed_event) {
-  delete block_mapping_write_failed_event_;
-  block_mapping_write_failed_event_ = block_mapping_write_failed_event;
-  if (block_mapping_write_failed_event) {
-    set_has_block_mapping_write_failed_event();
-  } else {
-    clear_has_block_mapping_write_failed_event();
-  }
-}
-
 // optional .BlockMappingDeletedEventData block_mapping_deleted_event = 11;
 inline bool LogEventData::has_block_mapping_deleted_event() const {
-  return (_has_bits_[0] & 0x00000800u) != 0;
+  return (_has_bits_[0] & 0x00000400u) != 0;
 }
 inline void LogEventData::set_has_block_mapping_deleted_event() {
-  _has_bits_[0] |= 0x00000800u;
+  _has_bits_[0] |= 0x00000400u;
 }
 inline void LogEventData::clear_has_block_mapping_deleted_event() {
-  _has_bits_[0] &= ~0x00000800u;
+  _has_bits_[0] &= ~0x00000400u;
 }
 inline void LogEventData::clear_block_mapping_deleted_event() {
   if (block_mapping_deleted_event_ != NULL) block_mapping_deleted_event_->::BlockMappingDeletedEventData::Clear();
@@ -7128,129 +6435,15 @@ inline void LogEventData::set_allocated_block_mapping_deleted_event(::BlockMappi
   }
 }
 
-// optional .OphranChunksEventData ophran_chunks_event = 12;
-inline bool LogEventData::has_ophran_chunks_event() const {
-  return (_has_bits_[0] & 0x00001000u) != 0;
-}
-inline void LogEventData::set_has_ophran_chunks_event() {
-  _has_bits_[0] |= 0x00001000u;
-}
-inline void LogEventData::clear_has_ophran_chunks_event() {
-  _has_bits_[0] &= ~0x00001000u;
-}
-inline void LogEventData::clear_ophran_chunks_event() {
-  if (ophran_chunks_event_ != NULL) ophran_chunks_event_->::OphranChunksEventData::Clear();
-  clear_has_ophran_chunks_event();
-}
-inline const ::OphranChunksEventData& LogEventData::ophran_chunks_event() const {
-  return ophran_chunks_event_ != NULL ? *ophran_chunks_event_ : *default_instance_->ophran_chunks_event_;
-}
-inline ::OphranChunksEventData* LogEventData::mutable_ophran_chunks_event() {
-  set_has_ophran_chunks_event();
-  if (ophran_chunks_event_ == NULL) ophran_chunks_event_ = new ::OphranChunksEventData;
-  return ophran_chunks_event_;
-}
-inline ::OphranChunksEventData* LogEventData::release_ophran_chunks_event() {
-  clear_has_ophran_chunks_event();
-  ::OphranChunksEventData* temp = ophran_chunks_event_;
-  ophran_chunks_event_ = NULL;
-  return temp;
-}
-inline void LogEventData::set_allocated_ophran_chunks_event(::OphranChunksEventData* ophran_chunks_event) {
-  delete ophran_chunks_event_;
-  ophran_chunks_event_ = ophran_chunks_event;
-  if (ophran_chunks_event) {
-    set_has_ophran_chunks_event();
-  } else {
-    clear_has_ophran_chunks_event();
-  }
-}
-
-// optional .ReplayStartEventData replay_start_event = 13;
-inline bool LogEventData::has_replay_start_event() const {
-  return (_has_bits_[0] & 0x00002000u) != 0;
-}
-inline void LogEventData::set_has_replay_start_event() {
-  _has_bits_[0] |= 0x00002000u;
-}
-inline void LogEventData::clear_has_replay_start_event() {
-  _has_bits_[0] &= ~0x00002000u;
-}
-inline void LogEventData::clear_replay_start_event() {
-  if (replay_start_event_ != NULL) replay_start_event_->::ReplayStartEventData::Clear();
-  clear_has_replay_start_event();
-}
-inline const ::ReplayStartEventData& LogEventData::replay_start_event() const {
-  return replay_start_event_ != NULL ? *replay_start_event_ : *default_instance_->replay_start_event_;
-}
-inline ::ReplayStartEventData* LogEventData::mutable_replay_start_event() {
-  set_has_replay_start_event();
-  if (replay_start_event_ == NULL) replay_start_event_ = new ::ReplayStartEventData;
-  return replay_start_event_;
-}
-inline ::ReplayStartEventData* LogEventData::release_replay_start_event() {
-  clear_has_replay_start_event();
-  ::ReplayStartEventData* temp = replay_start_event_;
-  replay_start_event_ = NULL;
-  return temp;
-}
-inline void LogEventData::set_allocated_replay_start_event(::ReplayStartEventData* replay_start_event) {
-  delete replay_start_event_;
-  replay_start_event_ = replay_start_event;
-  if (replay_start_event) {
-    set_has_replay_start_event();
-  } else {
-    clear_has_replay_start_event();
-  }
-}
-
-// optional .ReplayStopEventData replay_stop_event = 14;
-inline bool LogEventData::has_replay_stop_event() const {
-  return (_has_bits_[0] & 0x00004000u) != 0;
-}
-inline void LogEventData::set_has_replay_stop_event() {
-  _has_bits_[0] |= 0x00004000u;
-}
-inline void LogEventData::clear_has_replay_stop_event() {
-  _has_bits_[0] &= ~0x00004000u;
-}
-inline void LogEventData::clear_replay_stop_event() {
-  if (replay_stop_event_ != NULL) replay_stop_event_->::ReplayStopEventData::Clear();
-  clear_has_replay_stop_event();
-}
-inline const ::ReplayStopEventData& LogEventData::replay_stop_event() const {
-  return replay_stop_event_ != NULL ? *replay_stop_event_ : *default_instance_->replay_stop_event_;
-}
-inline ::ReplayStopEventData* LogEventData::mutable_replay_stop_event() {
-  set_has_replay_stop_event();
-  if (replay_stop_event_ == NULL) replay_stop_event_ = new ::ReplayStopEventData;
-  return replay_stop_event_;
-}
-inline ::ReplayStopEventData* LogEventData::release_replay_stop_event() {
-  clear_has_replay_stop_event();
-  ::ReplayStopEventData* temp = replay_stop_event_;
-  replay_stop_event_ = NULL;
-  return temp;
-}
-inline void LogEventData::set_allocated_replay_stop_event(::ReplayStopEventData* replay_stop_event) {
-  delete replay_stop_event_;
-  replay_stop_event_ = replay_stop_event;
-  if (replay_stop_event) {
-    set_has_replay_stop_event();
-  } else {
-    clear_has_replay_stop_event();
-  }
-}
-
 // optional .SystemStartEventData system_start_event = 15;
 inline bool LogEventData::has_system_start_event() const {
-  return (_has_bits_[0] & 0x00008000u) != 0;
+  return (_has_bits_[0] & 0x00000800u) != 0;
 }
 inline void LogEventData::set_has_system_start_event() {
-  _has_bits_[0] |= 0x00008000u;
+  _has_bits_[0] |= 0x00000800u;
 }
 inline void LogEventData::clear_has_system_start_event() {
-  _has_bits_[0] &= ~0x00008000u;
+  _has_bits_[0] &= ~0x00000800u;
 }
 inline void LogEventData::clear_system_start_event() {
   if (system_start_event_ != NULL) system_start_event_->::SystemStartEventData::Clear();
@@ -7282,13 +6475,13 @@ inline void LogEventData::set_allocated_system_start_event(::SystemStartEventDat
 
 // optional .MessageData message_data = 98;
 inline bool LogEventData::has_message_data() const {
-  return (_has_bits_[0] & 0x00010000u) != 0;
+  return (_has_bits_[0] & 0x00001000u) != 0;
 }
 inline void LogEventData::set_has_message_data() {
-  _has_bits_[0] |= 0x00010000u;
+  _has_bits_[0] |= 0x00001000u;
 }
 inline void LogEventData::clear_has_message_data() {
-  _has_bits_[0] &= ~0x00010000u;
+  _has_bits_[0] &= ~0x00001000u;
 }
 inline void LogEventData::clear_message_data() {
   if (message_data_ != NULL) message_data_->::MessageData::Clear();
@@ -8407,106 +7600,42 @@ inline void VolumeDetachedEventData::set_volume_id(::google::protobuf::uint32 va
 
 // BlockMappingWrittenEventData
 
-// optional .BlockMappingPairData mapping_pair = 4;
-inline bool BlockMappingWrittenEventData::has_mapping_pair() const {
+// optional .BlockMappingData mapping = 1;
+inline bool BlockMappingWrittenEventData::has_mapping() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
-inline void BlockMappingWrittenEventData::set_has_mapping_pair() {
+inline void BlockMappingWrittenEventData::set_has_mapping() {
   _has_bits_[0] |= 0x00000001u;
 }
-inline void BlockMappingWrittenEventData::clear_has_mapping_pair() {
+inline void BlockMappingWrittenEventData::clear_has_mapping() {
   _has_bits_[0] &= ~0x00000001u;
 }
-inline void BlockMappingWrittenEventData::clear_mapping_pair() {
-  if (mapping_pair_ != NULL) mapping_pair_->::BlockMappingPairData::Clear();
-  clear_has_mapping_pair();
+inline void BlockMappingWrittenEventData::clear_mapping() {
+  if (mapping_ != NULL) mapping_->::BlockMappingData::Clear();
+  clear_has_mapping();
 }
-inline const ::BlockMappingPairData& BlockMappingWrittenEventData::mapping_pair() const {
-  return mapping_pair_ != NULL ? *mapping_pair_ : *default_instance_->mapping_pair_;
+inline const ::BlockMappingData& BlockMappingWrittenEventData::mapping() const {
+  return mapping_ != NULL ? *mapping_ : *default_instance_->mapping_;
 }
-inline ::BlockMappingPairData* BlockMappingWrittenEventData::mutable_mapping_pair() {
-  set_has_mapping_pair();
-  if (mapping_pair_ == NULL) mapping_pair_ = new ::BlockMappingPairData;
-  return mapping_pair_;
+inline ::BlockMappingData* BlockMappingWrittenEventData::mutable_mapping() {
+  set_has_mapping();
+  if (mapping_ == NULL) mapping_ = new ::BlockMappingData;
+  return mapping_;
 }
-inline ::BlockMappingPairData* BlockMappingWrittenEventData::release_mapping_pair() {
-  clear_has_mapping_pair();
-  ::BlockMappingPairData* temp = mapping_pair_;
-  mapping_pair_ = NULL;
+inline ::BlockMappingData* BlockMappingWrittenEventData::release_mapping() {
+  clear_has_mapping();
+  ::BlockMappingData* temp = mapping_;
+  mapping_ = NULL;
   return temp;
 }
-inline void BlockMappingWrittenEventData::set_allocated_mapping_pair(::BlockMappingPairData* mapping_pair) {
-  delete mapping_pair_;
-  mapping_pair_ = mapping_pair;
-  if (mapping_pair) {
-    set_has_mapping_pair();
+inline void BlockMappingWrittenEventData::set_allocated_mapping(::BlockMappingData* mapping) {
+  delete mapping_;
+  mapping_ = mapping;
+  if (mapping) {
+    set_has_mapping();
   } else {
-    clear_has_mapping_pair();
+    clear_has_mapping();
   }
-}
-
-// -------------------------------------------------------------------
-
-// BlockMappingWriteFailedEventData
-
-// optional .BlockMappingPairData mapping_pair = 4;
-inline bool BlockMappingWriteFailedEventData::has_mapping_pair() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
-}
-inline void BlockMappingWriteFailedEventData::set_has_mapping_pair() {
-  _has_bits_[0] |= 0x00000001u;
-}
-inline void BlockMappingWriteFailedEventData::clear_has_mapping_pair() {
-  _has_bits_[0] &= ~0x00000001u;
-}
-inline void BlockMappingWriteFailedEventData::clear_mapping_pair() {
-  if (mapping_pair_ != NULL) mapping_pair_->::BlockMappingPairData::Clear();
-  clear_has_mapping_pair();
-}
-inline const ::BlockMappingPairData& BlockMappingWriteFailedEventData::mapping_pair() const {
-  return mapping_pair_ != NULL ? *mapping_pair_ : *default_instance_->mapping_pair_;
-}
-inline ::BlockMappingPairData* BlockMappingWriteFailedEventData::mutable_mapping_pair() {
-  set_has_mapping_pair();
-  if (mapping_pair_ == NULL) mapping_pair_ = new ::BlockMappingPairData;
-  return mapping_pair_;
-}
-inline ::BlockMappingPairData* BlockMappingWriteFailedEventData::release_mapping_pair() {
-  clear_has_mapping_pair();
-  ::BlockMappingPairData* temp = mapping_pair_;
-  mapping_pair_ = NULL;
-  return temp;
-}
-inline void BlockMappingWriteFailedEventData::set_allocated_mapping_pair(::BlockMappingPairData* mapping_pair) {
-  delete mapping_pair_;
-  mapping_pair_ = mapping_pair;
-  if (mapping_pair) {
-    set_has_mapping_pair();
-  } else {
-    clear_has_mapping_pair();
-  }
-}
-
-// optional int64 write_event_log_id = 3;
-inline bool BlockMappingWriteFailedEventData::has_write_event_log_id() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
-}
-inline void BlockMappingWriteFailedEventData::set_has_write_event_log_id() {
-  _has_bits_[0] |= 0x00000002u;
-}
-inline void BlockMappingWriteFailedEventData::clear_has_write_event_log_id() {
-  _has_bits_[0] &= ~0x00000002u;
-}
-inline void BlockMappingWriteFailedEventData::clear_write_event_log_id() {
-  write_event_log_id_ = GOOGLE_LONGLONG(0);
-  clear_has_write_event_log_id();
-}
-inline ::google::protobuf::int64 BlockMappingWriteFailedEventData::write_event_log_id() const {
-  return write_event_log_id_;
-}
-inline void BlockMappingWriteFailedEventData::set_write_event_log_id(::google::protobuf::int64 value) {
-  set_has_write_event_log_id();
-  write_event_log_id_ = value;
 }
 
 // -------------------------------------------------------------------
@@ -8553,135 +7682,11 @@ inline void BlockMappingDeletedEventData::set_allocated_original_block_mapping(:
 
 // -------------------------------------------------------------------
 
-// OphranChunksEventData
-
-// repeated bytes chunk_fp = 1;
-inline int OphranChunksEventData::chunk_fp_size() const {
-  return chunk_fp_.size();
-}
-inline void OphranChunksEventData::clear_chunk_fp() {
-  chunk_fp_.Clear();
-}
-inline const ::std::string& OphranChunksEventData::chunk_fp(int index) const {
-  return chunk_fp_.Get(index);
-}
-inline ::std::string* OphranChunksEventData::mutable_chunk_fp(int index) {
-  return chunk_fp_.Mutable(index);
-}
-inline void OphranChunksEventData::set_chunk_fp(int index, const ::std::string& value) {
-  chunk_fp_.Mutable(index)->assign(value);
-}
-inline void OphranChunksEventData::set_chunk_fp(int index, const char* value) {
-  chunk_fp_.Mutable(index)->assign(value);
-}
-inline void OphranChunksEventData::set_chunk_fp(int index, const void* value, size_t size) {
-  chunk_fp_.Mutable(index)->assign(
-    reinterpret_cast<const char*>(value), size);
-}
-inline ::std::string* OphranChunksEventData::add_chunk_fp() {
-  return chunk_fp_.Add();
-}
-inline void OphranChunksEventData::add_chunk_fp(const ::std::string& value) {
-  chunk_fp_.Add()->assign(value);
-}
-inline void OphranChunksEventData::add_chunk_fp(const char* value) {
-  chunk_fp_.Add()->assign(value);
-}
-inline void OphranChunksEventData::add_chunk_fp(const void* value, size_t size) {
-  chunk_fp_.Add()->assign(reinterpret_cast<const char*>(value), size);
-}
-inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
-OphranChunksEventData::chunk_fp() const {
-  return chunk_fp_;
-}
-inline ::google::protobuf::RepeatedPtrField< ::std::string>*
-OphranChunksEventData::mutable_chunk_fp() {
-  return &chunk_fp_;
-}
-
-// -------------------------------------------------------------------
-
 // BlockIndexLogfileData
-
-// optional .ContainerTrackerData container_tracker = 2;
-inline bool BlockIndexLogfileData::has_container_tracker() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
-}
-inline void BlockIndexLogfileData::set_has_container_tracker() {
-  _has_bits_[0] |= 0x00000001u;
-}
-inline void BlockIndexLogfileData::clear_has_container_tracker() {
-  _has_bits_[0] &= ~0x00000001u;
-}
-inline void BlockIndexLogfileData::clear_container_tracker() {
-  if (container_tracker_ != NULL) container_tracker_->::ContainerTrackerData::Clear();
-  clear_has_container_tracker();
-}
-inline const ::ContainerTrackerData& BlockIndexLogfileData::container_tracker() const {
-  return container_tracker_ != NULL ? *container_tracker_ : *default_instance_->container_tracker_;
-}
-inline ::ContainerTrackerData* BlockIndexLogfileData::mutable_container_tracker() {
-  set_has_container_tracker();
-  if (container_tracker_ == NULL) container_tracker_ = new ::ContainerTrackerData;
-  return container_tracker_;
-}
-inline ::ContainerTrackerData* BlockIndexLogfileData::release_container_tracker() {
-  clear_has_container_tracker();
-  ::ContainerTrackerData* temp = container_tracker_;
-  container_tracker_ = NULL;
-  return temp;
-}
-inline void BlockIndexLogfileData::set_allocated_container_tracker(::ContainerTrackerData* container_tracker) {
-  delete container_tracker_;
-  container_tracker_ = container_tracker;
-  if (container_tracker) {
-    set_has_container_tracker();
-  } else {
-    clear_has_container_tracker();
-  }
-}
 
 // -------------------------------------------------------------------
 
 // ChunkIndexLogfileData
-
-// optional .ContainerTrackerData container_tracker = 2;
-inline bool ChunkIndexLogfileData::has_container_tracker() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
-}
-inline void ChunkIndexLogfileData::set_has_container_tracker() {
-  _has_bits_[0] |= 0x00000001u;
-}
-inline void ChunkIndexLogfileData::clear_has_container_tracker() {
-  _has_bits_[0] &= ~0x00000001u;
-}
-inline void ChunkIndexLogfileData::clear_container_tracker() {
-  if (container_tracker_ != NULL) container_tracker_->::ContainerTrackerData::Clear();
-  clear_has_container_tracker();
-}
-inline const ::ContainerTrackerData& ChunkIndexLogfileData::container_tracker() const {
-  return container_tracker_ != NULL ? *container_tracker_ : *default_instance_->container_tracker_;
-}
-inline ::ContainerTrackerData* ChunkIndexLogfileData::mutable_container_tracker() {
-  set_has_container_tracker();
-  if (container_tracker_ == NULL) container_tracker_ = new ::ContainerTrackerData;
-  return container_tracker_;
-}
-inline ::ContainerTrackerData* ChunkIndexLogfileData::release_container_tracker() {
-  clear_has_container_tracker();
-  ::ContainerTrackerData* temp = container_tracker_;
-  container_tracker_ = NULL;
-  return temp;
-}
-inline void ChunkIndexLogfileData::set_allocated_container_tracker(::ContainerTrackerData* container_tracker) {
-  delete container_tracker_;
-  container_tracker_ = container_tracker;
-  if (container_tracker) {
-    set_has_container_tracker();
-  } else {
-    clear_has_container_tracker();
-  }
-}
 
 // -------------------------------------------------------------------
 
@@ -8731,7 +7736,7 @@ inline void BloomFilterLogfileData::set_k(::google::protobuf::uint32 value) {
   k_ = value;
 }
 
-// optional .ContainerTrackerData container_tracker = 4;
+// optional .ContainerTrackerData container_tracker = 3;
 inline bool BloomFilterLogfileData::has_container_tracker() const {
   return (_has_bits_[0] & 0x00000004u) != 0;
 }
@@ -8767,227 +7772,6 @@ inline void BloomFilterLogfileData::set_allocated_container_tracker(::ContainerT
   } else {
     clear_has_container_tracker();
   }
-}
-
-// -------------------------------------------------------------------
-
-// GarbageCollectionCandidateData
-
-// optional uint64 address = 1;
-inline bool GarbageCollectionCandidateData::has_address() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
-}
-inline void GarbageCollectionCandidateData::set_has_address() {
-  _has_bits_[0] |= 0x00000001u;
-}
-inline void GarbageCollectionCandidateData::clear_has_address() {
-  _has_bits_[0] &= ~0x00000001u;
-}
-inline void GarbageCollectionCandidateData::clear_address() {
-  address_ = GOOGLE_ULONGLONG(0);
-  clear_has_address();
-}
-inline ::google::protobuf::uint64 GarbageCollectionCandidateData::address() const {
-  return address_;
-}
-inline void GarbageCollectionCandidateData::set_address(::google::protobuf::uint64 value) {
-  set_has_address();
-  address_ = value;
-}
-
-// repeated .GarbageCollectionCandidateItemData item = 2;
-inline int GarbageCollectionCandidateData::item_size() const {
-  return item_.size();
-}
-inline void GarbageCollectionCandidateData::clear_item() {
-  item_.Clear();
-}
-inline const ::GarbageCollectionCandidateItemData& GarbageCollectionCandidateData::item(int index) const {
-  return item_.Get(index);
-}
-inline ::GarbageCollectionCandidateItemData* GarbageCollectionCandidateData::mutable_item(int index) {
-  return item_.Mutable(index);
-}
-inline ::GarbageCollectionCandidateItemData* GarbageCollectionCandidateData::add_item() {
-  return item_.Add();
-}
-inline const ::google::protobuf::RepeatedPtrField< ::GarbageCollectionCandidateItemData >&
-GarbageCollectionCandidateData::item() const {
-  return item_;
-}
-inline ::google::protobuf::RepeatedPtrField< ::GarbageCollectionCandidateItemData >*
-GarbageCollectionCandidateData::mutable_item() {
-  return &item_;
-}
-
-// optional bool processing = 3;
-inline bool GarbageCollectionCandidateData::has_processing() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
-}
-inline void GarbageCollectionCandidateData::set_has_processing() {
-  _has_bits_[0] |= 0x00000004u;
-}
-inline void GarbageCollectionCandidateData::clear_has_processing() {
-  _has_bits_[0] &= ~0x00000004u;
-}
-inline void GarbageCollectionCandidateData::clear_processing() {
-  processing_ = false;
-  clear_has_processing();
-}
-inline bool GarbageCollectionCandidateData::processing() const {
-  return processing_;
-}
-inline void GarbageCollectionCandidateData::set_processing(bool value) {
-  set_has_processing();
-  processing_ = value;
-}
-
-// optional uint32 unchanged_processing_count = 4;
-inline bool GarbageCollectionCandidateData::has_unchanged_processing_count() const {
-  return (_has_bits_[0] & 0x00000008u) != 0;
-}
-inline void GarbageCollectionCandidateData::set_has_unchanged_processing_count() {
-  _has_bits_[0] |= 0x00000008u;
-}
-inline void GarbageCollectionCandidateData::clear_has_unchanged_processing_count() {
-  _has_bits_[0] &= ~0x00000008u;
-}
-inline void GarbageCollectionCandidateData::clear_unchanged_processing_count() {
-  unchanged_processing_count_ = 0u;
-  clear_has_unchanged_processing_count();
-}
-inline ::google::protobuf::uint32 GarbageCollectionCandidateData::unchanged_processing_count() const {
-  return unchanged_processing_count_;
-}
-inline void GarbageCollectionCandidateData::set_unchanged_processing_count(::google::protobuf::uint32 value) {
-  set_has_unchanged_processing_count();
-  unchanged_processing_count_ = value;
-}
-
-// -------------------------------------------------------------------
-
-// GarbageCollectionCandidateItemData
-
-// optional bytes fp = 1;
-inline bool GarbageCollectionCandidateItemData::has_fp() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
-}
-inline void GarbageCollectionCandidateItemData::set_has_fp() {
-  _has_bits_[0] |= 0x00000001u;
-}
-inline void GarbageCollectionCandidateItemData::clear_has_fp() {
-  _has_bits_[0] &= ~0x00000001u;
-}
-inline void GarbageCollectionCandidateItemData::clear_fp() {
-  if (fp_ != &::google::protobuf::internal::kEmptyString) {
-    fp_->clear();
-  }
-  clear_has_fp();
-}
-inline const ::std::string& GarbageCollectionCandidateItemData::fp() const {
-  return *fp_;
-}
-inline void GarbageCollectionCandidateItemData::set_fp(const ::std::string& value) {
-  set_has_fp();
-  if (fp_ == &::google::protobuf::internal::kEmptyString) {
-    fp_ = new ::std::string;
-  }
-  fp_->assign(value);
-}
-inline void GarbageCollectionCandidateItemData::set_fp(const char* value) {
-  set_has_fp();
-  if (fp_ == &::google::protobuf::internal::kEmptyString) {
-    fp_ = new ::std::string;
-  }
-  fp_->assign(value);
-}
-inline void GarbageCollectionCandidateItemData::set_fp(const void* value, size_t size) {
-  set_has_fp();
-  if (fp_ == &::google::protobuf::internal::kEmptyString) {
-    fp_ = new ::std::string;
-  }
-  fp_->assign(reinterpret_cast<const char*>(value), size);
-}
-inline ::std::string* GarbageCollectionCandidateItemData::mutable_fp() {
-  set_has_fp();
-  if (fp_ == &::google::protobuf::internal::kEmptyString) {
-    fp_ = new ::std::string;
-  }
-  return fp_;
-}
-inline ::std::string* GarbageCollectionCandidateItemData::release_fp() {
-  clear_has_fp();
-  if (fp_ == &::google::protobuf::internal::kEmptyString) {
-    return NULL;
-  } else {
-    ::std::string* temp = fp_;
-    fp_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-    return temp;
-  }
-}
-inline void GarbageCollectionCandidateItemData::set_allocated_fp(::std::string* fp) {
-  if (fp_ != &::google::protobuf::internal::kEmptyString) {
-    delete fp_;
-  }
-  if (fp) {
-    set_has_fp();
-    fp_ = fp;
-  } else {
-    clear_has_fp();
-    fp_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-  }
-}
-
-// optional .GarbageCollectionCandidateItemData.Type type = 2;
-inline bool GarbageCollectionCandidateItemData::has_type() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
-}
-inline void GarbageCollectionCandidateItemData::set_has_type() {
-  _has_bits_[0] |= 0x00000002u;
-}
-inline void GarbageCollectionCandidateItemData::clear_has_type() {
-  _has_bits_[0] &= ~0x00000002u;
-}
-inline void GarbageCollectionCandidateItemData::clear_type() {
-  type_ = 0;
-  clear_has_type();
-}
-inline ::GarbageCollectionCandidateItemData_Type GarbageCollectionCandidateItemData::type() const {
-  return static_cast< ::GarbageCollectionCandidateItemData_Type >(type_);
-}
-inline void GarbageCollectionCandidateItemData::set_type(::GarbageCollectionCandidateItemData_Type value) {
-  assert(::GarbageCollectionCandidateItemData_Type_IsValid(value));
-  set_has_type();
-  type_ = value;
-}
-
-// -------------------------------------------------------------------
-
-// GarbageCollectionInfoData
-
-// repeated int64 replayed_block_failed_event_log_id = 1;
-inline int GarbageCollectionInfoData::replayed_block_failed_event_log_id_size() const {
-  return replayed_block_failed_event_log_id_.size();
-}
-inline void GarbageCollectionInfoData::clear_replayed_block_failed_event_log_id() {
-  replayed_block_failed_event_log_id_.Clear();
-}
-inline ::google::protobuf::int64 GarbageCollectionInfoData::replayed_block_failed_event_log_id(int index) const {
-  return replayed_block_failed_event_log_id_.Get(index);
-}
-inline void GarbageCollectionInfoData::set_replayed_block_failed_event_log_id(int index, ::google::protobuf::int64 value) {
-  replayed_block_failed_event_log_id_.Set(index, value);
-}
-inline void GarbageCollectionInfoData::add_replayed_block_failed_event_log_id(::google::protobuf::int64 value) {
-  replayed_block_failed_event_log_id_.Add(value);
-}
-inline const ::google::protobuf::RepeatedField< ::google::protobuf::int64 >&
-GarbageCollectionInfoData::replayed_block_failed_event_log_id() const {
-  return replayed_block_failed_event_log_id_;
-}
-inline ::google::protobuf::RepeatedField< ::google::protobuf::int64 >*
-GarbageCollectionInfoData::mutable_replayed_block_failed_event_log_id() {
-  return &replayed_block_failed_event_log_id_;
 }
 
 // -------------------------------------------------------------------
@@ -9513,10 +8297,6 @@ inline void MessageData::set_allocated_message(::std::string* message) {
 namespace google {
 namespace protobuf {
 
-template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::GarbageCollectionCandidateItemData_Type>() {
-  return ::GarbageCollectionCandidateItemData_Type_descriptor();
-}
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::CompressionMode>() {
   return ::CompressionMode_descriptor();

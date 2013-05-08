@@ -17,26 +17,6 @@ message BlockMappingData {
     optional bytes checksum = 7;
 }
 
-message BlockMappingPairData {
-    optional uint64 block_id  = 1;
-
-    // version number of the modified mapping (as it is more important)
-    optional uint32 version_counter = 2;
-
-    repeated BlockMappingPairItemData items = 3;
-}
-
-message BlockMappingPairItemData {
-    required bytes fp = 1;
-    optional uint64 data_address = 2;
-
-    // only set when not 0
-    optional uint32 chunk_offset = 3;
-    optional uint32 size = 4;
-
-    optional int32 usage_count_modifier = 5;
-}
-
 message BlockMappingItemData {
     required bytes fp = 1;
     optional uint64 data_address = 2;
@@ -48,12 +28,7 @@ message BlockMappingItemData {
 
 message ChunkMappingData {
     optional uint64 data_address = 1;
-    optional int64 usage_count = 2;
-    optional uint64 usage_count_change_log_id = 3;
-
-    optional uint64 usage_count_failed_write_change_log_id = 4;
-
-    optional uint64 last_block_hint = 5;
+    optional uint64 last_block_hint = 2;
  }
 
 message ContainerData {
@@ -74,8 +49,29 @@ message ContainerItemData {
     optional uint32 raw_size = 4;
     optional bool deleted = 5;
     optional bool indexed = 7;
-
     optional uint64 original_id = 6;
+}
+
+/**
+ * A partial contains either partial items or an address info
+ * If there is a partial items needing an import, there is also
+ * an address info in some partial file.
+ */ 
+message ContainerPartialData {
+    repeated ContainerPartialItemData partial_item = 1;
+    optional ContainerPartialAddressData address_info = 2;
+}
+
+message ContainerPartialAddressData {
+    optional uint64 container_id = 1;
+    optional ContainerStorageAddressData address = 2;
+}
+
+message ContainerPartialItemData {
+    optional bytes fp = 1;
+    optional uint64 container_id = 2;
+    optional bool indexed = 3;
+    optional bytes data = 4;
 }
 
 enum CompressionMode {
@@ -106,6 +102,12 @@ message ContainerFileData {
     optional string uuid = 3;
 }
 
+message ContainerPartialFileData {
+    optional string filename = 1;
+
+    optional string uuid = 2;
+}
+
 message ContainerSuperblockData {
     optional string uuid = 1;
 }
@@ -116,6 +118,7 @@ message ContainerLogfileData {
 
     optional uint32 size = 3;
     repeated ContainerFileData file = 4;
+    repeated ContainerPartialFileData partial_file = 5;
 }
 
 message SystemStartEventData {
@@ -123,26 +126,6 @@ message SystemStartEventData {
     optional bool dirty = 2;
     optional bool forced = 3;
     optional bool crashed = 4;
-}
-
-message ReplayStartEventData {
-    optional int32 replay_type = 1;
-
-    optional uint64 replay_id = 3;
-    optional uint64 log_id = 4;
-
-    // true iff replay of the complete log is started. The log replay
-    // usually is not stopping before the complete log is replayed. Additonally
-    // no requests are done concurrently.
-    optional bool full_log_replay = 5;
-}
-
-message ReplayStopEventData {
-    optional int32 replay_type = 1;
-    optional bool success = 2;
-
-    optional uint64 replay_id = 3;
-    optional uint64 log_id = 4;
 }
 
 /**
@@ -165,14 +148,7 @@ message LogEventData {
 
     optional BlockMappingWrittenEventData block_mapping_written_event = 9;
 
-    optional BlockMappingWriteFailedEventData block_mapping_write_failed_event = 10;
-
     optional BlockMappingDeletedEventData block_mapping_deleted_event = 11;
-
-    optional OphranChunksEventData ophran_chunks_event = 12;
-
-    optional ReplayStartEventData replay_start_event = 13;
-    optional ReplayStopEventData replay_stop_event = 14;
 
     optional SystemStartEventData system_start_event = 15;
 
@@ -254,8 +230,8 @@ message ContainerMoveEventData {
 }
 
 message ContainerCommitFailedEventData {
-    required uint64 container_id = 1;
-    repeated bytes item_key = 2;
+  required uint64 container_id = 1;
+  repeated bytes item_key = 2;
 }
 
 message VolumeAttachedEventData {
@@ -267,89 +243,23 @@ message VolumeDetachedEventData {
 }
 
 message BlockMappingWrittenEventData {
-        // 1, 2, and 3 are deprecated
-
-        optional BlockMappingPairData mapping_pair = 4;
-}
-
-message BlockMappingWriteFailedEventData {
-    // 1 and 2 are deprecated
-
-    optional BlockMappingPairData mapping_pair = 4;
-
-    // iff true a block mapping written event has been
-    // committed before. If false, the gc must not be corrected. However
-    // it should be checked if there might be chunks whose only reference never
-    // as been committed. These chunks should than be handled as gc candidate chunks
-    //
-    // If true and if there are no newer block versions, the gc should be corrected.
-    // There is an example:
-    // With newer version. V4 failed:
-    // ---------------------------------
-    // - V2-V3   - V3-V4  - V4-V5
-    // ---------------------------------
-    //      -    V3   -   XX  -  V5
-    // The gc should process all block write operations as they form a consistent series
-    //
-    // Without newer version. V4 failed:
-    // --------------------------      ---------------
-    // - V2-V3   - V3-V4  -             V3-V4
-    // ------------------------- CRASH ---------------
-    //      -    V3   -   XX                    - V4
-    // The gc should revert the first V3-V4 as might lead to an incorrect usage counting
-    //
-    optional int64 write_event_log_id = 3;
+    optional BlockMappingData mapping = 1;
 }
 
 message BlockMappingDeletedEventData {
     optional BlockMappingData original_block_mapping = 1;
 }
 
-message OphranChunksEventData {
-    repeated bytes chunk_fp = 1;
-}
-
 message BlockIndexLogfileData {
-    // 3 is deleted
-    optional ContainerTrackerData container_tracker = 2;
 }
 
 message ChunkIndexLogfileData {
-    // 3 is deleted
-    optional ContainerTrackerData container_tracker = 2;
 }
 
 message BloomFilterLogfileData {
     optional uint64 filter_size = 1;
     optional uint32 k = 2;
-    // 3 is deleted
-    optional ContainerTrackerData container_tracker = 4;
-}
-
-message GarbageCollectionCandidateData {
-    optional uint64 address = 1;
-    repeated GarbageCollectionCandidateItemData item = 2;
-
-    // true iff the item is currently been processed.
-    // this information is e.g. used for correct crash handling
-    optional bool processing = 3;
-
-    // the number of consequent processing where nothing changed. This usually means
-    // that all chunk that are candidates are still "in-combat"
-    optional uint32 unchanged_processing_count = 4;
-}
-
-message GarbageCollectionCandidateItemData {
-    optional bytes fp = 1;
-    enum Type {
-        STANDARD = 0; // this is the default
-        FAILED = 1; // an fp is of the type failed it was added to the gc because a block mapping had failed
-    }
-    optional Type type = 2;
-}
-
-message GarbageCollectionInfoData {
-    repeated int64 replayed_block_failed_event_log_id = 1;
+    optional ContainerTrackerData container_tracker = 3;
 }
 
 message ContainerGreedyGCCandidateItemData {
@@ -397,7 +307,7 @@ message LogStateData {
 
 // used only for testing
 message MessageData {
-    optional string message = 1;
+  optional string message = 1;
 }
 
 message BlockWriteFailedData {

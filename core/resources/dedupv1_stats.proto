@@ -6,16 +6,12 @@
  */
 
 message ChunkIndexStatsData {
-    optional uint64 imported_container_count = 1;
-    optional uint64 index_full_failure_count = 2;
 }
 
 message BlockIndexStatsData {
     optional uint64 index_read_count = 1;
     optional uint64 index_write_count = 2;
-    optional uint64 index_real_write_count = 3;
     optional uint64 imported_block_count = 4;
-    optional uint64 failed_block_write_count = 5;
 }
 
 message ChunkStoreStatsData {
@@ -33,7 +29,6 @@ message ContainerStorageWriteCacheStatsData {
 message ContainerStorageStatsData {
     optional uint64 read_count = 1;
     optional uint64 write_cache_hit_count = 2;
-    optional uint64 container_timeout_count = 3;
     optional uint64 readed_container_count = 4;
     optional uint64 committed_container_count = 5;
     optional uint64 moved_container_count = 6;
@@ -94,14 +89,6 @@ message ZeroChunkFilterStatsData {
     optional uint64 existing_hit_count = 1;
     optional uint64 weak_hit_count = 2;
     optional uint64 read_count = 3;
-}
-
-message GarbageCollectorStatsData {
-    optional uint64 processed_block_count = 1;
-    optional uint64 processed_gc_candidate_count = 2;
-    optional uint64 skipped_chunk_count = 3;
-    optional uint64 already_processed_chunk_count = 4;
-    optional uint64 processed_chunk_count = 5;
 }
 
 message RabinChunkerStatsData {
