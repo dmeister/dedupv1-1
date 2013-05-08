@@ -66,7 +66,7 @@ namespace filter {
 INSTANTIATE_TEST_CASE_P(BlockIndexFilter,
     FilterTest,
     ::testing::Values("block-index-filter",
-      "block-index-filter;block-chunk-cache=true"));
+        "block-index-filter;block-chunk-cache=true"));
 
 INSTANTIATE_TEST_CASE_P(BlockIndexFilter,
     DedupSystemTest,
@@ -78,13 +78,9 @@ protected:
 
     DedupSystem* system;
     dedupv1::MemoryInfoStore info_store;
-    dedupv1::base::Threadpool tp;
 
     virtual void SetUp() {
         system = NULL;
-
-        ASSERT_TRUE(tp.SetOption("size", "8"));
-        ASSERT_TRUE(tp.Start());
     }
 
     virtual void TearDown() {
@@ -102,7 +98,7 @@ protected:
  * a replay.
  */
 TEST_F(BlockIndexFilterTest, OverwriteAfterReplay) {
-    system = DedupSystemTest::CreateDefaultSystem("data/dedupv1_test.conf", &info_store, &tp);
+    system = DedupSystemTest::CreateDefaultSystem("data/dedupv1_test.conf", &info_store);
     ASSERT_TRUE(system);
 
     ASSERT_TRUE(system->filter_chain()->GetFilterByName("block-index-filter") != NULL) <<
@@ -124,7 +120,11 @@ TEST_F(BlockIndexFilterTest, OverwriteAfterReplay) {
     DedupVolume* volume = system->GetVolume(0);
     ASSERT_TRUE(volume);
     for (int i = 0; i < requests; i++) {
-        ASSERT_TRUE(volume->MakeRequest(REQUEST_WRITE, i * system->block_size(), system->block_size(), buffer + (i * system->block_size()), NO_EC));
+        ASSERT_TRUE(volume->MakeRequest(REQUEST_WRITE,
+                i * system->block_size(),
+                system->block_size(),
+                buffer + (i * system->block_size()),
+                NO_EC));
     }
     volume = NULL;
     ASSERT_TRUE(system->log()->PerformFullReplayBackgroundMode(true));
@@ -132,7 +132,8 @@ TEST_F(BlockIndexFilterTest, OverwriteAfterReplay) {
     delete system;
     system = NULL;
 
-    system = DedupSystemTest::CreateDefaultSystem("data/dedupv1_test.conf", &info_store, &tp, true, true);
+    system = DedupSystemTest::CreateDefaultSystemWithOptions(
+        "data/dedupv1_test.conf", &info_store, true, true);
     ASSERT_TRUE(system);
 
     volume = system->GetVolume(0);
@@ -142,7 +143,11 @@ TEST_F(BlockIndexFilterTest, OverwriteAfterReplay) {
         byte* request_buffer = buffer + (i * system->block_size());
         memcpy(request_buffer + (system->block_size() / 2), request_buffer, (system->block_size() / 2));
 
-        ASSERT_TRUE(volume->MakeRequest(REQUEST_WRITE, i * system->block_size(), system->block_size(), request_buffer, NO_EC));
+        ASSERT_TRUE(volume->MakeRequest(REQUEST_WRITE,
+                i * system->block_size(),
+                system->block_size(),
+                request_buffer,
+                NO_EC));
     }
     volume = NULL;
 

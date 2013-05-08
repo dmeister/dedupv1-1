@@ -85,7 +85,8 @@ Filter* ChunkIndexFilter::CreateFilter() {
     return filter;
 }
 
-bool ChunkIndexFilter::Start(DedupSystem* system) {
+bool ChunkIndexFilter::Start(const dedupv1::StartContext& start_context,
+    DedupSystem* system) {
     DCHECK(system, "System not set");
     DCHECK(system->chunk_index(), "Chunk Index not set");
 
@@ -93,21 +94,10 @@ bool ChunkIndexFilter::Start(DedupSystem* system) {
     return true;
 }
 
-bool ChunkIndexFilter::ReleaseChunkLock(const dedupv1::chunkindex::ChunkMapping& mapping) {
-    DCHECK(this->chunk_index_ != NULL, "Chunk index filter not started");
-    return this->chunk_index_->chunk_locks().Unlock(mapping.fingerprint(), mapping.fingerprint_size());
-    return true;
-}
-
-bool ChunkIndexFilter::AcquireChunkLock(const dedupv1::chunkindex::ChunkMapping& mapping) {
-    DCHECK(this->chunk_index_ != NULL, "Chunk index filter not started");
-    return this->chunk_index_->chunk_locks().Lock(mapping.fingerprint(), mapping.fingerprint_size());
-}
-
 Filter::filter_result ChunkIndexFilter::Check(Session* session,
-                                              const BlockMapping* block_mapping,
-                                              ChunkMapping* mapping,
-                                              ErrorContext* ec) {
+      const BlockMapping* block_mapping,
+      ChunkMapping* mapping,
+      ErrorContext* ec) {
     DCHECK_RETURN(mapping, FILTER_ERROR, "Chunk mapping not set");
     enum filter_result result = FILTER_ERROR;
     ProfileTimer timer(this->stats_.time_);
@@ -121,28 +111,12 @@ Filter::filter_result ChunkIndexFilter::Check(Session* session,
         stats_.weak_hits_++;
         return FILTER_WEAK_MAYBE;
     }
-    stats_.anchor_count_++;
 
-    TRACE("Chunk is anchor: " << mapping->DebugString());
-
-    CHECK_RETURN(AcquireChunkLock(*mapping), FILTER_ERROR,
-        "Failed to acquire chunk lock: " << mapping->DebugString());
-
-    enum lookup_result index_result = this->chunk_index_->Lookup(mapping, true, ec);
+    enum lookup_result index_result = this->chunk_index_->Lookup(mapping, ec);
     if (index_result == LOOKUP_NOT_FOUND) {
-        if (likely(chunk_index_->IsAcceptingNewChunks())) {
-            result = FILTER_NOT_EXISTING;
-            this->stats_.miss_++;
-        } else {
-            if (ec) {
-                ec->set_full();
-            }
-            stats_.failures_++;
-            result = FILTER_ERROR;
-        }
-        // with the normal chunk index filter, all chunks are indexed
+        result = FILTER_NOT_EXISTING;
+        this->stats_.miss_++;
     } else if (index_result == LOOKUP_FOUND) {
-        mapping->set_usage_count(0); // TODO (dmeister): Why???
         this->stats_.strong_hits_++;
         result = FILTER_STRONG_MAYBE;
     } else if (index_result == LOOKUP_ERROR) {
@@ -151,19 +125,13 @@ Filter::filter_result ChunkIndexFilter::Check(Session* session,
         stats_.failures_++;
         result = FILTER_ERROR;
     }
-    if (result == FILTER_ERROR) {
-        // if this check failed, there will be no abort call
-        if (!ReleaseChunkLock(*mapping)) {
-            WARNING("Failed to release chunk lock: " << mapping->DebugString());
-        }
-    }
     return result;
 }
 
-bool ChunkIndexFilter::Update(Session* session,
-                              const BlockMapping* block_mapping,
-                              ChunkMapping* mapping,
-                              ErrorContext* ec) {
+bool ChunkIndexFilter::UpdateKnownChunk(Session* session,
+    const dedupv1::blockindex::BlockMapping* block_mapping,
+    ChunkMapping* mapping,
+    dedupv1::base::ErrorContext* ec) {
     ProfileTimer timer(this->stats_.time_);
 
     DCHECK(mapping, "Mapping must be set");
@@ -172,44 +140,40 @@ bool ChunkIndexFilter::Update(Session* session,
     if (!mapping->is_indexed()) {
         return true;
     }
+    if (block_mapping) {
+        mapping->set_block_hint(block_mapping->block_id());
+    }
     this->stats_.writes_++;
 
-    bool r = this->chunk_index_->Put(*mapping, ec);
-
-    if (unlikely(!ReleaseChunkLock(*mapping))) {
-        WARNING("Failed to release chunk lock: " << mapping->DebugString());
-    }
+    bool r = this->chunk_index_->PutPersistentIndex(*mapping, false, ec);
     return r;
 }
 
-bool ChunkIndexFilter::Abort(Session* session,
-                             const BlockMapping* block_mapping,
-                             ChunkMapping* chunk_mapping,
-                             ErrorContext* ec) {
-    DCHECK(chunk_mapping, "Chunk mapping not set");
+bool ChunkIndexFilter::Update(Session* session,
+    const BlockMapping* block_mapping,
+    ChunkMapping* mapping,
+    ErrorContext* ec) {
+    ProfileTimer timer(this->stats_.time_);
 
-    TRACE("Abort " << chunk_mapping->DebugString());
+    DCHECK(mapping, "Mapping must be set");
+    TRACE("Update " << mapping->DebugString());
 
-    if (!chunk_mapping->is_indexed()) {
+    if (!mapping->is_indexed()) {
         return true;
     }
-
-    // if we have the empty fingerprint, we do not need to release the chunk lock
-    if (chunk_mapping->data_address() == Storage::EMPTY_DATA_STORAGE_ADDRESS) {
-        return true;
+    if (block_mapping) {
+        mapping->set_block_hint(block_mapping->block_id());
     }
+    this->stats_.writes_++;
 
-    if (!ReleaseChunkLock(*chunk_mapping)) {
-        WARNING("Failed to release chunk lock: " << chunk_mapping->DebugString());
-    }
-    return true;
+    bool r = this->chunk_index_->Put(*mapping, ec);
+    return r;
 }
 
 bool ChunkIndexFilter::PersistStatistics(std::string prefix, dedupv1::PersistStatistics* ps) {
     ChunkIndexFilterStatsData data;
     data.set_strong_hit_count(stats_.strong_hits_);
     data.set_weak_hit_count(stats_.weak_hits_);
-    data.set_anchor_count(stats_.anchor_count_);
     data.set_miss_count(stats_.miss_);
     data.set_read_count(stats_.reads_);
     data.set_write_count(stats_.writes_);
@@ -224,7 +188,6 @@ bool ChunkIndexFilter::RestoreStatistics(std::string prefix, dedupv1::PersistSta
     stats_.reads_ = data.read_count();
     stats_.strong_hits_ = data.strong_hit_count();
     stats_.weak_hits_ = data.weak_hit_count();
-    stats_.anchor_count_ = data.anchor_count();
     stats_.miss_ = data.miss_count();
     stats_.writes_ = data.write_count();
     stats_.failures_ = data.failure_count();
@@ -239,7 +202,6 @@ string ChunkIndexFilter::PrintStatistics() {
     sstr << "\"strong\": " << this->stats_.strong_hits_ << "," << std::endl;
     sstr << "\"weak\": " << this->stats_.weak_hits_ << "," << std::endl;
     sstr << "\"failures\": " << this->stats_.failures_ << "," << std::endl;
-    sstr << "\"anchor count\": " << this->stats_.anchor_count_ << "," << std::endl;
     sstr << "\"miss\": " << this->stats_.miss_ << std::endl;
     sstr << "}";
     return sstr.str();

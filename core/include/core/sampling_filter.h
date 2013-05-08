@@ -77,6 +77,7 @@ public:
     Statistics stats_;
 
     dedupv1::base::Option<bool> IsAnchor(const dedupv1::chunkindex::ChunkMapping& mapping);
+
 public:
     /**
      * Constructor
@@ -96,7 +97,8 @@ public:
      * @param system
      * @return true iff ok, otherwise an error has occurred
      */
-    virtual bool Start(DedupSystem* system);
+    virtual bool Start(const dedupv1::StartContext& start_context,
+                       DedupSystem* system);
 
     /**
      * Checks the chunk index for the chunk mapping.
@@ -148,6 +150,7 @@ public:
      * Registers the sampling-filter
      */
     static void RegisterFilter();
+
 };
 
 }

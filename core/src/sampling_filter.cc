@@ -81,7 +81,8 @@ Filter* SamplingFilter::CreateFilter() {
     return filter;
 }
 
-bool SamplingFilter::Start(DedupSystem* system) {
+bool SamplingFilter::Start(const dedupv1::StartContext& start_context,
+    DedupSystem* system) {
     DCHECK(system, "System not set");
     DCHECK(system->chunk_index(), "Chunk Index not set");
 
@@ -98,9 +99,9 @@ Option<bool> SamplingFilter::IsAnchor(const ChunkMapping& mapping) {
 }
 
 Filter::filter_result SamplingFilter::Check(Session* session,
-                                              const BlockMapping* block_mapping,
-                                              ChunkMapping* mapping,
-                                              ErrorContext* ec) {
+    const BlockMapping* block_mapping,
+    ChunkMapping* mapping,
+    ErrorContext* ec) {
     DCHECK_RETURN(mapping, FILTER_ERROR, "Chunk mapping not set");
     ProfileTimer timer(this->stats_.time_);
 

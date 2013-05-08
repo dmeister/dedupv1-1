@@ -84,7 +84,8 @@ Filter* ByteCompareFilter::CreateFilter() {
     return new ByteCompareFilter();
 }
 
-bool ByteCompareFilter::Start(DedupSystem* dedup_system) {
+bool ByteCompareFilter::Start(const dedupv1::StartContext& start_context,
+    DedupSystem* dedup_system) {
     DCHECK(dedup_system, "Dedup system not set");
     DCHECK(dedup_system->storage(), "Storage not set");
 
@@ -122,10 +123,10 @@ Filter::filter_result ByteCompareFilter::Check(Session* session,
 
     stats_.reads_++;
 
-    Option<uint32_t> read_result = storage_->Read(
+    Option<uint32_t> read_result = storage_->ReadChunk(
         mapping->data_address(),
         mapping->fingerprint(),
-        mapping->fingerprint_size(), buffer, 0, buffer_size_, ec);
+        mapping->fingerprint_size(), buffer, 0, mapping->chunk()->size(), ec);
     CHECK_RETURN(read_result.valid(), FILTER_ERROR,
         "Storage error reading address: " << mapping->DebugString());
 

@@ -54,28 +54,28 @@ Filter::Filter(const string& name, enum filter_result max_filter_level) {
 Filter::~Filter() {
 }
 
-bool Filter::Start(DedupSystem* system) {
+bool Filter::Start(const dedupv1::StartContext& start_context, DedupSystem* system) {
     return true;
 }
 
 bool Filter::Update(Session* session,
-                    const dedupv1::blockindex::BlockMapping* block_mapping,
-                    ChunkMapping* mapping,
-                    ErrorContext* ec) {
+    const dedupv1::blockindex::BlockMapping* block_mapping,
+    ChunkMapping* mapping,
+    ErrorContext* ec) {
     return true;
 }
 
 bool Filter::UpdateKnownChunk(Session* session,
-                              const dedupv1::blockindex::BlockMapping* block_mapping,
-                              ChunkMapping* mapping,
-                              ErrorContext* ec) {
+    const dedupv1::blockindex::BlockMapping* block_mapping,
+    ChunkMapping* mapping,
+    ErrorContext* ec) {
     return Abort(session, block_mapping, mapping, ec);
 }
 
 bool Filter::Abort(Session* session,
-                   const dedupv1::blockindex::BlockMapping* block_mapping,
-                   ChunkMapping* chunk_mapping,
-                   ErrorContext* ec) {
+    const dedupv1::blockindex::BlockMapping* block_mapping,
+    ChunkMapping* chunk_mapping,
+    ErrorContext* ec) {
     return true;
 }
 

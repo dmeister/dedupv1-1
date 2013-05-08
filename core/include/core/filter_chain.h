@@ -27,6 +27,7 @@
 #include <core/chunk_mapping.h>
 #include <core/block_mapping.h>
 #include <core/filter.h>
+#include <base/startup.h>
 
 #include <list>
 #include <vector>
@@ -118,6 +119,7 @@ public:
                     const dedupv1::blockindex::BlockMapping* block_mapping,
                     dedupv1::chunkindex::ChunkMapping* chunk_mapping,
                     dedupv1::base::ErrorContext* ec);
+
 public:
     /**
      * Constructor
@@ -146,7 +148,8 @@ public:
      * @param system
      * @return true iff ok, otherwise an error has occurred
      */
-    bool Start(DedupSystem* system);
+    bool Start(const dedupv1::StartContext& start_context,
+               DedupSystem* system);
 
     /**
      * Should only be called with a matching and successful ReadChunkInfo call
@@ -212,14 +215,18 @@ public:
                                    dedupv1::PersistStatistics* ps);
 
     virtual std::string PrintLockStatistics();
+
     virtual std::string PrintProfile();
+
     virtual std::string PrintStatistics();
+
     virtual std::string PrintTrace();
 
     /**
      * Returns the list of configured filters
      */
     inline const std::list<Filter*>& GetChain();
+
 };
 
 const std::list<Filter*>& FilterChain::GetChain() {

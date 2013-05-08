@@ -98,7 +98,8 @@ FilterChain::Statistics::Statistics() {
     index_writes_ = 0;
 }
 
-bool FilterChain::Start(DedupSystem* system) {
+bool FilterChain::Start(const dedupv1::StartContext& start_context,
+    DedupSystem* system) {
     INFO("Starting filter chain");
 
     if (this->chain_.size() == 0) {
@@ -112,16 +113,17 @@ bool FilterChain::Start(DedupSystem* system) {
     list<Filter*>::iterator i;
     for (i = this->chain_.begin(); i != this->chain_.end(); i++) {
         Filter* filter = *i;
-        CHECK(filter->Start(system), "Cannot start filter " << filter->GetName());
+        CHECK(filter->Start(start_context,system),
+            "Cannot start filter " << filter->GetName());
     }
     this->last_filter_ = NULL;
     return true;
 }
 
 bool FilterChain::StoreChunkInfo(Session* session,
-                                 const BlockMapping* block_mapping,
-                                 ChunkMapping* chunk_mapping,
-                                 ErrorContext* ec) {
+    const BlockMapping* block_mapping,
+    ChunkMapping* chunk_mapping,
+    ErrorContext* ec) {
     DCHECK(session, "Session not set");
     DCHECK(chunk_mapping, "Chunk mapping not set");
 
@@ -159,7 +161,9 @@ bool FilterChain::StoreChunkInfo(Session* session,
             Filter* filter = *j;
                 if (!filter->Abort(session, block_mapping, chunk_mapping, ec)) {
                     if (ec) {
-                        ERROR("Abort of filter failed: " << chunk_mapping->DebugString() << " because " << ec->DebugString());
+                        ERROR(
+                            "Abort of filter failed: " << chunk_mapping->DebugString() <<
+                            " because " << ec->DebugString());
                     } else {
                         ERROR("Abort of filter failed: " << chunk_mapping->DebugString());
                     }
@@ -174,9 +178,9 @@ bool FilterChain::StoreChunkInfo(Session* session,
 }
 
 bool FilterChain::CheckChunk(Session* session,
-                             const BlockMapping* block_mapping,
-                             ChunkMapping* chunk_mapping,
-                             ErrorContext* ec) {
+    const BlockMapping* block_mapping,
+    ChunkMapping* chunk_mapping,
+    ErrorContext* ec) {
     // session not always set
     // block mapping not always set
     DCHECK_RETURN(chunk_mapping, Filter::FILTER_ERROR, "Chunk mapping not set");
@@ -195,18 +199,20 @@ bool FilterChain::CheckChunk(Session* session,
                 if (result == Filter::FILTER_ERROR) {
                     if (ec && ec->is_full()) {
                         DEBUG("Filter result: full " <<
-                            "block mapping " << (block_mapping ? block_mapping->DebugString() : "null") <<
+                            "block mapping " <<
+                            (block_mapping ? block_mapping->DebugString() : "null") <<
                             ", chunk mapping " << chunk_mapping->DebugString());
                     } else {
                         ERROR("Filter lookup failed: " <<
-                            "block mapping " << (block_mapping ? block_mapping->DebugString() : "null") <<
+                            "block mapping " <<
+                            (block_mapping ? block_mapping->DebugString() : "null") <<
                             ", chunk mapping " << chunk_mapping->DebugString());
                     }
                     break;
                 } else {
-                  TRACE("Filter result: filter " << filter->GetName() <<
-                      ", chunk mapping " << chunk_mapping->DebugString() <<
-                      ", result " << Filter::GetFilterResultName(result));
+                    TRACE("Filter result: filter " << filter->GetName() <<
+                        ", chunk mapping " << chunk_mapping->DebugString() <<
+                        ", result " << Filter::GetFilterResultName(result));
                 }
             }
     }
@@ -217,7 +223,9 @@ bool FilterChain::CheckChunk(Session* session,
             Filter* filter = *k;
             DCHECK_RETURN(filter, Filter::FILTER_ERROR, "Filter not set");
                     if (!filter->Abort(session, block_mapping, chunk_mapping, ec)) {
-                        WARNING("Failed to abort filter: " << filter->GetName() << ", chunk " << chunk_mapping->DebugString());
+                        WARNING(
+                            "Failed to abort filter: " << filter->GetName() << ", chunk " <<
+                            chunk_mapping->DebugString());
                     }
         }
     } else {
@@ -229,9 +237,9 @@ bool FilterChain::CheckChunk(Session* session,
 }
 
 bool FilterChain::ReadChunkInfo(Session* session,
-                                const BlockMapping* block_mapping,
-                                ChunkMapping* chunk_mapping,
-                                ErrorContext* ec) {
+    const BlockMapping* block_mapping,
+    ChunkMapping* chunk_mapping,
+    ErrorContext* ec) {
     DCHECK(session, "Session not set");
     DCHECK(chunk_mapping, "Chunk mapping not set");
 
@@ -342,7 +350,8 @@ string FilterChain::PrintLockStatistics() {
             sstr << "," << std::endl;
         }
         Filter* filter = *i;
-        sstr << "\"" << filter->GetName() << "\": " << filter->PrintLockStatistics() << "" << std::endl;
+        sstr << "\"" << filter->GetName() << "\": " << filter->PrintLockStatistics() << "" <<
+        std::endl;
     }
     sstr << std::endl;
     sstr << "}";

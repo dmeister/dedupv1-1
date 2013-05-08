@@ -87,19 +87,6 @@ public:
      * structure to holds statistics about the filter
      */
     Statistics stats_;
-
-    /**
-     * Releases the lock on the fingerprint of the chunk
-     */
-    bool ReleaseChunkLock(const dedupv1::chunkindex::ChunkMapping& mapping);
-
-    /**
-     * Acquire the lock on the fingerprint of the chunk.
-     *
-     * May block if the chunk is used. A aquired lock must be released later.
-     */
-    bool AcquireChunkLock(const dedupv1::chunkindex::ChunkMapping& mapping);
-
 public:
     /**
      * Constructor
@@ -119,7 +106,8 @@ public:
      * @param system
      * @return true iff ok, otherwise an error has occurred
      */
-    virtual bool Start(DedupSystem* system);
+    virtual bool Start(const dedupv1::StartContext& start_context,
+                       DedupSystem* system);
 
     /**
      * Checks the chunk index for the chunk mapping.
@@ -156,17 +144,10 @@ public:
                         dedupv1::chunkindex::ChunkMapping* chunk_mapping,
                         dedupv1::base::ErrorContext* ec);
 
-    /**
-     * Calls when the processing of the started filtering should be aborted.
-     *
-     * A filtering is started, when the Check method was called for this
-     * chunk mapping. The chunk index filter is releasing the chunk lock
-     * @return true iff ok, otherwise an error has occurred
-     */
-    virtual bool Abort(dedupv1::Session* session,
-                       const dedupv1::blockindex::BlockMapping* block_mapping,
-                       dedupv1::chunkindex::ChunkMapping* chunk_mapping,
-                       dedupv1::base::ErrorContext* ec);
+    virtual bool UpdateKnownChunk(dedupv1::Session* session,
+                                  const dedupv1::blockindex::BlockMapping* block_mapping,
+                                  dedupv1::chunkindex::ChunkMapping* mapping,
+                                  dedupv1::base::ErrorContext* ec);
 
     /**
      * @return true iff ok, otherwise an error has occurred
@@ -204,6 +185,7 @@ public:
      * Registers the chunk-index-filter
      */
     static void RegisterFilter();
+
 };
 
 }

@@ -53,7 +53,6 @@ using dedupv1::base::LOOKUP_ERROR;
 using dedupv1::base::LOOKUP_NOT_FOUND;
 using dedupv1::base::lookup_result;
 using dedupv1::blockindex::BlockMapping;
-using dedupv1::chunkstore::ContainerStorage;
 using dedupv1::chunkstore::Container;
 using dedupv1::chunkstore::ContainerItem;
 using dedupv1::Session;
@@ -112,7 +111,8 @@ bool BloomFilter::SetOption(const string& option_name, const string& option) {
     return Filter::SetOption(option_name, option);
 }
 
-bool BloomFilter::Start(DedupSystem* system) {
+bool BloomFilter::Start(const dedupv1::StartContext& start_context,
+    DedupSystem* system) {
     DCHECK(system, "System not set");
     INFO("Starting bloom filter");
     INFO("Usage of the bloom filter is unsafe and is only advised for research and development");
@@ -126,7 +126,8 @@ bool BloomFilter::Start(DedupSystem* system) {
     this->bloom_set_ = BloomSet::NewOptimizedBloomSet(size_, 0.01);
     CHECK(this->bloom_set_, "Failed to alloc bloom set");
     CHECK(this->bloom_set_->Init(), "Failed to init bloom set");
-    INFO("Bloom filter configured: k " << bloom_set_->hash_count() <<
+    INFO("Bloom filter configured: " <<
+        "k " << static_cast<int>(bloom_set_->hash_count()) <<
         ", size " << bloom_set_->byte_size());
     this->filter_file_ =  dedupv1::base::File::Open(
         this->filter_filename_, O_RDWR, 0);
@@ -137,6 +138,16 @@ bool BloomFilter::Start(DedupSystem* system) {
             this->filter_filename_, O_RDWR | O_CREAT,
             S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
         CHECK(this->filter_file_, "Cannot create filter file");
+        CHECK(chmod(filter_filename_.c_str(),
+                start_context.file_mode().mode(
+                    )) == 0,
+            "Failed to change file permissions: " <<
+            this->filter_filename_);
+        if (start_context.file_mode().gid() != -1) {
+            CHECK(chown(this->filter_filename_.c_str(), -1,
+                    start_context.file_mode().gid()) == 0,
+                "Failed to change file group: " << filter_filename_);
+        }
         CHECK(this->DumpData(), "Cannot write filter file");
     } else { // file already existing
         INFO("Open existing bloom filter file " << this->filter_filename_);
@@ -167,11 +178,15 @@ bool BloomFilter::DumpData() {
 }
 
 bool BloomFilter::Update(Session* session,
-                         const BlockMapping* block_mapping,
-                         ChunkMapping* mapping,
-                         ErrorContext* ec) {
+    const BlockMapping* block_mapping,
+    ChunkMapping* mapping,
+    ErrorContext* ec) {
     CHECK(mapping, "Mapping not set");
     CHECK(bloom_set_, "Bloom set not set");
+
+    if (!mapping->is_indexed()) {
+      return true;
+    }
 
     ProfileTimer timer(this->stats_.time_);
     TRACE("Update bloom filter: " << mapping->DebugString());
@@ -184,21 +199,20 @@ bool BloomFilter::Update(Session* session,
 }
 
 Filter::filter_result BloomFilter::Check( Session* session,
-                                          const BlockMapping* block_mapping,
-                                          ChunkMapping* mapping,
-                                          ErrorContext* ec) {
+    const BlockMapping* block_mapping,
+    ChunkMapping* mapping,
+    ErrorContext* ec) {
     CHECK_RETURN(mapping, FILTER_ERROR, "Chunk mapping not set");
     CHECK_RETURN(bloom_set_, FILTER_ERROR, "Bloom set not set");
     ProfileTimer timer(this->stats_.time_);
 
     TRACE("Check bloom filter: " << mapping->DebugString());
-    this->stats_.reads_++;
 
-    // we know that the zero-chunk is stored
-    if (Fingerprinter::IsEmptyDataFingerprint(mapping->fingerprint(), mapping->fingerprint_size())) {
+    if (!mapping->is_indexed()) {
         stats_.weak_hits_++;
         return FILTER_WEAK_MAYBE;
     }
+    this->stats_.reads_++;
     lookup_result lr = this->bloom_set_->Contains(mapping->fingerprint(),
         mapping->fingerprint_size());
     CHECK_RETURN(lr != LOOKUP_ERROR, FILTER_ERROR, "Failed to lookup bloom set");
@@ -213,7 +227,6 @@ Filter::filter_result BloomFilter::Check( Session* session,
 }
 
 BloomFilter::~BloomFilter() {
-    INFO("Closing bloom filter");
     if (this->filter_file_ && bloom_set_) {
         if (!this->DumpData()) {
             WARNING("Cannot write filter file");

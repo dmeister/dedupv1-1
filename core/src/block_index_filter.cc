@@ -76,7 +76,8 @@ Filter* BlockIndexFilter::CreateFilter() {
     return filter;
 }
 
-bool BlockIndexFilter::Start(DedupSystem* system) {
+bool BlockIndexFilter::Start(const StartContext& start_context,
+    DedupSystem* system) {
     block_index_ = system->block_index();
     CHECK(block_index_, "Block index not set");
 
@@ -110,9 +111,9 @@ bool BlockIndexFilter::SetOption(const string& option_name, const string& option
 }
 
 Filter::filter_result BlockIndexFilter::Check(Session* session,
-                                              const BlockMapping* block_mapping,
-                                              ChunkMapping* mapping,
-                                              dedupv1::base::ErrorContext* ec) {
+    const BlockMapping* block_mapping,
+    ChunkMapping* mapping,
+    dedupv1::base::ErrorContext* ec) {
     ProfileTimer timer(this->stats_.time_);
     SlidingAverageProfileTimer timer2(this->stats_.average_latency_);
 
@@ -172,9 +173,9 @@ Filter::filter_result BlockIndexFilter::Check(Session* session,
 }
 
 bool BlockIndexFilter::UpdateKnownChunk(Session* session,
-                                        const dedupv1::blockindex::BlockMapping* block_mapping,
-                                        ChunkMapping* mapping,
-                                        dedupv1::base::ErrorContext* ec) {
+    const dedupv1::blockindex::BlockMapping* block_mapping,
+    ChunkMapping* mapping,
+    dedupv1::base::ErrorContext* ec) {
     ProfileTimer timer(this->stats_.time_);
 
     DCHECK(mapping, "Mapping must be set");
@@ -182,7 +183,8 @@ bool BlockIndexFilter::UpdateKnownChunk(Session* session,
     if (!use_block_chunk_cache_) {
         return true;
     }
-    if (Fingerprinter::IsEmptyDataFingerprint(mapping->fingerprint(), mapping->fingerprint_size())) {
+    if (Fingerprinter::IsEmptyDataFingerprint(mapping->fingerprint(),
+            mapping->fingerprint_size())) {
         return true;
     }
 

@@ -26,6 +26,7 @@
 #include <core/session.h>
 #include <base/factory.h>
 #include <base/error.h>
+#include <base/startup.h>
 #include <tbb/atomic.h>
 
 #include <map>
@@ -133,6 +134,7 @@ private:
 public:
 
     static MetaFactory<Filter>& Factory();
+
     /**
      * Constructs a new filter.
      *
@@ -172,7 +174,8 @@ public:
      * @param start_context
      * @return true iff ok, otherwise an error has occurred
      */
-    virtual bool Start(DedupSystem* system);
+    virtual bool Start(const dedupv1::StartContext& start_context,
+                       DedupSystem* system);
 
     /**
      * This method checks if the given chunk is known or a new chunk.
@@ -211,22 +214,22 @@ public:
      * @return true iff ok, otherwise an error has occurred
      */
     virtual bool Update(dedupv1::Session* session,
-        const dedupv1::blockindex::BlockMapping* block_mapping,
-        dedupv1::chunkindex::ChunkMapping* mapping,
-        dedupv1::base::ErrorContext* ec);
+                        const dedupv1::blockindex::BlockMapping* block_mapping,
+                        dedupv1::chunkindex::ChunkMapping* mapping,
+                        dedupv1::base::ErrorContext* ec);
 
     virtual bool UpdateKnownChunk(dedupv1::Session* session,
-        const dedupv1::blockindex::BlockMapping* block_mapping,
-        dedupv1::chunkindex::ChunkMapping* mapping,
-        dedupv1::base::ErrorContext* ec);
+                                  const dedupv1::blockindex::BlockMapping* block_mapping,
+                                  dedupv1::chunkindex::ChunkMapping* mapping,
+                                  dedupv1::base::ErrorContext* ec);
 
     /**
      * @return true iff ok, otherwise an error has occurred
      */
     virtual bool Abort(dedupv1::Session* session,
-          const dedupv1::blockindex::BlockMapping* block_mapping,
-          dedupv1::chunkindex::ChunkMapping* chunk_mapping,
-          dedupv1::base::ErrorContext* ec);
+                       const dedupv1::blockindex::BlockMapping* block_mapping,
+                       dedupv1::chunkindex::ChunkMapping* chunk_mapping,
+                       dedupv1::base::ErrorContext* ec);
 
     inline int GetMaxFilterLevel() const;
 
@@ -243,6 +246,7 @@ public:
     inline bool is_enabled_by_default() const {
         return enabled_by_default_;
     }
+
 };
 
 int Filter::GetMaxFilterLevel() const {

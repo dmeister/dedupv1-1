@@ -24,7 +24,6 @@
 
 #include <core/dedup.h>
 #include <core/filter.h>
-#include <core/chunk_index_in_combat.h>
 #include <base/profile.h>
 #include <base/strutil.h>
 #include <base/cache_strategy.h>
@@ -50,8 +49,7 @@ private:
     uint32_t prefetchWindow_;
 
     uint32_t min_diff_value_;
-    bool remove_diff_value_on_lookup_not_found_;
-
+    tbb::atomic<uint64_t> touch_diff_count_;
     std::tr1::unordered_map<int64_t, int> diff_map_;
     dedupv1::base::LRUCacheStrategy<int64_t> diff_map_cache_strategy_;
     tbb::spin_mutex diff_mutex_;

@@ -68,8 +68,12 @@ Filter* FilterTest::CreateFilter(string config_option) {
     for (size_t i = 1; i < options.size(); i++) {
         string option_name;
         string option;
-        CHECK_RETURN(Split(options[i], "=", &option_name, &option), NULL, "Failed to split " << options[i]);
-        CHECK_RETURN(filter->SetOption(option_name, option), NULL, "Failed set option: " << options[i]);
+        CHECK_RETURN(Split(options[i],
+                "=",
+                &option_name,
+                &option), NULL, "Failed to split " << options[i]);
+        CHECK_RETURN(filter->SetOption(option_name,
+                option), NULL, "Failed set option: " << options[i]);
     }
     return filter;
 }
@@ -84,37 +88,37 @@ TEST_P(FilterTest, CreateDisabled) {
     filter = CreateFilter(config + ";enabled=false");
     ASSERT_TRUE(filter) << "Failed to create filter";
 
-    ASSERT_TRUE(filter->Start(&system_));
+    ASSERT_TRUE(filter->Start(StartContext(), &system_));
     ASSERT_FALSE(filter->is_enabled_by_default());
 }
 
 TEST_P(FilterTest, Start) {
-    ASSERT_TRUE(filter->Start(&system_));
+    ASSERT_TRUE(filter->Start(StartContext(), &system_));
 }
 
 TEST_P(FilterTest, PrintLockStatistics) {
-    ASSERT_TRUE(filter->Start(&system_));
+    ASSERT_TRUE(filter->Start(StartContext(), &system_));
 
     string s = filter->PrintLockStatistics();
     ASSERT_TRUE(IsJson(s));
 }
 
 TEST_P(FilterTest, PrintStatistics) {
-    ASSERT_TRUE(filter->Start(&system_));
+    ASSERT_TRUE(filter->Start(StartContext(), &system_));
 
     string s = filter->PrintStatistics();
     ASSERT_TRUE(IsJson(s));
 }
 
 TEST_P(FilterTest, PrintTrace) {
-    ASSERT_TRUE(filter->Start(&system_));
+    ASSERT_TRUE(filter->Start(StartContext(), &system_));
 
     string s = filter->PrintTrace();
     ASSERT_TRUE(IsJson(s));
 }
 
 TEST_P(FilterTest, PrintProfile) {
-    ASSERT_TRUE(filter->Start(&system_));
+    ASSERT_TRUE(filter->Start(StartContext(), &system_));
 
     string s = filter->PrintLockStatistics();
     ASSERT_TRUE(IsJson(s));

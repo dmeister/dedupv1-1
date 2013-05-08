@@ -34,7 +34,6 @@
 
 #include <core/dedup.h>
 #include <core/filter.h>
-#include <core/chunk_index_in_combat.h>
 #include <base/profile.h>
 #include <base/strutil.h>
 #include <core/block_index.h>
@@ -115,7 +114,8 @@ public:
      */
     virtual ~BlockIndexFilter();
 
-    bool Start(DedupSystem* system);
+    bool Start(const dedupv1::StartContext& start_context,
+               DedupSystem* system);
 
     bool Close();
 

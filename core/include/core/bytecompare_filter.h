@@ -92,7 +92,8 @@ class ByteCompareFilter: public Filter {
          */
         virtual ~ByteCompareFilter();
 
-        virtual bool Start(dedupv1::DedupSystem* dedup_system);
+        virtual bool Start(const dedupv1::StartContext& start_context,
+            dedupv1::DedupSystem* dedup_system);
 
         /**
          * Checks if the chunk (mapping) is really a duplicate.
