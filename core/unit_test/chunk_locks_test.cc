@@ -59,7 +59,7 @@ TEST_F(ChunkLocksTest, SetOption) {
 
 bool TryToLock(ChunkLocks* locks, uint64_t fp) {
     bool locked = false;
-    locks->TryLock(&fp, sizeof(fp), &locked);
+    locks->TryLockChunk(&fp, sizeof(fp), &locked);
     return locked;
 }
 
@@ -69,12 +69,12 @@ TEST_F(ChunkLocksTest, TryLock) {
     uint64_t fp = 12;
 
     bool locked = false;
-    ASSERT_TRUE(locks_->TryLock(&fp, sizeof(fp), &locked));
+    ASSERT_TRUE(locks_->TryLockChunk(&fp, sizeof(fp), &locked));
     ASSERT_TRUE(locked);
 
     ASSERT_FALSE(dedupv1::base::Thread<bool>::RunThread(dedupv1::base::NewRunnable(&TryToLock, locks_, fp)));
 
-    ASSERT_TRUE(locks_->Unlock(&fp, sizeof(fp)));
+    ASSERT_TRUE(locks_->UnlockChunk(&fp, sizeof(fp)));
 }
 
 }

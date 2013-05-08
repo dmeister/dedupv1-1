@@ -50,12 +50,14 @@
 #include <dedupv1_base.pb.h>
 #include <base/index.h>
 #include <signal.h>
+#include "container_test_helper.h"
 
 using std::string;
 using dedupv1::base::strutil::ToHexString;
 using dedupv1::chunkstore::ContainerStorage;
 using dedupv1::chunkstore::ContainerGCStrategy;
 using dedupv1::chunkstore::Storage;
+using dedupv1::chunkstore::StorageRequest;
 using dedupv1::chunkstore::ChunkStore;
 using dedupv1::base::LOOKUP_FOUND;
 using dedupv1::DedupSystem;
@@ -82,24 +84,15 @@ protected:
     USE_LOGGING_EXPECTATION();
 
     dedupv1::MemoryInfoStore info_store;
-    dedupv1::base::Threadpool tp;
     DedupSystem* system;
 
-    uint64_t test_address[kTestDataCount];
-    uint64_t test_fp[kTestDataCount];
-    byte test_data[kTestDataCount][kTestDataSize];
+    ContainerTestHelper* container_helper;
 
     virtual void SetUp() {
-        ASSERT_TRUE(tp.SetOption("size", "8"));
-        ASSERT_TRUE(tp.Start());
+        container_helper = new ContainerTestHelper(kTestDataSize, kTestDataCount);
+        container_helper->SetUp();
 
         system = NULL;
-
-        for (int i = 0; i < kTestDataCount; i++) {
-            memset(test_data[i], i + 1, kTestDataSize);
-            test_fp[i] = i + 1;
-            test_address[i] = Storage::ILLEGAL_STORAGE_ADDRESS;
-        }
     }
 
     virtual void TearDown() {
@@ -108,27 +101,16 @@ protected:
             delete system;
             system = NULL;
         }
-    }
 
-    void WriteTestData(ChunkIndex* chunk_index, Storage* storage) {
-        for (int i = 0; i < kTestDataCount; i++) {
-            ASSERT_TRUE(storage->WriteNew(&test_fp[i],
-                    sizeof(test_fp[i]), test_data[i], kTestDataSize, true,
-                    &test_address[i], NO_EC))
-            << "Write " << i << " failed";
-
-            ChunkMapping mapping((byte *) &test_fp[i], sizeof(test_fp[i]));
-            mapping.set_data_address(test_address[i]);
-            ASSERT_TRUE(chunk_index->Put(mapping, NO_EC)) << "Write " << i << " failed";
-        }
+        delete container_helper;
     }
 
     void ValidateTestData(ChunkIndex* chunk_index) {
         for (int i = 0; i < kTestDataCount; i++) {
-            ChunkMapping mapping((byte *) &test_fp[i], sizeof(test_fp[i]));
-            ASSERT_EQ(chunk_index->Lookup(&mapping, false, NO_EC), LOOKUP_FOUND)
+            ChunkMapping mapping(container_helper->fingerprint(i));
+            ASSERT_EQ(chunk_index->Lookup(&mapping, NO_EC), LOOKUP_FOUND)
             << "Validate " << i << " failed";
-            ASSERT_EQ(test_address[i], mapping.data_address());
+            ASSERT_EQ(container_helper->data_address(i), mapping.data_address());
         }
     }
 };
@@ -138,75 +120,32 @@ INSTANTIATE_TEST_CASE_P(ChunkIndex,
     ::testing::Values("data/dedupv1_test.conf"));
 
 TEST_P(ChunkIndexTest, Start) {
-    system =  DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, false, false);
+    system =  DedupSystemTest::CreateDefaultSystemWithOptions(GetParam(), &info_store, true, false, false);
     ASSERT_TRUE(system);
     ASSERT_TRUE(system->chunk_index());
 }
 
 TEST_P(ChunkIndexTest, Update) {
-    system =  DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, false, false);
+    system =  DedupSystemTest::CreateDefaultSystemWithOptions(GetParam(), &info_store, true, false, false);
     ASSERT_TRUE(system);
 
-    WriteTestData(system->chunk_index(), system->storage());
+    container_helper->WriteDefaultData(system, 0, kTestDataCount);
     ValidateTestData(system->chunk_index());
-}
 
-TEST_P(ChunkIndexTest, ContainerFailed) {
-    EXPECT_LOGGING(dedupv1::test::WARN).Matches("Failed to commit container").Times(0, 1);
-
-    string config = GetParam();
-    config += ";storage.container-size=4M";
-    system =  DedupSystemTest::CreateDefaultSystem(config, &info_store, &tp, true, false, false);
-    ASSERT_TRUE(system);
-
-    ContainerStorage* storage = dynamic_cast<ContainerStorage*>(system->storage());
-    ASSERT_TRUE(storage);
-
-    WriteTestData(system->chunk_index(), system->storage());
-
-    ASSERT_TRUE(storage->FailWriteCacheContainer(test_address[kTestDataCount - 1]));
-}
-
-TEST_P(ChunkIndexTest, UsageCountUpdate) {
-    system =  DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, false, false);
-    ASSERT_TRUE(system);
-    ChunkIndex* chunk_index = system->chunk_index();
-    ASSERT_TRUE(chunk_index);
-
-    EXPECT_TRUE(system->storage()->WriteNew(&test_fp[0],
-            sizeof(test_fp[0]), test_data[0], kTestDataSize, true,
-            &test_address[0], NO_EC))
-    << "Write failed";
-
-    ChunkMapping mapping((byte *) &test_fp[0], sizeof(test_fp[0]));
-    mapping.set_usage_count(10);
-    mapping.set_data_address(test_address[0]);
-    ASSERT_TRUE(chunk_index->Put(mapping, NO_EC));
-
-    ChunkMapping mapping2((byte *) &test_fp[0], sizeof(test_fp[0]));
-    ASSERT_EQ(chunk_index->Lookup(&mapping2, false, NO_EC), LOOKUP_FOUND);
-    ASSERT_EQ(mapping2.usage_count(), 10U);
-
-    mapping2.set_usage_count(11);
-    ASSERT_TRUE(chunk_index->PutOverwrite(mapping2, NO_EC));
-
-    ChunkMapping mapping3((byte *) &test_fp[0], sizeof(test_fp[0]));
-    ASSERT_EQ(chunk_index->Lookup(&mapping3, false, NO_EC), LOOKUP_FOUND);
-    ASSERT_EQ(mapping3.usage_count(), 11U);
 }
 
 TEST_P(ChunkIndexTest, UpdateAfterClose) {
-    system =  DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, false, false);
+    system =  DedupSystemTest::CreateDefaultSystemWithOptions(GetParam(), &info_store, true, false, false);
     ASSERT_TRUE(system);
 
-    WriteTestData(system->chunk_index(), system->storage());
+    container_helper->WriteDefaultData(system, 0, kTestDataCount);
     ValidateTestData(system->chunk_index());
 
     // Close and Restart
     ASSERT_TRUE(system->Stop(StopContext::FastStopContext()));
     delete system;
 
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, true);
+    system = DedupSystemTest::CreateDefaultSystemWithOptions(GetParam(), &info_store, true, true);
     ASSERT_TRUE(system);
 
     ValidateTestData(system->chunk_index());
@@ -215,9 +154,9 @@ TEST_P(ChunkIndexTest, UpdateAfterClose) {
 TEST_P(ChunkIndexTest, UpdateAfterSlowShutdown) {
     EXPECT_LOGGING(dedupv1::test::WARN).Times(0, 2).Matches("Still .* chunks in auxiliary chunk index");
 
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, false, false);
+    system = DedupSystemTest::CreateDefaultSystemWithOptions(GetParam(), &info_store, true, false, false);
     ASSERT_TRUE(system);
-    WriteTestData(system->chunk_index(), system->storage());
+    container_helper->WriteDefaultData(system, 0, kTestDataCount);
     ASSERT_TRUE(system->chunk_store()->Flush(NO_EC));
     ValidateTestData(system->chunk_index());
 
@@ -225,73 +164,11 @@ TEST_P(ChunkIndexTest, UpdateAfterSlowShutdown) {
     ASSERT_TRUE(system->Stop(dedupv1::StopContext::WritebackStopContext()));
     delete system;
 
-    system =  DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, true, false /* dirty */);
+    system =  DedupSystemTest::CreateDefaultSystemWithOptions(GetParam(), &info_store, true, true, false /* dirty */);
     ASSERT_TRUE(system);
     // no replay happened
 
     ValidateTestData(system->chunk_index());
-}
-
-TEST_P(ChunkIndexTest, LogReplayAfterMerge) {
-    EXPECT_LOGGING(dedupv1::test::WARN).Times(0, 2).Matches("Still .* chunks in auxiliary chunk index");
-
-    string config = GetParam();
-    config += ";storage.gc.eviction-timeout=0";
-    system =  DedupSystemTest::CreateDefaultSystem(config, &info_store, &tp, true, false);
-    ASSERT_TRUE(system);
-    ASSERT_TRUE(system->chunk_index());
-    ASSERT_TRUE(system->chunk_store());
-
-    INFO("Write data");
-    for (int i = 0; i < kTestDataCount; i++) {
-        ASSERT_TRUE(system->storage()->WriteNew(&test_fp[i],
-                sizeof(test_fp[i]), test_data[i], 16 * 1024, true,
-                &test_address[i], NO_EC))
-        << "Write " << i << " failed";
-
-        ChunkMapping mapping((byte *) &test_fp[i], sizeof(test_fp[i]));
-        mapping.set_data_address(test_address[i]);
-        ASSERT_TRUE(system->chunk_index()->Put(mapping, NO_EC)) << "Write " << i << " failed";
-    }
-
-    INFO("Delete data");
-    for (int i = 0; i < kTestDataCount; i += 3) {
-        ChunkMapping mapping((byte *) &test_fp[i], sizeof(test_fp[i]));
-        ASSERT_EQ(system->chunk_index()->Lookup(&mapping, false, NO_EC), LOOKUP_FOUND);
-        ASSERT_TRUE(system->storage()->DeleteChunk(mapping.data_address(), (byte *) &test_fp[i], sizeof(test_fp[i]), NO_EC));
-
-        ChunkMapping mapping2((byte *) &test_fp[i + 1], sizeof(test_fp[i + 1]));
-        ASSERT_EQ(system->chunk_index()->Lookup(&mapping2, false, NO_EC), LOOKUP_FOUND);
-        ASSERT_TRUE(system->storage()->DeleteChunk(mapping2.data_address(), (byte *) &test_fp[i + 1], sizeof(test_fp[i]), NO_EC));
-    }
-
-    INFO("Force gc");
-    for (int i = 0; i < 16; i++) {
-        ContainerStorage* container_storage = dynamic_cast<ContainerStorage*>(system->storage());
-        ASSERT_TRUE(container_storage);
-        ContainerGCStrategy* gc = container_storage->GetGarbageCollection();
-        ASSERT_TRUE(gc);
-        ASSERT_TRUE(gc->OnStoragePressure());
-    }
-
-    INFO("Stop");
-    // Close and Restart
-    ASSERT_TRUE(system->Stop(dedupv1::StopContext::FastStopContext()));
-    delete system;
-    system = NULL;
-
-    INFO("Start");
-    system =  DedupSystemTest::CreateDefaultSystem(config, &info_store, &tp, true, true);
-    ASSERT_TRUE(system);
-
-    // we can only validate half of the entries
-    INFO("Validate");
-    for (int i = 2; i < kTestDataCount; i += 3) {
-        ChunkMapping mapping((byte *) &test_fp[i], sizeof(test_fp[i]));
-        ASSERT_EQ(system->chunk_index()->Lookup(&mapping, false, NO_EC), LOOKUP_FOUND)
-        << "Validate " << i << " failed: " << ToHexString(&test_fp[i], sizeof(test_fp[i]));
-        ASSERT_EQ(test_address[i], mapping.data_address());
-    }
 }
 
 /**
@@ -299,7 +176,7 @@ TEST_P(ChunkIndexTest, LogReplayAfterMerge) {
  * chunk index
  */
 TEST_P(ChunkIndexTest, CorrectMaxKeySize) {
-    system =  DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, false, false);
+    system =  DedupSystemTest::CreateDefaultSystemWithOptions(GetParam(), &info_store, true, false, false);
     ASSERT_TRUE(system);
 
     ChunkIndex* chunk_index = system->chunk_index();
@@ -314,36 +191,6 @@ TEST_P(ChunkIndexTest, CorrectMaxKeySize) {
     } else {
         // ignore
     }
-}
-
-TEST_F(ChunkIndexTest, LoadBrokenChunkMapping) {
-    bytestring value;
-    ASSERT_TRUE(FromHexString("08fb8101100318fad08f01", &value));
-    ASSERT_EQ(value.size(), 0x0b);
-
-    ChunkMappingData message;
-    ASSERT_TRUE(message.ParseFromArray(value.data(), value.size()));
-}
-
-TEST_P(ChunkIndexTest, WriteBack) {
-    system = DedupSystemTest::CreateDefaultSystem(GetParam(), &info_store, &tp, true, false, false);
-    ASSERT_TRUE(system);
-    WriteTestData(system->chunk_index(), system->storage());
-
-    ASSERT_TRUE(system->storage()->Flush(NO_EC));
-    ASSERT_TRUE(system->log()->WaitUntilDirectReplayQueueEmpty(10));
-
-    ASSERT_TRUE(system->idle_detector()->ForceIdle(true));
-    LogEventData event_value;
-    dedupv1::log::LogReplayContext context(dedupv1::log::EVENT_REPLAY_MODE_DIRECT, 1);
-    system->chunk_index()->LogReplay(dedupv1::log::EVENT_TYPE_REPLAY_STARTED, event_value, context);
-
-    // This is kind of a timeout for the test.
-    for (int i = 0; i < 120 && system->chunk_index()->GetDirtyCount() > 0; i++) {
-        sleep(1);
-    }
-    // After 2 minutes, all data should be written back
-    ASSERT_EQ(0, system->chunk_index()->GetDirtyCount());
 }
 
 }

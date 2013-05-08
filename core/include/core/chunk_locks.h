@@ -32,6 +32,7 @@
 #include <base/locks.h>
 #include <base/profile.h>
 #include <core/statistics.h>
+#include <core/chunk_mapping.h>
 
 namespace dedupv1 {
 namespace chunkindex {
@@ -149,7 +150,7 @@ class ChunkLocks : public dedupv1::StatisticProvider {
      *
      * @return true iff ok, otherwise an error has occurred
      */
-    bool Lock(const void* fp, size_t fp_size);
+    bool LockChunk(const void* fp, size_t fp_size);
 
     /**
      * Tries to acquire the lock of the given chunk.
@@ -159,14 +160,14 @@ class ChunkLocks : public dedupv1::StatisticProvider {
      * @param locked
      * @return true iff ok, otherwise an error has occurred
      */
-    bool TryLock(const void* fp, size_t fp_size, bool* locked);
+    bool TryLockChunk(const void* fp, size_t fp_size, bool* locked);
 
     /**
      * Unlocks the given chunk id.
      *
      * @return true iff ok, otherwise an error has occurred
      */
-    bool Unlock(const void* fp, size_t fp_size);
+    bool UnlockChunk(const void* fp, size_t fp_size);
 };
 
 }

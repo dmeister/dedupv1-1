@@ -71,10 +71,10 @@ bool ChunkIndexBackgroundCommitter::Loop(uint32_t thread_id) {
         }
 
         if (ir == ChunkIndex::IMPORT_NO_MORE && this->check_interval_ > 0) {
-            ThreadUtil::Sleep(this->check_interval_, ThreadUtil::MILLISECONDS);
+            ThreadUtil::Sleep(this->check_interval_, dedupv1::base::timeunit::MILLISECONDS);
         }
         if (ir != ChunkIndex::IMPORT_NO_MORE && this->wait_interval_ > 0) {
-            ThreadUtil::Sleep(this->wait_interval_, ThreadUtil::MILLISECONDS);
+            ThreadUtil::Sleep(this->wait_interval_, dedupv1::base::timeunit::MILLISECONDS);
         }
 
         // update is running state

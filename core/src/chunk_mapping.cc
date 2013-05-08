@@ -47,9 +47,6 @@ ChunkMapping::ChunkMapping() {
     this->chunk_ = NULL;
     this->data_address_ = Storage::ILLEGAL_STORAGE_ADDRESS;
     this->known_chunk_ = false;
-    this->usage_count_ = 0;
-    this->usage_count_change_log_id_ = 0;
-    this->usage_count_failed_write_change_log_id_ = 0;
     this->chunk_ = NULL;
     this->clear_block_hint();
     this->is_indexed_ = false;
@@ -61,9 +58,6 @@ ChunkMapping::ChunkMapping(const byte* fp, size_t fp_size) {
     this->chunk_ = NULL;
     this->data_address_ = Storage::ILLEGAL_STORAGE_ADDRESS;
     this->known_chunk_ = false;
-    this->usage_count_ = 0;
-    this->usage_count_change_log_id_ = 0;
-    this->usage_count_failed_write_change_log_id_ = 0;
     this->chunk_ = NULL;
     this->is_indexed_ = false;
     this->clear_block_hint();
@@ -75,9 +69,6 @@ ChunkMapping::ChunkMapping(const bytestring& fp) {
     this->chunk_ = NULL;
     this->data_address_ = Storage::ILLEGAL_STORAGE_ADDRESS;
     this->known_chunk_ = false;
-    this->usage_count_ = 0;
-    this->usage_count_change_log_id_ = 0;
-    this->usage_count_failed_write_change_log_id_ = 0;
     this->chunk_ = NULL;
     this->is_indexed_ = false;
     this->clear_block_hint();
@@ -87,9 +78,6 @@ bool ChunkMapping::Init(const Chunk* chunk) {
     this->chunk_ = chunk;
     this->data_address_ = Storage::ILLEGAL_STORAGE_ADDRESS;
     this->known_chunk_ = false;
-    this->usage_count_ = 0;
-    this->usage_count_change_log_id_ = 0;
-    this->usage_count_failed_write_change_log_id_ = 0;
     return true;
 }
 
@@ -103,15 +91,6 @@ bool ChunkMapping::SerializeTo(ChunkMappingData* data) const {
     } else {
         data->clear_last_block_hint();
     }
-    if (this->usage_count() != 0) {
-        data->set_usage_count(this->usage_count());
-    }
-    if (this->usage_count_change_log_id() > 0) {
-        data->set_usage_count_change_log_id(this->usage_count_change_log_id());
-    }
-    if (this->usage_count_failed_write_change_log_id() > 0) {
-        data->set_usage_count_failed_write_change_log_id(this->usage_count_failed_write_change_log_id());
-    }
     return true;
 }
 
@@ -121,27 +100,10 @@ bool ChunkMapping::UnserializeFrom(const ChunkMappingData& data, bool preserve_c
         this->known_chunk_ = true;
     }
 
-    if (data.has_usage_count()) {
-        this->usage_count_ = data.usage_count();
-    } else {
-        this->usage_count_ = 0;
-    }
-
     if (data.has_last_block_hint()) {
         this->set_block_hint(data.last_block_hint());
     } else {
         this->clear_block_hint();
-    }
-
-    if (data.has_usage_count_change_log_id()) {
-        this->usage_count_change_log_id_ = data.usage_count_change_log_id();
-    } else {
-        usage_count_change_log_id_ = 0;
-    }
-    if (data.has_usage_count_failed_write_change_log_id()) {
-        this->usage_count_failed_write_change_log_id_ = data.usage_count_failed_write_change_log_id();
-    } else {
-        usage_count_failed_write_change_log_id_ = 0;
     }
 
     if (!preserve_chunk) {
@@ -164,9 +126,6 @@ string ChunkMapping::DebugString() const {
     } else {
         s << ", address " << this->data_address();
     }
-    s << ", usage count " << this->usage_count();
-    s << ", usage count change log id " << this->usage_count_change_log_id();
-    s << ", usage count failed write change log id " << this->usage_count_failed_write_change_log_id();
     if (this->chunk() != NULL) {
         s << ", chunk size " << this->chunk()->size();
     } else {

@@ -63,25 +63,6 @@ class ChunkMapping {
         uint64_t data_address_;
 
         /**
-         * Number of references to the chunk.
-         * The value is usually stale as the garbage collector updates the usage counter in a lazy
-         * fashion.
-         * The usage count may be negative in outrun situations. See the unit test
-         * GarbageCollectorIntegrationTest.OutrunnedBlockMapping for an example
-         */
-        int64_t usage_count_;
-
-        /**
-         * Event log id of the last change of the usage count
-         */
-        uint64_t usage_count_change_log_id_;
-
-        /**
-         * Event log id of the last change of usage count because of an invert for a failed write
-         */
-        uint64_t usage_count_failed_write_change_log_id_;
-
-        /**
          * Reference to the chunk with the data.
          * Usually not set (NULL).
          */
@@ -207,19 +188,6 @@ class ChunkMapping {
         inline ChunkMapping& set_data_address(uint64_t data_address);
 
         /**
-         * returns the usage counter.
-         * May be stale as the usage counter is update lazyly.
-         * @return
-         */
-        inline int64_t usage_count() const;
-
-        /**
-         * sets the usage count
-         * @param usage_count
-         */
-        inline ChunkMapping& set_usage_count(int64_t usage_count);
-
-        /**
          * sets the fingerprint
          * @param fp
          * @return
@@ -252,32 +220,6 @@ class ChunkMapping {
          * @param chunk
          */
         inline ChunkMapping& set_chunk(Chunk* chunk);
-
-        /**
-         * returns the event log id if the last change of usage count because of an invert for a failed write
-         * @return
-         */
-        inline uint64_t usage_count_change_log_id() const;
-
-        /**
-         * sets the event log id if the last change of usage count because of an invert for a failed write
-         * @param log_id
-         * @return
-         */
-        inline ChunkMapping& set_usage_count_change_log_id(uint64_t log_id);
-
-        /**
-         * returns the event log id of the last change of usage count because of an invert for a failed write
-         * @return
-         */
-        inline uint64_t usage_count_failed_write_change_log_id() const;
-
-        /**
-         * sets the event log id of the last change of usage count because of an invert for a failed write
-         * @param log_id
-         * @return
-         */
-        inline ChunkMapping& set_usage_count_failed_write_change_log_id(uint64_t log_id);
 
         /**
          * returns true iff the block hint is set.
@@ -341,24 +283,6 @@ bool ChunkMapping::set_fingerprint(const bytestring& fp) {
     return true;
 }
 
-uint64_t ChunkMapping::usage_count_change_log_id() const {
-    return this->usage_count_change_log_id_;
-}
-
-ChunkMapping& ChunkMapping::set_usage_count_change_log_id(uint64_t log_id) {
-    this->usage_count_change_log_id_ = log_id;
-    return *this;
-}
-
-uint64_t ChunkMapping::usage_count_failed_write_change_log_id() const {
-    return this->usage_count_failed_write_change_log_id_;
-}
-
-ChunkMapping& ChunkMapping::set_usage_count_failed_write_change_log_id(uint64_t log_id) {
-    this->usage_count_failed_write_change_log_id_ = log_id;
-    return *this;
-}
-
 byte* ChunkMapping::mutable_fingerprint() {
     return this->fp_;
 }
@@ -399,18 +323,9 @@ ChunkMapping& ChunkMapping::set_data_address(uint64_t data_address) {
     return *this;
 }
 
-ChunkMapping& ChunkMapping::set_usage_count(int64_t usage_count) {
-    this->usage_count_ = usage_count;
-    return *this;
-}
-
 ChunkMapping& ChunkMapping::set_fingerprint_size(uint32_t fp_size) {
     this->fp_size_ = fp_size;
     return *this;
-}
-
-int64_t ChunkMapping::usage_count() const {
-    return usage_count_;
 }
 
 const Chunk* ChunkMapping::chunk() const {

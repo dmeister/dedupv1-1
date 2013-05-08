@@ -19,6 +19,7 @@
  */
 #include <core/chunk_locks.h>
 
+#include <set>
 #include <dedupv1.pb.h>
 
 #include <core/dedup.h>
@@ -31,7 +32,9 @@
 #include <core/fingerprinter.h>
 #include <base/hash_index.h>
 
+using std::vector;
 using std::string;
+using std::set;
 using std::stringstream;
 using std::make_pair;
 using dedupv1::base::strutil::To;
@@ -82,7 +85,7 @@ int ChunkLocks::GetLockIndex(const void* fp, size_t fp_size) {
     return hash_value % this->chunk_lock_count_;
 }
 
-bool ChunkLocks::Lock(const void* fp, size_t fp_size) {
+bool ChunkLocks::LockChunk(const void* fp, size_t fp_size) {
     DCHECK(started_, "Chunk locks not started");
 
     ProfileTimer timer(this->stats_.profiling_lock_);
@@ -106,7 +109,7 @@ bool ChunkLocks::Lock(const void* fp, size_t fp_size) {
     return true;
 }
 
-bool ChunkLocks::TryLock(const void* fp, size_t fp_size, bool* locked) {
+bool ChunkLocks::TryLockChunk(const void* fp, size_t fp_size, bool* locked) {
     DCHECK(started_, "Chunk locks not started");
 
     ProfileTimer timer(this->stats_.profiling_lock_);
@@ -133,7 +136,7 @@ bool ChunkLocks::TryLock(const void* fp, size_t fp_size, bool* locked) {
     return true;
 }
 
-bool ChunkLocks::Unlock(const void* fp, size_t fp_size) {
+bool ChunkLocks::UnlockChunk(const void* fp, size_t fp_size) {
     DCHECK(started_, "Chunk locks not started");
 
     ProfileTimer timer(this->stats_.profiling_lock_);

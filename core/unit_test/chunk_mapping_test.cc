@@ -55,14 +55,12 @@ TEST_F(ChunkMappingTest, SerializeWithoutUsageCount) {
     ChunkMapping m2;
     ASSERT_TRUE(m2.UnserializeFrom(value, false));
     ASSERT_EQ(m2.data_address(), m1.data_address());
-    ASSERT_EQ(m2.usage_count(), (size_t) 0);
 }
 
 TEST_F(ChunkMappingTest, SerializeWithUsageCount) {
     uint64_t fp = 1;
     ChunkMapping m1((byte *) &fp, sizeof(fp));
     m1.set_data_address(10);
-    m1.set_usage_count(10);
 
     ChunkMappingData value;
     ASSERT_TRUE(m1.SerializeTo(&value));
@@ -70,7 +68,6 @@ TEST_F(ChunkMappingTest, SerializeWithUsageCount) {
     ChunkMapping m2;
     ASSERT_TRUE(m2.UnserializeFrom(value, false));
     ASSERT_EQ(m2.data_address(), m1.data_address());
-    ASSERT_EQ(m2.usage_count(), (unsigned int) 10);
 }
 
 TEST_F(ChunkMappingTest, InitWithFP) {

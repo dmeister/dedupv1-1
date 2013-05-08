@@ -52,15 +52,6 @@ ChunkIndexSamplingStrategy::ChunkIndexSamplingStrategy() {
 ChunkIndexSamplingStrategy::~ChunkIndexSamplingStrategy() {
 }
 
-bool ChunkIndexSamplingStrategy::Init() {
-    return true;
-}
-
-bool ChunkIndexSamplingStrategy::Close() {
-    delete this;
-    return true;
-}
-
 bool ChunkIndexSamplingStrategy::SetOption(const std::string& option_name,
                                            const std::string& option) {
     ERROR("Illegal option: " << option_name << "=" << option);

@@ -30,14 +30,15 @@ class MockChunkIndex : public dedupv1::chunkindex::ChunkIndex {
 
         MOCK_METHOD2(Start, bool(dedupv1::DedupSystem* system, bool create));
 
-        MOCK_METHOD0(Sync, bool());
+        MOCK_METHOD2(Start, bool(const dedupv1::StartContext& start_context,
+              dedupv1::DedupSystem* system));
 
         MOCK_METHOD2(Delete, bool(const dedupv1::chunkindex::ChunkMapping& modified_mapping, dedupv1::base::ErrorContext* ec));
         MOCK_METHOD2(Lookup, dedupv1::base::lookup_result(dedupv1::chunkindex::ChunkMapping* modified_mapping, dedupv1::base::ErrorContext* ec));
-        MOCK_METHOD2(Put, bool(const dedupv1::chunkindex::ChunkMapping& modified_mapping, dedupv1::base::ErrorContext* ec));
+        MOCK_METHOD2(Put, bool(const dedupv1::chunkindex::ChunkMapping& modified_mapping,
+              dedupv1::base::ErrorContext* ec));
         MOCK_METHOD2(PutOverwrite, bool(const dedupv1::chunkindex::ChunkMapping& modified_mapping, dedupv1::base::ErrorContext* ec));
 
-        MOCK_METHOD3(ChangePinningState, dedupv1::base::lookup_result(const void* key, size_t key_size, bool new_pin_state));
         MOCK_METHOD2(EnsurePersistent, dedupv1::base::put_result(const dedupv1::chunkindex::ChunkMapping& mapping, bool* pinned));
 
         MOCK_METHOD0(PrintLockStatistics, std::string());

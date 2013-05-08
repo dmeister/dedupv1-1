@@ -37,11 +37,7 @@ class ChunkIndexSamplingStrategy {
 public:
     ChunkIndexSamplingStrategy();
 
-    virtual bool Init();
-
     virtual ~ChunkIndexSamplingStrategy();
-
-    virtual bool Close();
 
     virtual bool SetOption(const std::string& option_name, const std::string& option);
 

@@ -26,7 +26,6 @@
 #include <core/log_consumer.h>
 #include <base/index.h>
 #include <base/disk_hash_index.h>
-#include <core/container_tracker.h>
 #include <core/chunk_index_bg.h>
 #include <base/profile.h>
 #include <base/fileutil.h>
@@ -35,7 +34,6 @@
 #include <base/factory.h>
 #include <base/error.h>
 #include <core/chunk_locks.h>
-#include <core/chunk_index_in_combat.h>
 #include <core/chunk_index_sampling_strategy.h>
 #include <core/info_store.h>
 #include <core/container.h>
@@ -90,7 +88,6 @@ class ChunkIndexBackgroundCommitter;
  */
 class ChunkIndex : public dedupv1::log::LogConsumer, public dedupv1::StatisticProvider {
     friend class ChunkIndexBackgroundCommitter;
-    friend class ImportTask;
 private:
     DISALLOW_COPY_AND_ASSIGN(ChunkIndex);
 
@@ -131,28 +128,7 @@ public:
 
         dedupv1::base::Profile import_time_;
 
-        tbb::atomic<uint64_t> index_full_failure_count_;
-
-        tbb::atomic<uint64_t> imported_container_count_;
-
-        /**
-         * How often have we tried to import a container into the
-         * persistent index from the log replay while at the same time
-         * a bg thread is already active importing the same container. In
-         * these situation, we pause the log replay to ensure that
-         * the container is fully committed.
-         */
-        tbb::atomic<uint64_t> bg_container_import_wait_count_;
-
-        tbb::atomic<uint32_t> lock_free_;
-
-        tbb::atomic<uint32_t> lock_busy_;
-
         dedupv1::base::SimpleSlidingAverage average_lookup_latency_;
-
-        tbb::atomic<uint64_t> throttle_count_;
-
-        dedupv1::base::Profile throttle_time_;
     };
 private:
 
@@ -184,24 +160,6 @@ private:
     dedupv1::chunkstore::Storage* storage_;
 
     /**
-     * Protected by lock
-     * The container tracker tracks which container
-     * has been imported into the chunk index or currently
-     * are imported into the chunk index.
-     */
-    ContainerTracker container_tracker_;
-
-    /**
-     * Non-persistent container tracker to track which containers should be imported
-     * into the auxiliary index during the dirty replay.
-     */
-    ContainerTracker dirty_import_container_tracker_;
-
-    bool dirty_import_container_exists_;
-
-    bool dirty_import_finished_;
-
-    /**
      * lock to protect the values of last_container_id and
      * last_ready_container_id.
      */
@@ -223,8 +181,6 @@ private:
      */
     ChunkLocks chunk_locks_;
 
-    ChunkIndexInCombats in_combats_;
-
     /**
      * Info store
      */
@@ -233,7 +189,7 @@ private:
     /**
      * Threadpool to use for the parallel import
      */
-    dedupv1::base::Threadpool* tp_;
+    // dedupv1::base::Threadpool* tp_;
 
     /**
      * True iff the log is currently replaying. To improve the performance of the
@@ -254,13 +210,7 @@ private:
 
     ChunkIndexSamplingStrategy* sampling_strategy_;
 
-    ThrottleHelper throttling_;
-
-    /**
-     * threshold after that the system begins writing dirty data back to disk.
-     * At first, it imports containers, after that it forces the index to write-back dirty pages
-     */
-    uint64_t dirty_chunk_count_threshold_;
+    uint32_t block_size_;
 
     /**
      * Flag denoting if the start of an container import/dirty data import was already reported by an
@@ -290,19 +240,6 @@ private:
     dedupv1::base::lookup_result ReadMetaInfo();
 
     /**
-     * Imports the container by moving all fingerprints in that
-     * container from the auxiliary index to the main index.
-     * Note: The container must be committed.
-     *
-     * The chunk index lock must NOT be hold when calling this method.
-     *
-     * @param container_id The ID if the container to be imported
-     * @param ec Error context that can be filled if case of special errors
-     * @return true iff ok, otherwise an error has occurred
-     */
-    virtual bool ImportContainer(uint64_t container_id, dedupv1::base::ErrorContext* ec);
-
-    /**
      * Enumeration to denote different result states when
      * trying to import containers.
      */
@@ -313,35 +250,7 @@ private:
                                 // !< IMPORT_BATCH_FINISHED
     };
 
-    /**
-     * Checks the commit state of the container and import it is possible.
-     *
-     * @return false if an error occurred, Some(true) if the importation has been done, Some(false) if the container could not be imported, but
-     * it was not an error.
-     */
-    dedupv1::base::Option<bool> DoImport(uint64_t container_id);
-
-    /**
-     * Tries to import a container into the chunk index
-     *
-     * @return
-     */
-    enum import_result TryImportContainer();
-
     enum import_result TryImportDirtyChunks(uint64_t* resume_handle);
-
-    /**
-     * Handles a directly replayed container commit event
-     */
-    bool HandleContainerCommit(const ContainerCommittedEventData& event_data);
-
-    /**
-     * Handled a failed container commit.
-     *
-     * @param event_data
-     * @return true iff ok, otherwise an error has occurred
-     */
-    bool HandleContainerCommitFailed(const ContainerCommitFailedEventData& event_data);
 protected:
 
     /**
@@ -382,20 +291,6 @@ protected:
      */
     void set_state(chunk_index_state new_state);
 
-    /**
-     *
-     * Note: We do not care about the version of the chunk index entry for the container item, it should only
-     * be some version of the item on disk when the method finishes.
-     *
-     * @param item
-     * @param ec
-     * @return true iff ok, otherwise an error has occurred
-     */
-    bool ImportContainerItem(const dedupv1::chunkstore::ContainerItem& item, dedupv1::base::ErrorContext* ec);
-
-    bool ImportContainerParallel(uint64_t container_id, const dedupv1::chunkstore::Container& container,
-                                 dedupv1::base::ErrorContext* ec);
-
 #ifdef DEDUPV1_CORE_TEST
 public:
 #endif
@@ -410,6 +305,9 @@ public:
      * no locking is used.
      */
     bool LoadContainerIntoCache(uint64_t container_id, dedupv1::base::ErrorContext* ec);
+
+    bool ImportContainer(uint64_t container_id, dedupv1::base::ErrorContext* ec);
+
 public:
     /**
      * Creates a new chunk index
@@ -496,13 +394,11 @@ public:
      * are fetched from the index.
      *
      * @param mapping chunk mapping with a filled fingerprint to look up.
-     * @param add_as_in_combat iff true, the chunk is marked as in-combat.
      * @param ec Error context that can be filled if case of special errors (can be NULL)
      *
      * @return
      */
     virtual dedupv1::base::lookup_result Lookup(ChunkMapping* mapping,
-                                                bool add_as_in_combat,
                                                 dedupv1::base::ErrorContext* ec);
 
     /**
@@ -545,15 +441,18 @@ public:
      * wrong, the gc must be changed.
      *
      * @param mapping
-     * @param ensure_persistence Ensures that the mapping is persistent on disk when the call returns (successfully). Otherwise
-     * the mapping is put as dirty item into the write-back cache and is written back eventually.
-     * @param pin iff true, the data is pinned to memory and should never be written back before the pin state is changed. Only
+     * @param ensure_persistence Ensures that the mapping is persistent on disk
+     * when the call returns (successfully). Otherwise
+     * the mapping is put as dirty item into the write-back cache and is written
+     * back eventually.
+     * @param pin iff true, the data is pinned to memory and should never be
+     * written back before the pin state is changed. Only
      * ensure_persistance or pin can be specified.
      * @param ec Error context that can be filled if case of special errors
      * @return true iff ok, otherwise an error has occurred
      */
-    virtual bool PutPersistentIndex(const ChunkMapping& mapping, bool ensure_persistence,
-                                    bool pin,
+    virtual bool PutPersistentIndex(const ChunkMapping& mapping,
+                                    bool ensure_persistence,
                                     dedupv1::base::ErrorContext* ec);
 
     /**
@@ -561,15 +460,11 @@ public:
      * It doesn't enforce the persistence of actual data of the mapping given, but the last written
      * version of the mapping with the given chunk fingerprint.
      *
-     * If the chunk is still pinned, PUT_KEEP with pinned = true is returned. For what the chunk index knows,
+     * If the chunk is still pinned, PUT_KEEP with pinned = true is returned.
+     * For what the chunk index knows,
      * this chunk has not been committed yet.
      */
-    virtual dedupv1::base::put_result EnsurePersistent(const ChunkMapping& mapping, bool* pinned);
-
-    /**
-     * Changes the pinning state of the chunk with the given fingerprint key.
-     */
-    virtual dedupv1::base::lookup_result ChangePinningState(const void* key, size_t key_size, bool new_pin_state);
+    virtual dedupv1::base::put_result EnsurePersistent(const ChunkMapping& mapping);
 
     virtual bool PersistStatistics(std::string prefix, dedupv1::PersistStatistics* ps);
 
@@ -598,21 +493,21 @@ public:
      */
     virtual std::string PrintProfile();
 
+    virtual bool LogReplayStateChange(const dedupv1::log::LogReplayStateChange& change);
+
     /**
      * Callback method that is called if a log
      * event should be replayed
      *
      * @param event_type type of the event
      * @param event_value value of the event.
-     * @param context context information about the event, e.g. the event log id or the replay mode
+     * @param context context information about the event, e.g. the event log
+     * id or the replay mode
      * @return true iff ok, otherwise an error has occurred
      */
-    virtual bool LogReplay(dedupv1::log::event_type event_type, const LogEventData& event_value,
+    virtual bool LogReplay(dedupv1::log::event_type event_type,
+                           const LogEventData& event_value,
                            const dedupv1::log::LogReplayContext& context);
-
-    bool FinishDirtyLogReplay();
-
-    virtual dedupv1::base::Option<bool> IsContainerImported(uint64_t container_id);
 
     /**
      * returns the log system
@@ -621,14 +516,15 @@ public:
     inline dedupv1::log::Log* log();
 
     /**
-     * Puts a new chunk into the chunk index. Usually the mapping is marked as dirty and not
+     * Puts a new chunk into the chunk index. Usually the mapping is marked as
+     * dirty and not
      * directly persistent on disk.
      *
      * @param mapping
      * @param ec Error context that can be filled if case of special errors
      * @return true iff ok, otherwise an error has occurred
      */
-    bool Put(const ChunkMapping& mapping, dedupv1::base::ErrorContext* ec);
+    virtual bool Put(const ChunkMapping& mapping, dedupv1::base::ErrorContext* ec);
 
     /**
      * Puts the chunk into the persistent index.
@@ -639,7 +535,7 @@ public:
      * @param ec Error context that can be filled if case of special errors
      * @return true iff ok, otherwise an error has occurred
      */
-    bool PutOverwrite(ChunkMapping& mapping, dedupv1::base::ErrorContext* ec);
+    virtual bool PutOverwrite(ChunkMapping& mapping, dedupv1::base::ErrorContext* ec);
 
     /**
      * Returns the number of persisting chunk index entries.
@@ -663,13 +559,6 @@ public:
     inline dedupv1::base::IndexIterator* CreatePersistentIterator();
 
     /**
-     * Checks that all indices are set correctly.
-     *
-     * @return true if persistent and chunk index are set, else false.
-     */
-    bool CheckIndeces();
-
-    /**
      * Put and possibly overwrites the chunk (mapping) to the given index.
      *
      * Note: Usually the PutOverwrite method should be used.
@@ -687,18 +576,6 @@ public:
                   dedupv1::base::ErrorContext* ec);
 
     /**
-     * Returns the container tracker of the chunk index
-     * @return
-     */
-    inline ContainerTracker* container_tracker();
-
-    /**
-     * throttles the system down by waiting for at most ms milliseconds if the hard limit
-     * size of the auxiliary index is reached.
-     */
-    dedupv1::base::Option<bool> Throttle(int thread_id, int thread_count);
-
-    /**
      * Imports all ready (aka committed) container into the persistent chunk index.
      *
      * This method is usually called during a writeback stop and depending on the actual situation
@@ -711,16 +588,6 @@ public:
      */
     inline ChunkLocks& chunk_locks();
 
-    /**
-     * returns the in-combat chunks data
-     */
-    inline ChunkIndexInCombats& in_combats();
-
-    /**
-     * If false, the chunk index would be full if we already consider the items currently in the auxiliary index
-     * In such situations, the system should stop accepting new data
-     */
-    bool IsAcceptingNewChunks();
 
     /**
      * @param it
@@ -728,10 +595,6 @@ public:
      * @return
      */
     dedupv1::base::lookup_result LookupNextIterator(dedupv1::base::IndexIterator* it, ChunkMapping* mapping);
-
-    bool dirty_import_finished() const {
-        return dirty_import_finished_;
-    }
 
     /**
      * Direct access to the underlying index data structure.
@@ -796,10 +659,6 @@ dedupv1::base::MutexLock* ChunkIndex::lock() {
     return &this->lock_;
 }
 
-ContainerTracker* ChunkIndex::container_tracker() {
-    return &this->container_tracker_;
-}
-
 ChunkIndex::Statistics* ChunkIndex::statistics() {
     return &this->stats_;
 }
@@ -844,10 +703,6 @@ inline size_t ChunkIndex::TestPersistentIndexAsDiskHashIndexMaxKeySize() {
 
 ChunkLocks& ChunkIndex::chunk_locks() {
     return chunk_locks_;
-}
-
-ChunkIndexInCombats& ChunkIndex::in_combats() {
-    return in_combats_;
 }
 
 }
