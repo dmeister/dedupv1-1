@@ -264,36 +264,6 @@ class SqliteIterator : public IndexIterator {
         friend class SqliteIndex;
 };
 
-/**
- * Cursor class for a sqlite-disk-btree.
- * This variant is used if the btree has only a single file
- *
- * Instances are created via the CreateCursor method.
- */
-class SingleFileSqliteCursor : public IndexCursor {
-        DISALLOW_COPY_AND_ASSIGN(SingleFileSqliteCursor);
-        sqlite3_stmt* cursor_stmt;
-        SqliteIndex* index;
-        sqlite3* db;
-
-        SingleFileSqliteCursor(SqliteIndex* index, sqlite3* db);
-    public:
-        virtual enum lookup_result First();
-        virtual enum lookup_result Next();
-        virtual enum lookup_result Last();
-        virtual enum lookup_result Jump(const void* key, size_t key_size);
-        virtual bool Remove();
-        virtual bool Get(void* key, size_t* key_size,
-                google::protobuf::Message* message);
-        virtual bool Put(const google::protobuf::Message& message);
-
-        virtual bool IsValidPosition();
-
-        virtual ~SingleFileSqliteCursor();
-
-        friend class SqliteIndex;
-};
-
 bool SqliteIndex::IsIntegerMode() const {
     return (this->max_key_size <= 8);
 }

@@ -448,13 +448,6 @@ class PersistentIndex : public Index {
         virtual uint64_t GetPersistentSize() = 0;
 
         /**
-         * Creates a new index cursor.
-         * @return a new cursor pointer or NULL if cursors are not
-         * supported or an error happened
-         */
-        virtual IndexCursor* CreateCursor();
-
-        /**
          * May lookup dirty data if the index has the write-back cache capability
          * Otherwise the normal lookup method is used
          */
@@ -567,92 +560,6 @@ class IndexIterator {
         virtual enum lookup_result Next(void* key, size_t* key_size,
                 google::protobuf::Message* message) = 0;
 
-};
-
-/**
- * A cursor is a much more complex access method than an iterator.
- * It allows jump, and allows modifying operations
- * like Put at the current cursor position and Remove the current
- * cursor position.
- *
- * The cursor position is not valid before a first call of
- * First(), Last() or Jump()
- */
-class IndexCursor {
-        DISALLOW_COPY_AND_ASSIGN(IndexCursor);
-    public:
-        /**
-         * Constructor
-         * @return
-         */
-        IndexCursor();
-
-        /**
-         * Destructor
-         * @return
-         */
-        virtual ~IndexCursor();
-
-        /**
-         * Sets the cursor to the first position
-         * @return
-         */
-        virtual enum lookup_result First() = 0;
-
-        /**
-         * Moves the cursor to the next position
-         * @return
-         */
-        virtual enum lookup_result Next() = 0;
-
-        /**
-         * Moves the cursor to the last position
-         * @return
-         */
-        virtual enum lookup_result Last() = 0;
-
-        /**
-         * Moves the cursor to the first position after the key
-         *
-         * @param key
-         * @param key_size
-         * @return
-         */
-        virtual enum lookup_result Jump(const void* key, size_t key_size) = 0;
-
-        /**
-         * If a cursor position is removed, the cursor is set to a new (next) position.
-         * However, if there are no other positions, the position is undefined.
-         *
-         * To check if the position is valid, a check using IsValidPosition() might be necessary.
-         * @return
-         */
-        virtual bool Remove() = 0;
-
-        /**
-         * Gets the key and the value at the current cursor position
-         *
-         * @param key
-         * @param key_size
-         * @param message
-         * @return
-         */
-        virtual bool Get(void* key, size_t* key_size,
-                google::protobuf::Message* message) = 0;
-
-        /**
-         * Updates the value at the current cursor position.
-         * @param message
-         * @return
-         */
-        virtual bool Put(const google::protobuf::Message& message) = 0;
-
-        /**
-         * Checks if the current cursor position is valid.
-         *
-         * @return
-         */
-        virtual bool IsValidPosition() = 0;
 };
 
 }

@@ -55,12 +55,6 @@ IndexIterator* Index::CreateIterator() {
     return NULL;
 }
 
-IndexCursor::IndexCursor() {
-}
-
-IndexCursor::~IndexCursor() {
-}
-
 IndexIterator::IndexIterator() {
 }
 
@@ -110,14 +104,6 @@ bool PersistentIndex::SetOption(const string& option_name, const string& option)
     }
     ERROR("Illegal option: " << option_name);
     return false;
-}
-
-bool PersistentIndex::SupportsCursor() {
-    return false;
-}
-
-IndexCursor* PersistentIndex::CreateCursor() {
-    return NULL;
 }
 
 bool Index::IsPersistent() {
