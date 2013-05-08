@@ -214,7 +214,9 @@ ssize_t File::Write(const void* data, size_t size) {
         if (errno == EINTR) {
             continue; // operation has been interrupted, try again
         }
-        ERROR("Write failed: " << path() << ", size " << size << ": " << strerror(errno));
+        ERROR("Write failed: " << path() <<
+            ", size " << size <<
+            ": " << strerror(errno));
         return bytes;
     }
     return bytes;
@@ -271,14 +273,18 @@ bool File::Sync() {
     return true;
 }
 
-ssize_t File::WriteSizedMessage(off_t offset, const ::google::protobuf::Message& message, size_t max_size,
+ssize_t File::WriteSizedMessage(off_t offset,
+    const ::google::protobuf::Message& message,
+    size_t max_size,
                                 bool checksum) {
     size_t value_size = message.ByteSize() + 32;
     byte value[value_size];
 
     Option<size_t> vs = SerializeSizedMessageCached(message, value, value_size, checksum);
     CHECK_RETURN(vs.valid(), -1, "Cannot serialize sized message");
-    CHECK_RETURN(vs.value() <= max_size, -1, "Serialized message is the large: size " << value_size << ", max size " << max_size);
+    CHECK_RETURN(vs.value() <= max_size, -1,
+        "Serialized message is the large: size " << value_size <<
+        ", max size " << max_size);
 
     if (Write(offset, value, vs.value()) != (ssize_t) vs.value()) {
         return -1;
@@ -286,7 +292,7 @@ ssize_t File::WriteSizedMessage(off_t offset, const ::google::protobuf::Message&
     return vs.value();
 }
 
-bool File::ReadSizedMessage(off_t offset, ::google::protobuf::Message* message, size_t max_size, bool checksum) {
+Option<size_t> File::ReadSizedMessage(off_t offset, ::google::protobuf::Message* message, size_t max_size, bool checksum) {
     byte value[max_size];
 
     ssize_t r = Read(offset, value, max_size);
@@ -297,12 +303,13 @@ bool File::ReadSizedMessage(off_t offset, ::google::protobuf::Message* message, 
         return false;
     }
 
-    CHECK(ParseSizedMessage(message, value, r, checksum).valid(), "Failed to parse sized message: " <<
+    Option<size_t> parse_result = ParseSizedMessage(message, value, r, checksum);
+    CHECK(parse_result.valid(), "Failed to parse sized message: " <<
         "path " << this->path_ <<
         ", offset " << offset <<
         ", max value size " << max_size <<
         ", value size " << r);
-    return true;
+    return parse_result;
 }
 
 File* File::FromFileDescriptor(int fd) {

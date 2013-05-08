@@ -108,7 +108,8 @@ bool FixedIndex::CheckFileSuperBlock(File* file) {
     DEBUG("Check super block: file " << file->path());
 
     FixedIndexMetaData super_data;
-    CHECK(file->ReadSizedMessage(0, &super_data, this->bucket_size, true), "Failed to read super block");
+    CHECK(file->ReadSizedMessage(0, &super_data, this->bucket_size, true).valid(),
+        "Failed to read super block");
 
     CHECK(super_data.width() == width, "Width changed: width " << super_data.width() << ", configured width " << width);
     CHECK(super_data.size() == size, "Size changed: size " << super_data.size() << ", configured size " << size);
@@ -234,12 +235,11 @@ lookup_result FixedIndex::ReadBucket(File* file, int64_t file_id, int64_t global
 
     ssize_t reads = 0;
     FixedIndexBucketData data;
-    {
         ProfileTimer disk_timer(this->disk_time);
-        if (!file->ReadSizedMessage(offset, &data, this->bucket_size, true)) {
+        if (!file->ReadSizedMessage(offset, &data, this->bucket_size, true).valid()) {
             return LOOKUP_ERROR;
         }
-    }
+        disk_timer.stop();
     TRACE("Read bucket " << file_id << ": offset " << offset << ", data " << data.ShortDebugString());
 
     if (!data.has_state()) {

@@ -284,7 +284,7 @@ bool DiskHashIndex::ReadDumpData() {
     Option<off_t> filesize = this->info_file_->GetSize();
     CHECK(filesize.valid(), "Failed to get the file size");
     DiskHashIndexLogfileData logfile_data;
-    CHECK(this->info_file_->ReadSizedMessage(0, &logfile_data, filesize.value(), crc_),
+    CHECK(this->info_file_->ReadSizedMessage(0, &logfile_data, filesize.value(), crc_).valid(),
         "Cannot read disk hash index index log data");
 
     DEBUG("Reading dump data: " << logfile_data.ShortDebugString());

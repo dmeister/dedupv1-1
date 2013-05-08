@@ -216,7 +216,7 @@ class File {
          * of the file, returns the number
          * of bytes read.
          */
-        bool ReadSizedMessage(off_t offset, ::google::protobuf::Message* message, size_t max_size, bool checksum);
+        dedupv1::base::Option<size_t> ReadSizedMessage(off_t offset, ::google::protobuf::Message* message, size_t max_size, bool checksum);
 
         /**
          * Writes data at the given offset.

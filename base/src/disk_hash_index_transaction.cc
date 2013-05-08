@@ -222,7 +222,7 @@ bool DiskHashIndexTransactionSystem::RestoreAreaIndex(File* file, int i) {
 
     off_t file_pos = i * this->page_size();
     DiskHashTransactionPageData page_data;
-    if (!file->ReadSizedMessage(file_pos, &page_data, this->page_size(), true)) {
+    if (!file->ReadSizedMessage(file_pos, &page_data, this->page_size(), true).valid()) {
         WARNING("Failed to read transaction page data: index " <<
             "index " << i <<
             " transaction area page size " << page_size() <<
