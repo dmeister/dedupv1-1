@@ -749,13 +749,9 @@ def clean_device(monitor, options, config):
         remove_file(value + "-wal")
         remove_file(value + "-shm")
 
-        # Remove the tc write-ahead log files if existing
-        remove_file(value + ".wal")
-
         # Special case for the detacher
         if key.endswith("volume-info.filename"):
             detaching_filename = value + "_detaching_state"
             remove_file(detaching_filename)
-            remove_file(detaching_filename + ".wal")
             remove_file(detaching_filename + "-wal")
             remove_file(detaching_filename + "-shm")
