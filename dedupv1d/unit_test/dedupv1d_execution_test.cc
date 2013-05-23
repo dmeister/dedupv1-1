@@ -137,10 +137,12 @@ protected:
         t.Start();
         sleep(2);
 
-        string write_result = RunThread(NewRunnable(dedupv1d_test_write, ds, 12, 0UL));
+        string write_result = RunThread(NewRunnable(dedupv1d_test_write, ds, 12, 
+              static_cast<uint64_t>(0)));
         CHECK(write_result.size() > 0,"Write thread error");
 
-        string write_result2 = RunThread(NewRunnable(dedupv1d_test_write, ds, 11, 0UL));
+        string write_result2 = RunThread(NewRunnable(dedupv1d_test_write, ds, 11, 
+              static_cast<uint64_t>(0)));
         CHECK(write_result2.size() > 0,"Write thread error");
 
         string read_result = RunThread(NewRunnable(dedupv1d_test_read, ds));
@@ -159,7 +161,8 @@ protected:
         t_run.Start();
         sleep(2);
 
-        string write_result = RunThread(NewRunnable(dedupv1d_test_write, ds, 10, 0UL));
+        string write_result = RunThread(NewRunnable(dedupv1d_test_write, ds, 10, 
+              static_cast<uint64_t>(0)));
         CHECK(write_result.size() > 0,"Write thread error");
 
         CHECK(ds->Shutdown(dedupv1::StopContext::FastStopContext()), "Failed to shutdown dedupv1");
@@ -194,7 +197,8 @@ protected:
         t.Start();
         sleep(2);
 
-        string write_result = RunThread(NewRunnable(dedupv1d_test_write, ds, 9, 0UL));
+        string write_result = RunThread(NewRunnable(dedupv1d_test_write, ds, 9, 
+              static_cast<uint64_t>(0)));
         CHECK(write_result.size() > 0,"Write thread error");
 
         string read_result = RunThread(NewRunnable(dedupv1d_test_read, ds));
@@ -216,7 +220,8 @@ protected:
         sleep(2);
 
         std::list<std::string> fp_write =
-            RunThread(NewRunnable(dedupv1d_test_write_large, ds, 8, 0UL));
+            RunThread(NewRunnable(dedupv1d_test_write_large, ds, 8, 
+                  static_cast<uint64_t>(0)));
         CHECK(fp_write.size() > 1, "Write thread error");
         DEBUG("Finished writing");
         sleep(2);
@@ -237,7 +242,8 @@ protected:
         t.Start();
         sleep(2);
 
-        string write_result = RunThread(NewRunnable(dedupv1d_test_write_2vol, ds, 7, 0UL));
+        string write_result = RunThread(NewRunnable(dedupv1d_test_write_2vol, ds, 7, 
+              static_cast<uint64_t>(0)));
         CHECK(write_result.size() > 0,"Write thread error");
 
         CHECK(ds->Shutdown(dedupv1::StopContext::FastStopContext()), "Failed to shutdown dedupv1");
@@ -397,11 +403,12 @@ TEST_P(Dedupv1dExecutionTest, WriteOffsetWriteRead) {
     t.Start();
     sleep(2);
 
-    string write_result = RunThread(NewRunnable(dedupv1d_test_write, ds, 6, 0UL));
+    string write_result = RunThread(NewRunnable(dedupv1d_test_write, ds, 6, 
+          static_cast<uint64_t>(0)));
     ASSERT_TRUE(write_result.size() > 0) << "Write thread error";
 
     string write_result2 = RunThread(NewRunnable(dedupv1d_test_write, ds, 6,
-            4UL * ds->dedup_system()->block_size()));
+            static_cast<uint64_t>(4 * ds->dedup_system()->block_size())));
     ASSERT_TRUE(write_result2.size() > 0) << "Write thread error";
 
     string read_result = RunThread(NewRunnable(dedupv1d_test_read, ds));
@@ -448,7 +455,8 @@ TEST_P(Dedupv1dExecutionTest, WriteOverwriteWhileIdle) {
     dedupv1::base::ThreadUtil::Sleep(2, dedupv1::base::timeunit::SECONDS);
 
     std::list<std::string> fp_write =
-        RunThread(NewRunnable(dedupv1d_test_write_large, ds, 5, 0UL));
+        RunThread(NewRunnable(dedupv1d_test_write_large, ds, 5, 
+              static_cast<uint64_t>(0)));
     ASSERT_TRUE(fp_write.size() > 0) << "Write thread error";
 
     dedupv1::base::ThreadUtil::Sleep(2, dedupv1::base::timeunit::SECONDS);
@@ -456,7 +464,8 @@ TEST_P(Dedupv1dExecutionTest, WriteOverwriteWhileIdle) {
     ASSERT_TRUE(ds->dedup_system()->idle_detector()->ForceIdle(true));
 
     for (int i = 0; i < 16; i++) {
-        fp_write = RunThread(NewRunnable(dedupv1d_test_write_large, ds, 4, 0UL));
+        fp_write = RunThread(NewRunnable(dedupv1d_test_write_large, ds, 4, 
+              static_cast<uint64_t>(0)));
         ASSERT_TRUE(fp_write.size() > 0) << "Write thread error";
 
         dedupv1::base::ThreadUtil::Sleep(4, dedupv1::base::timeunit::SECONDS);
@@ -496,7 +505,8 @@ TEST_P(Dedupv1dExecutionTest, WriteReadCloseRead) {
     sleep(2);
 
     std::list<std::string> fp_write1 =
-        RunThread(NewRunnable(dedupv1d_test_write_large, ds, 3, 0UL));
+        RunThread(NewRunnable(dedupv1d_test_write_large, ds, 3, 
+              static_cast<uint64_t>(0)));
     ASSERT_TRUE(fp_write1.size() > 0) << "Write thread error";
 
     sleep(2);
@@ -542,7 +552,8 @@ TEST_P(Dedupv1dExecutionTest, WriteReadCloseReadWriteRead) {
     sleep(2);
 
     std::list<std::string> fp_write1 =
-        RunThread(NewRunnable(dedupv1d_test_write_large,ds, 2, 0UL));
+        RunThread(NewRunnable(dedupv1d_test_write_large,ds, 2, 
+              static_cast<uint64_t>(0)));
     ASSERT_TRUE(fp_write1.size() > 0) << "Write thread error";
     INFO("Write 1 finished");
 
@@ -577,7 +588,8 @@ TEST_P(Dedupv1dExecutionTest, WriteReadCloseReadWriteRead) {
 
     ASSERT_TRUE(fp_read2 == fp_read1);
 
-    std::list<std::string> fp_write2 = RunThread(NewRunnable(dedupv1d_test_write_large, ds, 1, 0UL));
+    std::list<std::string> fp_write2 = RunThread(NewRunnable(dedupv1d_test_write_large, ds, 1, 
+          static_cast<uint64_t>(0)));
     ASSERT_TRUE(fp_write2.size() > 0) << "Write thread error";
     INFO("Write 2 finished");
 
