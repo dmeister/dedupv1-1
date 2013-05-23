@@ -1001,7 +1001,7 @@ bool FixedLog::ReplayStart(enum replay_mode replay_mode,
 
     if (commit_replay_event) {
         spin_mutex::scoped_lock l(this->lock_);
-        LogReplayStateChange change(replay_mode, true,
+        LogReplayStateChangeEvent change(replay_mode, true,
             replay_id_, log_id_, true, is_full_replay);
         l.release();
 
@@ -1238,7 +1238,7 @@ bool FixedLog::ReplayStop(enum replay_mode replay_mode,
 
     if (commit_replay_event) {
         spin_mutex::scoped_lock l(this->lock_);
-        LogReplayStateChange change(replay_mode, false, replay_id_, log_id_,
+        LogReplayStateChangeEvent change(replay_mode, false, replay_id_, log_id_,
             success, is_full_log_replay);
         l.release(); // should not call CommitEvent with lock held
 

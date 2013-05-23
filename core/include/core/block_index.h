@@ -22,6 +22,7 @@
 #define BLOCK_INDEX_H__
 
 #include <core/dedup.h>
+#include <core/log_consumer.h>
 #include <core/log.h>
 #include <base/index.h>
 #include <core/container_tracker.h>
@@ -384,7 +385,7 @@ class BlockIndex : public dedupv1::log::LogConsumer, public dedupv1::StatisticPr
      */
     enum read_result ReadBlockInfoFromIndex(BlockMapping* block_mappings);
 
-    virtual bool LogReplayStateChange(const dedupv1::log::LogReplayStateChange& change);
+    virtual bool LogReplayStateChange(const dedupv1::log::LogReplayStateChangeEvent& change);
 
     /**
      * Replays a log event.

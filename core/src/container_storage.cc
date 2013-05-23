@@ -3694,7 +3694,7 @@ bool ContainerStorage::LogReplay(dedupv1::log::event_type event_type,
     return true;
 }
 
-bool ContainerStorage::LogReplayStateChange(const dedupv1::log::LogReplayStateChange & change)
+bool ContainerStorage::LogReplayStateChange(const dedupv1::log::LogReplayStateChangeEvent & change)
 {
     if (!change.is_replaying()) {
         CHECK(DumpMetaInfo(), "Log Write Failed");

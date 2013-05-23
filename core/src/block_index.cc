@@ -1325,7 +1325,7 @@ bool BlockIndex::LogReplayBlockMappingWrittenBackground(dedupv1::log::replay_mod
     return true;
 }
 bool BlockIndex::LogReplayStateChange(
-    const dedupv1::log::LogReplayStateChange& change) {
+    const dedupv1::log::LogReplayStateChangeEvent& change) {
   is_replaying_ = change.is_replaying();
   is_full_log_replay_  = change.is_full_log_replay();
   return true;

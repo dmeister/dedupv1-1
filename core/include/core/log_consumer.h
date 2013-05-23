@@ -237,7 +237,7 @@ public:
 
 };
 
-class LogReplayStateChange
+class LogReplayStateChangeEvent
 {
 private:
     enum replay_mode replay_mode_;
@@ -247,7 +247,7 @@ private:
     bool success_;
     bool is_full_log_replay_;
 public:
-    LogReplayStateChange(enum replay_mode replay_mode,
+    LogReplayStateChangeEvent(enum replay_mode replay_mode,
                          bool is_replaying,
                          uint64_t replay_id,
                          uint64_t log_id,
@@ -311,7 +311,7 @@ public:
      */
     virtual ~LogConsumer();
 
-    virtual bool LogReplayStateChange(const LogReplayStateChange& change);
+    virtual bool LogReplayStateChange(const LogReplayStateChangeEvent& change);
 
     /**
      * Called when a log entry is replayed.

@@ -141,7 +141,7 @@ Log::~Log() {
     }
 }
 
-bool Log::PublishLogStateChange(const LogReplayStateChange& change) {
+bool Log::PublishLogStateChange(const LogReplayStateChangeEvent& change) {
     bool success = true;
 
     spin_rw_mutex::scoped_lock l(this->consumer_list_lock_, false);

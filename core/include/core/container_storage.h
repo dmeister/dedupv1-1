@@ -792,7 +792,7 @@ public:
 
     inline ContainerStorageBackgroundCommitter* background_committer();
 
-    virtual bool LogReplayStateChange(const dedupv1::log::LogReplayStateChange& change);
+    virtual bool LogReplayStateChange(const dedupv1::log::LogReplayStateChangeEvent& change);
 
     /**
      *

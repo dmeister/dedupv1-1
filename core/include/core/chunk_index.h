@@ -493,7 +493,7 @@ public:
      */
     virtual std::string PrintProfile();
 
-    virtual bool LogReplayStateChange(const dedupv1::log::LogReplayStateChange& change);
+    virtual bool LogReplayStateChange(const dedupv1::log::LogReplayStateChangeEvent& change);
 
     /**
      * Callback method that is called if a log

@@ -419,7 +419,7 @@ class Log: public dedupv1::StatisticProvider {
     virtual void ClearData();
 #endif
 protected:
-    bool PublishLogStateChange(const LogReplayStateChange& change);
+    bool PublishLogStateChange(const LogReplayStateChangeEvent& change);
 
     /**
      * Publish the event to the log consumers.

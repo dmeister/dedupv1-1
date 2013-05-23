@@ -38,7 +38,7 @@ LogConsumer::~LogConsumer()
 {
 }
 
-bool LogConsumer::LogReplayStateChange(const dedupv1::log::LogReplayStateChange& change)
+bool LogConsumer::LogReplayStateChange(const dedupv1::log::LogReplayStateChangeEvent& change)
 {
     return true;
 }

@@ -809,7 +809,7 @@ enum put_result ChunkIndex::EnsurePersistent(const ChunkMapping &mapping) {
     }
     return pr;
 }
-bool ChunkIndex::LogReplayStateChange(const dedupv1::log::LogReplayStateChange& change) {
+bool ChunkIndex::LogReplayStateChange(const dedupv1::log::LogReplayStateChangeEvent& change) {
     if (!change.is_replaying()) {
         is_replaying_ = false;
         CHECK(DumpMetaInfo(), "Failed to dump chunk index meta data");
