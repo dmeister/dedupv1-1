@@ -404,11 +404,11 @@ bool LeveldbIndex::LazyStoreItemCount(uint64_t version_count, bool force) {
     if (force || (version_count % lazy_item_count_persistent_interval_) == 0) {
         // persist the item count
         Slice key_slice(kItemCountKeyString);
-        Slice value_slice(dedupv1::base::strutil::ToString(item_count_));
+        string value_string = dedupv1::base::strutil::ToString(item_count_);
         WriteOptions options;
         options.sync = true;
 
-        Status s = db_->Put(options, key_slice, value_slice);
+        Status s = db_->Put(options, key_slice, Slice(value_string));
         if (!s.ok()) {
             ERROR("Failed to persist the lazy item count: " << s.ToString());
             return false;
